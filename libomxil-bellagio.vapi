@@ -7,10 +7,7 @@ namespace Omx {
         Flush,
         PortDisable,
         PortEnable,
-        MarkBuffer,
-        KhronosExtensions,
-        VendorStartUnused,
-        Max;
+        MarkBuffer;
         
         public string to_string() {
             switch(this) {
@@ -24,12 +21,6 @@ namespace Omx {
                     return "OMX.Command.PortEnable";
                 case MarkBuffer:
                     return "OMX.Command.MarkBuffer";
-                case KhronosExtensions:
-                    return "OMX.Command.KhronosExtensions";
-                case VendorStartUnused:
-                    return "OMX.Command.VendorStartUnused";
-                case Max:
-                    return "OMX.Command.Max";
                 default:
                     return "(unknown)";
             }
@@ -43,10 +34,7 @@ namespace Omx {
         Idle,
         Executing,
         Pause,
-        WaitForResources,
-        KhronosExtensions,
-        VendorStartUnused,
-        Max;
+        WaitForResources;
 
         public string to_string() {
             switch(this) {
@@ -62,12 +50,6 @@ namespace Omx {
                     return "OMX.State.Pause";
                 case WaitForResources:
                     return "OMX.State.WaitForResources";
-                case KhronosExtensions:
-                    return "OMX.State.KhronosExtensions";
-                case VendorStartUnused:
-                    return "OMX.State.VendorStartUnused";
-                case Max:
-                    return "OMX.State.Max";
                 default:
                     return "(unknown)";
             }
@@ -113,10 +95,7 @@ namespace Omx {
         ContentPipeOpenFailed,
         ContentPipeCreationFailed,
         SeperateTablesUsed,
-        TunnelingUnsupported,
-        KhronosExtensions,
-        VendorStartUnused,
-        Max;
+        TunnelingUnsupported;
         
         public string to_string() {
             switch(this) {
@@ -196,12 +175,6 @@ namespace Omx {
                     return "OMX.Error.SeperateTablesUsed";
                 case TunnelingUnsupported:
                     return "OMX.Error.TunnelingUnsupported";
-                case KhronosExtensions:
-                    return "OMX.Error.KhronosExtensions";
-                case VendorStartUnused:
-                    return "OMX.Error.VendorStartUnused";
-                case Max:
-                    return "OMX.Error.Max";
                 default:
                     return "(unknown)";
             }
@@ -224,7 +197,7 @@ namespace Omx {
     [CCode (cname="OMX_BUFFERHEADERTYPE", default_value="NULL", ref_function = "", unref_function = "")]
     public class BufferHeader {
         [CCode (cname="nSize")]
-        public uint32 size;
+        public ulong size;
 
         [CCode (cname="nVersion")]
         public Version version;
@@ -278,7 +251,7 @@ namespace Omx {
     [CCode (cname="OMX_PORT_PARAM_TYPE")]
     public struct Param {
         [CCode (cname="nSize")]
-        uint32 size;
+        ulong size;
 
         [CCode (cname="nVersion")]
         Version version;
@@ -300,10 +273,7 @@ namespace Omx {
         ResourcesAcquired,
         ComponentResumed,
         DynamicResourcesAvailable,
-        PortFormatDetected,
-        KhronosExtensions,
-        VendorStartUnused,
-        Max;
+        PortFormatDetected;
 
         public string to_string() {
             switch(this) {
@@ -325,12 +295,6 @@ namespace Omx {
                     return "OMX.Event.DynamicResourcesAvailable";
                 case PortFormatDetected:
                     return "OMX.Event.PortFormatDetected";
-                case KhronosExtensions:
-                    return "OMX.Event.KhronosExtensions";
-                case VendorStartUnused:
-                    return "OMX.Event.VendorStartUnused";
-                case Max:
-                    return "OMX.Event.Max";
                 default:
                     return "(unknown)";
             }
@@ -371,10 +335,7 @@ namespace Omx {
     public enum BufferSupplier {
         Unspecified,
         Input,
-        Output,
-        KhronosExtensions,
-        VendorStartUnused,
-        Max
+        Output;
     }
 
     [Flags]
@@ -441,8 +402,19 @@ namespace Omx {
     [CCode (cname="OMX_DIRTYPE", cprefix="OMX_Dir")]
     public enum Dir {
         Input,
-        Output,
-        Max
+        Output
+    }
+    
+    [CCode (cname="OMX_ENDIANTYPE", cprefix="OMX_Endian")]
+    enum Endian {
+        Big,
+        Little
+    }
+
+    [CCode (cname="OMX_NUMERICALDATATYPE", cprefix="OMX_NumericalData")]
+    enum NumericalData {
+        Signed,
+        Unsigned
     }
 
     [CCode (cname="OMX_INDEXTYPE", cprefix="OMX_Index")]
@@ -616,13 +588,17 @@ namespace Omx {
         ConfigTimeMediaTimeRequest,
         ConfigTimeClientStartTime,
         ConfigTimePosition,
-        ConfigTimeSeekMode,
-
-        KhronosExtensions,
-        VendorStartUnused,
-        Max
+        ConfigTimeSeekMode
     }
 
+    namespace Native {
+        [SimpleType]
+        [CCode (cname="OMX_NATIVE_DEVICETYPE", default_value="NULL")]
+        struct DeviceType {
+        }
+    }
+
+    [CCode (cheader_filename="OMX_Audio.h")]
     namespace Audio {
         [CCode (cname="OMX_AUDIO_CODINGTYPE", cprefix="OMX_AUDIO_Coding")]
         enum Coding {
@@ -653,18 +629,301 @@ namespace Omx {
             VORBIS,
             WMA,
             RA,
-            MIDI,
-            KhronosExtensions,
-            VendorStartUnused,
-            Max
+            MIDI
         }
-    }
+
+        [CCode (cname="OMX_AUDIO_PORTDEFINITIONTYPE")]
+        struct PortDefinition {
+            [CCode (cname="cMIMEType")]
+            string mime_type;
+            
+            [CCode (cname="pNativeRender")]
+            Native.DeviceType native_render;
+            
+            [CCode (cname="bFlagErrorConcealment")]
+            bool flag_error_concealment;
+            
+            [CCode (cname="eEncoding")]
+            Coding encoding;
+        }
+        
+        namespace Param {
+            [CCode (cname="OMX_AUDIO_PARAM_PORTFORMATTYPE")]
+            struct PortFormat {
+                [CCode (cname="nSize")]
+                ulong size;
+                
+                [CCode (cname="nVersion")]
+                Version version;
+                
+                [CCode (cname="PortIndex")]
+                uint32 port_index;
+                
+                [CCode (cname="Index")]
+                uint32 index;
+                
+                [CCode (cname="eEncoding")]
+                Coding encoding;
+            }
+            
+            [CCode (cname="OMX_AUDIO_PARAM_PCMMODETYPE")]
+            struct PcmMode {
+                [CCode (cname="nSize")]
+                ulong size;
+                
+                [CCode (cname="nVersion")]
+                Version version;
+                
+                [CCode (cname="nPortIndex")]
+                uint32 port_index;
+                
+                [CCode (cname="nChannels")]
+                uint32 channels;
+                
+                [CCode (cname="eNumData")]
+                NumericalData num_data;
+                
+                [CCode (cname="eEndian")]
+                Endian endian;
+                
+                [CCode (cname="bInterleaved")]
+                bool interleaved;
+                
+                [CCode (cname="nBitPerSample")]
+                uint32 bit_per_sample;
+                
+                [CCode (cname="nSamplingRate")]
+                uint32 sampling_rate;
+                
+                [CCode (cname="ePCMMode")]
+                Audio.PcmMode pcm_mode;
+                
+                [CCode (cname="eChannelMapping")]
+                Channel[] channel_mapping;
+            }
+
+            [CCode (cname="OMX_AUDIO_PARAM_MP3TYPE")]
+            struct Mp3 {
+                [CCode (cname="nSize")]
+                ulong size;
+                
+                [CCode (cname="nVersion")]
+                Version version;
+                
+                [CCode (cname="nPortIndex")]
+                uint32 port_index;
+                
+                [CCode (cname="nChannels")]
+                uint32 channels;
+                
+                [CCode (cname="nBitRate")]
+                uint32 bit_Rate;
+                
+                [CCode (cname="nSampleRate")]
+                uint32 sample_rate;
+                
+                [CCode (cname="nAudioBandWidth")]
+                uint32 audio_band_width;
+                
+                [CCode (cname="eChannelMode")]
+                ChannelMode channel_mode;
+                
+                [CCode (cname="eFormat")]
+                Audio.Mp3StreamFormat format;
+            }
+
+            [CCode (cname="OMX_AUDIO_PARAM_AACPROFILETYPE")]
+            struct AacProfile {
+                [CCode (cname="nSize")]
+                ulong size;
+                
+                [CCode (cname="nVersion")]
+                Version version;
+                
+                [CCode (cname="nPortIndex")]
+                uint32 port_index;
+                
+                [CCode (cname="nChannels")]
+                uint32 channels;
+                
+                [CCode (cname="nSampleRate")]
+                uint32 sample_rate;
+                
+                [CCode (cname="nBitRate")]
+                uint32 bit_Rate;
+                
+                [CCode (cname="nAudioBandWidth")]
+                uint32 audio_band_width;
+                
+                [CCode (cname="nFrameLength")]
+                uint32 frame_length;
+                
+                [CCode (cname="nAACtools")]
+                uint32 aac_tools;
+                
+                [CCode (cname="nAACERtools")]
+                uint32 aac_er_tools;
+                
+                [CCode (cname="eAACProfile")]
+                Audio.AacProfile aac_profile;
+                
+                [CCode (cname="eAACStreamFormat")]
+                AacStreamFormat aac_stream_format;
+                
+                [CCode (cname="eChannelMode")]
+                ChannelMode channel_mode;
+            }
+
+            [CCode (cname="OMX_AUDIO_PARAM_VORBISTYPE")]
+            struct Vorbis {
+                [CCode (cname="nSize")]
+                ulong size;
+                
+                [CCode (cname="nVersion")]
+                Version version;
+                
+                [CCode (cname="nPortIndex")]
+                uint32 port_index;
+                
+                [CCode (cname="nChannels")]
+                uint32 channels;
+                
+                [CCode (cname="nBitRate")]
+                uint32 bit_rate;
+                
+                [CCode (cname="nMaxBitRate")]
+                uint32 max_bit_rate;
+                
+                [CCode (cname="nSampleRate")]
+                uint32 sample_rate;
+                
+                [CCode (cname="nAudioBandWidth")]
+                uint32 audio_band_width;
+                
+                [CCode (cname="nQuality")]
+                int32 quality;
+                
+                [CCode (cname="bManaged")]
+                bool managed;
+                
+                [CCode (cname="bDownmix")]
+                bool downmix;
+            }
+            
+        } //ns Param
+
+        [CCode (cname="OMX_AUDIO_PCMMODETYPE", cprefix="OMX_AUDIO_PCMMode")]
+        enum PcmMode { 
+            Linear,
+            ALaw,
+            MULaw
+        }
+
+        [CCode (cname="OMX_AUDIO_MAXCHANNELS")]
+        const int MAX_CHANNELS;
+
+        [CCode (cname="OMX_AUDIO_CHANNELTYPE", cprefix="OMX_AUDIO_Channel")]
+        enum Channel {
+            None,
+            LF,
+            RF,
+            CF,
+            LS,
+            RS,
+            LFE,
+            CS,
+            LR,
+            RR
+        }
+
+        [CCode (cname="OMX_AUDIO_CHANNELMODETYPE", cprefix="OMX_AUDIO_ChannelMode")]
+        enum ChannelMode {
+            Stereo,
+            JointStereo,
+            Dual,
+            Mono
+        }
+
+        [CCode (cname="OMX_AUDIO_MP3STREAMFORMATTYPE", cprefix="OMX_AUDIO_MP3StreamFormat")]
+        enum Mp3StreamFormat {
+            MP1Layer3,
+            MP2Layer3,
+            MP2_5Layer3
+        }
+
+        [CCode (name="OMX_AUDIO_AACSTREAMFORMATTYPE", cprefix="OMX_AUDIO_AACStreamFormat")]
+        enum AacStreamFormat {
+           MP2ADTS,
+           MP4ADTS,
+           MP4LOAS,
+           MP4LATM,
+           ADIF,
+           MP4FF,
+           RAW
+        }
+
+        [CCode (name="OMX_AUDIO_AACPROFILETYPE", cprefix="OMX_AUDIO_AACObject")]
+        enum AacProfile {
+          Null,
+          Main,
+          LC,
+          SSR,
+          LTP,
+          HE,
+          Scalable,
+          ERLC,
+          LD,
+          HE_PS
+        }
+
+
+        [Flags]
+        [CCode (cprefix="OMX_AUDIO_AACTool")]
+        public enum AacTool {
+            None,
+            MS,
+            IS,
+            TNS,
+            PNS,
+            LTP
+        }
+
+        [Flags]
+        [CCode (cprefix="OMX_AUDIO_AACER")]
+        public enum AacEr {
+            None,
+            VCB11,
+            RVLC,
+            HCR,
+            All
+        }
+
+        [CCode (cname="OMX_AUDIO_WMAFORMATTYPE", cprefix="OMX_AUDIO_WMAFormat")]
+        enum WmaFormat {
+          Unused,
+          [CCode (cname="OMX_AUDIO_WMAFORMATTYPE7")]
+          V7,
+          [CCode (cname="OMX_AUDIO_WMAFORMATTYPE8")]
+          V8,
+          [CCode (cname="OMX_AUDIO_WMAFORMATTYPE9")]
+          V9
+        }
+
+        [CCode (cname="OMX_AUDIO_WMAPROFILETYPE", cprefix="OMX_AUDIO_WMAProfile")]
+        enum WmaProfile {
+          Unused,
+          L1,
+          L2,
+          L3
+        }
+
+    } //ns Audio
 
     namespace Video {
-    }
+    } //ns Video
 
     namespace Image {
-    }
+    } //ns Image
 
     public struct VersionDetail {
         [CCode (cname="nVersionMajor")]
