@@ -233,13 +233,13 @@ namespace Omx {
         public char[] buffer;
 
         [CCode (cname="nAllocLen")]
-        public uint32 alloc_len;
+        public size_t alloc_len;
 
         [CCode (cname="nFilledLen")]
-        public uint32 filled_len;
+        public size_t filled_len;
 
         [CCode (cname="nOffset")]
-        public uint32 offset;
+        public size_t offset;
 
         [CCode (cname="pAppPrivate")]
         public void *app_private;

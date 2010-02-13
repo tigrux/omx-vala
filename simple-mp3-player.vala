@@ -14,9 +14,9 @@ class SimpleMp3Player: Object {
     FileStream fd;
     bool eos_found;
 
-    int n_buffers = 2;
-    int buffer_out_size = 4*8192;
-    int buffer_in_size = 4096;
+    const int n_buffers = 2;
+    const int buffer_out_size = 4*8192;
+    const int buffer_in_size = 4096;
 
     const Omx.Callback audiodec_callbacks = {
         audiodec_event_handler,
@@ -64,15 +64,13 @@ class SimpleMp3Player: Object {
     Omx.Error audiodec_empty_buffer_done(
             Omx.Handle component,
             Omx.BufferHeader buffer) {
-        int data_read;
-        data_read = fd.read(buffer.buffer);
-        buffer.filled_len = data_read;
+        var data_read = fd.read(buffer.buffer);
         buffer.offset = 0;
 
         if(eos_found)
             return Omx.Error.None;
 
-        if(data_read <= 0) {
+        if(data_read == 0) {
             buffer.filled_len = 0;
             buffer.flags |= Omx.BufferFlag.EOS;
             eos_found = true;
@@ -170,8 +168,8 @@ class SimpleMp3Player: Object {
         for(int i=0; i<n_buffers; i++)
             Omx.try_run(
                 audiosink_handle.use_buffer(
-                    out in_buffer_audiosink[i], Omx.Dir.Input,
-                    null, buffer_out_size, out_buffer_audiodec[i].buffer));
+                    out in_buffer_audiosink[i], Omx.Dir.Input, null,
+                    buffer_out_size, out_buffer_audiodec[i].buffer));
         
         audiosink_sem.down();
     }
@@ -192,7 +190,7 @@ class SimpleMp3Player: Object {
         fd = FileStream.open(filename, "rb");
 
         for(int i=0; i<n_buffers; i++) {
-            int data_read = fd.read(in_buffer_audiodec[i].buffer);
+            var data_read = fd.read(in_buffer_audiodec[i].buffer);
             in_buffer_audiodec[i].filled_len = data_read;
             in_buffer_audiodec[i].offset = 0;
             Omx.try_run(
@@ -224,7 +222,6 @@ class SimpleMp3Player: Object {
         Omx.try_run(
             audiodec_handle.send_command(
                 Omx.Command.StateSet, Omx.State.Loaded, null));
-        
         Omx.try_run(
             audiosink_handle.send_command(
                  Omx.Command.StateSet, Omx.State.Loaded, null));
@@ -240,6 +237,7 @@ class SimpleMp3Player: Object {
                 audiosink_handle.free_buffer(
                     Omx.Dir.Input, in_buffer_audiosink[i]));
         }
+
         audiodec_sem.down();
         audiosink_sem.down();
     }
@@ -270,6 +268,7 @@ int main(string[] args) {
         print("%s <file.mp3>\n", args[0]);
         return 1;
     }
+
     var decoder = new SimpleMp3Player();
     try {
         decoder.decode(args[1]);

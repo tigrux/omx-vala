@@ -11,4 +11,4 @@ simple-mp3-player.c: simple-mp3-player.vala
 	touch $@
 
 clean:
-	rm -f *.o *~ simple-mp3-player
+	rm -f *.o *.c *~ simple-mp3-player
