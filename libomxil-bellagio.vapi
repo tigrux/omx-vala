@@ -417,6 +417,18 @@ namespace Omx {
         Unsigned
     }
 
+    [CCode (cname="OMX_BS32")]
+    struct BS32 {
+        [CCode (cname="nValue")]
+        uint32 value;
+        
+        [CCode (cname="nMin")]
+        uint32 min;
+        
+        [CCode (cname="nMax")]
+        uint32 max;
+    }
+
     [CCode (cname="OMX_INDEXTYPE", cprefix="OMX_Index")]
     public enum Index {
         ComponentStartUnused,
@@ -1021,6 +1033,103 @@ namespace Omx {
             [CCode (cname="OMX_AUDIO_AMRDTXasEFR")]
             asEFR
         }
+        
+        namespace Config {
+
+            [CCode (cname="OMX_AUDIO_CONFIG_VOLUMETYPE")]
+            struct Volume {
+                [CCode (cname="nSize")]
+                ulong size;
+                
+                [CCode (cname="nVersion")]
+                Version version;
+                
+                [CCode (cname="nPortIndex")]
+                uint32 port_index;
+                
+                [CCode (cname="bLinear")]
+                bool linear;
+                
+                [CCode (cname="sVolume")]
+                BS32 volume;
+            }
+
+            [CCode (cname="OMX_AUDIO_CONFIG_CHANNELVOLUMETYPE")]
+            struct ChannelVolume {
+                [CCode (cname="nSize")]
+                ulong size;
+                
+                [CCode (cname="nVersion")]
+                Version Version;
+                
+                [CCode (cname="nPortIndex")]
+                uint32 port_index;
+                
+                [CCode (cname="nChannel")]
+                uint32 channel;
+                
+                [CCode (cname="bLinear")]
+                bool linear;
+                
+                [CCode (cname="sVolume")]
+                BS32 volume;
+                
+                [CCode (cname="bIsMIDI")]
+                bool is_midi;
+            }
+            
+            [CCode (cname="OMX_AUDIO_CONFIG_BALANCETYPE")]
+            struct Balance {
+                [CCode (cname="nSize")]
+                ulong size;
+                
+                [CCode (cname="nVersion")]
+                Version version;
+                
+                [CCode (cname="nPortIndex")]
+                uint32 port_index;
+                
+                [CCode (cname="nBalance")]
+                int32 balance;
+            }
+            
+
+            [CCode (cname="OMX_AUDIO_CONFIG_MUTETYPE")]
+            struct Mute {
+                [CCode (cname="nSize")]
+                ulong size;
+                
+                [CCode (cname="nVersion")]
+                Version version;
+                
+                [CCode (cname="nPortIndex")]
+                uint32 port_index;
+                
+                [CCode (cname="bMute")]
+                bool mute;
+            }
+            
+            [CCode (cname="OMX_AUDIO_CONFIG_CHANNELMUTETYPE")]
+            struct ChannelMute {
+                [CCode (cname="nSize")]
+                ulong size;
+                
+                [CCode (cname="nVersion")]
+                Version nVersion;
+                
+                [CCode (cname="nPortIndex")]
+                uint32 port_index;
+                
+                [CCode (cname="nChannel")]
+                uint32 channel;
+                
+                [CCode (cname="bMute")]
+                bool mute;
+                
+                [CCode (cname="bIsMIDI")]
+                bool is_midi;
+            }            
+        } //ns Config
     } //ns Audio
 
     namespace Video {
