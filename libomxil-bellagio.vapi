@@ -248,19 +248,21 @@ namespace Omx {
         public uint32 input_port_index;
     }
 
-    [CCode (cname="OMX_PORT_PARAM_TYPE")]
-    public struct Param {
-        [CCode (cname="nSize")]
-        ulong size;
+    namespace Port {
+        [CCode (cname="OMX_PORT_PARAM_TYPE")]
+        public struct Param {
+            [CCode (cname="nSize")]
+            ulong size;
 
-        [CCode (cname="nVersion")]
-        Version version;
+            [CCode (cname="nVersion")]
+            Version version;
 
-        [CCode (cname="nPorts")]
-        uint32 ports;
+            [CCode (cname="nPorts")]
+            uint32 ports;
 
-        [CCode (cname="nStartPortNumber")]
-        uint32 start_port_number;
+            [CCode (cname="nStartPortNumber")]
+            uint32 start_port_number;
+        }
     }
 
     [CCode (cname="OMX_EVENTTYPE", cprefix="OMX_Event")]
@@ -301,6 +303,14 @@ namespace Omx {
         }
     }
 
+    [CCode (cname="OMX_PORTDOMAINTYPE", cprefix="OMX_PortDomain")]
+    enum PortDomain { 
+        Audio, 
+        Video, 
+        Image, 
+        Other
+    }
+    
     [CCode (instance_pos=1.1)]
     public delegate Error EventHandlerFunc(
         Handle component,
@@ -606,12 +616,83 @@ namespace Omx {
     namespace Native {
         [SimpleType]
         [CCode (cname="OMX_NATIVE_DEVICETYPE", default_value="NULL")]
-        struct DeviceType {
+        struct Device {
+        }
+        
+        [SimpleType]
+        [CCode (cname="OMX_NATIVE_WINDOWTYPE", default_value="NULL")]
+        struct Window {
         }
     }
 
-    [CCode (cheader_filename="OMX_Audio.h")]
+    namespace Param {
+        [CCode (cname="OMX_PARAM_BUFFERSUPPLIERTYPE")]
+        struct BufferSupplier {
+            [CCode (cname="nSize")]
+            ulong size;
+            
+            [CCode (cname="nVersion")]
+            Version version;
+            
+            [CCode (cname="nPortIndex")]
+            uint32 port_Index;
+            
+            [CCode (cname="eBufferSupplier")]
+            Omx.BufferSupplier buffer_supplier;
+        }
+    } //ns Param
+
+    struct FormatDetail {
+        Audio.PortDefinition audio;
+        Video.PortDefinition video;
+        Image.PortDefinition image;
+        Other.PortDefinition other;
+    }
+
+    [CCode (cname="OMX_PARAM_PortDefinition")]
+     struct PortDefinition {
+        [CCode (cname="nSize")]
+        ulong size;
+        
+        [CCode (cname="nVersion")]
+        Version version;
+        
+        [CCode (cname="nPortIndex")]
+        uint32 port_index;
+        
+        [CCode (cname="eDir")]
+        Dir dir;
+        
+        [CCode (cname="nBufferCountActual")]
+        uint32 buffer_count_actual;
+        
+        [CCode (cname="nBufferCountMin")]
+        uint32 Buffer_count_min;
+        
+        [CCode (cname="nBufferSize")]
+        uint32 buffer_size;
+        
+        [CCode (cname="bEnabled")]
+        bool enabled;
+        
+        [CCode (cname="bPopulated")]
+        bool populated;
+        
+        [CCode (cname="eDomain")]
+        PortDomain domain;
+        
+        FormatDetail format;
+        
+        [CCode (cname="bBuffersContiguous")]
+        bool bBuffersContiguous;
+        
+        [CCode (cname="nBufferAlignment")]
+        uint32 nBufferAlignment;
+    }
+
+    [CCode (cheader_filename="OMX_Component.h")]
     namespace Audio {
+
         [CCode (cname="OMX_AUDIO_CODINGTYPE", cprefix="OMX_AUDIO_Coding")]
         enum Coding {
             Unused,
@@ -650,7 +731,7 @@ namespace Omx {
             string mime_type;
             
             [CCode (cname="pNativeRender")]
-            Native.DeviceType native_render;
+            Native.Device native_render;
             
             [CCode (cname="bFlagErrorConcealment")]
             bool flag_error_concealment;
@@ -658,8 +739,9 @@ namespace Omx {
             [CCode (cname="eEncoding")]
             Coding encoding;
         }
-        
+
         namespace Param {
+
             [CCode (cname="OMX_AUDIO_PARAM_PORTFORMATTYPE")]
             struct PortFormat {
                 [CCode (cname="nSize")]
@@ -950,7 +1032,6 @@ namespace Omx {
           HE_PS
         }
 
-
         [Flags]
         [CCode (cprefix="OMX_AUDIO_AACTool")]
         public enum AacTool {
@@ -1132,11 +1213,182 @@ namespace Omx {
         } //ns Config
     } //ns Audio
 
+    [CCode (cheader_filename="OMX_Component.h")]
     namespace Video {
+
+        [CCode (cname="OMX_VIDEO_CODINGTYPE", cprefix="OMX_VIDEO_Coding")]
+        enum Coding {
+            Unused,
+            AutoDetect,
+            MPEG2,
+            H263,
+            MPEG4,
+            WMV,
+            RV,
+            AVC,
+            MJPEG
+        }
+    
+        [CCode (cname="OMX_VIDEO_PORTDEFINITIONTYPE")]
+        struct PortDefinition {
+            [CCode (cname="cMIMEType")]
+            string mime_type;
+            
+            [CCode (cname="pNativeRender")]
+            Native.Device native_Render;
+            
+            [CCode (cname="nFrameWidth")]
+            uint32 frame_width;
+            
+            [CCode (cname="nFrameHeight")]
+            uint32 frame_height;
+            
+            [CCode (cname="nStride")]
+            int32 stride;
+            
+            [CCode (cname="nSliceHeight")]
+            uint32 slice_height;
+            
+            [CCode (cname="nBitrate")]
+            uint32 bitrate;
+            
+            [CCode (cname="xFramerate")]
+            uint32 framerate;
+            
+            [CCode (cname="bFlagErrorConcealment")]
+            bool flag_error_concealment;
+            
+            [CCode (cname="eCompressionFormat")]
+            Video.Coding compression_format;
+            
+            [CCode (cname="eColorFormat")]
+            Color.Format color_format;
+            
+            [CCode (cname="pNativeWindow")]
+            Native.Window native_window;
+        }
+    
     } //ns Video
 
+    [CCode (cheader_filename="OMX_Component.h")]
     namespace Image {
+
+        [CCode (cname="OMX_IMAGE_CODINGTYPE", cprefix="OMX_IMAGE_Coding")]
+        enum Coding {
+            Unused,
+            AutoDetect,
+            JPEG,
+            JPEG2K,
+            EXIF,
+            TIFF,
+            GIF,
+            PNG,
+            LZW,
+            BMP,
+        }
+
+        [CCode (cname="OMX_IMAGE_PORTDEFINITIONTYPE")]
+        struct PortDefinition {
+            [CCode (cname="cMIMEType")]
+            string mime_type;
+            
+            [CCode (cname="pNativeRender")]
+            Native.Device native_render;
+            
+            [CCode (cname="nFrameWidth")]
+            uint32 frame_width;
+            
+            [CCode (cname="nFrameHeight")]
+            uint32 frame_height;
+            
+            [CCode (cname="nStride")]
+            int32 stride;
+            
+            [CCode (cname="nSliceHeight")]
+            uint32 slice_height;
+            
+            [CCode (cname="bFlagErrorConcealment")]
+            bool flag_error_concealment;
+            
+            [CCode (cname="eCompressionFormat")]
+            Image.Coding compression_format;
+            
+            [CCode (cname="eColorFormat")]
+            Color.Format color_format;
+            
+            [CCode (cname="pNativeWindow")]
+            Native.Window native_window;
+        } 
     } //ns Image
+
+    [CCode (cheader_filename="OMX_Component.h")]
+    namespace Color {
+
+        [CCode (cname="OMX_COLOR_FORMATTYPE", cprefix="OMX_COLOR_Format")]
+        enum Format {
+            Unused,
+            Monochrome,
+            8bitRGB332,
+            12bitRGB444,
+            16bitARGB4444,
+            16bitARGB1555,
+            16bitRGB565,
+            16bitBGR565,
+            18bitRGB666,
+            18bitARGB1665,
+            19bitARGB1666, 
+            24bitRGB888,
+            24bitBGR888,
+            24bitARGB1887,
+            25bitARGB1888,
+            32bitBGRA8888,
+            32bitARGB8888,
+            YUV411Planar,
+            YUV411PackedPlanar,
+            YUV420Planar,
+            YUV420PackedPlanar,
+            YUV420SemiPlanar,
+            YUV422Planar,
+            YUV422PackedPlanar,
+            YUV422SemiPlanar,
+            YCbYCr,
+            YCrYCb,
+            CbYCrY,
+            CrYCbY,
+            YUV444Interleaved,
+            RawBayer8bit,
+            RawBayer10bit,
+            RawBayer8bitcompressed,
+            L2, 
+            L4, 
+            L8, 
+            L16, 
+            L24, 
+            L32,
+            YUV420PackedSemiPlanar,
+            YUV422PackedSemiPlanar,
+            18BitBGR666,
+            24BitARGB6666,
+            24BitABGR6666,
+        }
+    }
+
+    namespace Other {
+
+        [CCode (cname="OMX_OTHER_FORMATTYPE", cprefix="OMX_OTHER_Format")]
+        enum Format {
+            Time,
+            Power,
+            Stats,
+            Binary
+        }
+    
+        [CCode (cname="OMX_OTHER_PORTDEFINITIONTYPE")]
+        struct PortDefinition {
+            [CCode (cname="eFormat")]
+            Format format;
+        }    
+    }
 
     public struct VersionDetail {
         [CCode (cname="nVersionMajor")]
@@ -1164,17 +1416,25 @@ namespace Omx {
     uint __LINE__;
 
     [CCode (cname="__FILE__")]
-    uint __FILE__;
+    string __FILE__;
+
+    [CCode (cname="__FUNCTION__")]
+    string __FUNCTION__;
 
     GLib.Quark error_domain() {
         return GLib.Quark.from_string("OMX.Error");
     }
 
-    void try_run(Error err, string file=__FILE__, int line=__LINE__) throws GLib.Error {
+    void try_run(
+            Error err,
+            string file=__FILE__,
+            string function=__FUNCTION__,
+            int line=__LINE__) throws GLib.Error {
         if(err != Omx.Error.None) {
             var e = new GLib.Error(
                        error_domain(), err,
-                       "%s:%d %s\n", file, line, err.to_string());
+                       "%s from function %s at %s:%d\n",
+                       err.to_string(), function, file, line);
             throw (GLib.Error)e;
             }
     }
