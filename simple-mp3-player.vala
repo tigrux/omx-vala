@@ -48,7 +48,6 @@ class SimpleMp3Player: Object {
             case Omx.Event.BufferFlag:
                 switch(data2) {
                     case Omx.BufferFlag.EOS:
-                        print("Got audiodec_event_handler EOS\n");
                         eos_sem.up();
                         break;
                     default:
@@ -74,7 +73,6 @@ class SimpleMp3Player: Object {
             buffer.filled_len = 0;
             buffer.flags |= Omx.BufferFlag.EOS;
             eos_found = true;
-            print("Marking eos\n");
         }
         else
             buffer.filled_len = data_read;
@@ -85,10 +83,8 @@ class SimpleMp3Player: Object {
     Omx.Error audiodec_fill_buffer_done(
             Omx.Handle component,
             Omx.BufferHeader buffer) {
-        if(buffer.filled_len == 0) {
-            print("audiodec_fill_buffer_done got empty buffer\n");
+        if(buffer.filled_len == 0)
             return Omx.Error.None;
-        }
         else
             return audiosink_handle.empty_this_buffer(buffer);
     }
@@ -137,9 +133,12 @@ class SimpleMp3Player: Object {
                 this, audiosink_callbacks));
     }
 
-    void audiodec_allocate_buffers() throws GLib.Error {
+    void pass_to_idle_and_allocate_buffers() throws GLib.Error {
         Omx.try_run(
             audiodec_handle.send_command(
+                Omx.Command.StateSet, Omx.State.Idle, null));
+        Omx.try_run(
+            audiosink_handle.send_command(
                 Omx.Command.StateSet, Omx.State.Idle, null));
 
         in_buffer_audiodec = new Omx.BufferHeader[n_buffers];
@@ -156,21 +155,14 @@ class SimpleMp3Player: Object {
                     out out_buffer_audiodec[i], Omx.Dir.Output,
                     null, buffer_out_size));
 
-        audiodec_sem.down();
-    }
-
-    void audiosink_allocate_buffers() throws GLib.Error {
-        Omx.try_run(
-            audiosink_handle.send_command(
-                Omx.Command.StateSet, Omx.State.Idle, null));
-
         in_buffer_audiosink = new Omx.BufferHeader[n_buffers];
         for(int i=0; i<n_buffers; i++)
             Omx.try_run(
                 audiosink_handle.use_buffer(
                     out in_buffer_audiosink[i], Omx.Dir.Input, null,
                     buffer_out_size, out_buffer_audiodec[i].buffer));
-        
+
+        audiodec_sem.down();
         audiosink_sem.down();
     }
 
@@ -209,7 +201,6 @@ class SimpleMp3Player: Object {
         Omx.try_run(
             audiodec_handle.send_command(
                 Omx.Command.StateSet, Omx.State.Idle, null));
-
         Omx.try_run(
             audiosink_handle.send_command(
                 Omx.Command.StateSet, Omx.State.Idle, null));
@@ -218,7 +209,7 @@ class SimpleMp3Player: Object {
         audiosink_sem.down();
     }
 
-    void free_buffers() throws GLib.Error {
+    void pass_to_loaded_and_free_buffers() throws GLib.Error {
         Omx.try_run(
             audiodec_handle.send_command(
                 Omx.Command.StateSet, Omx.State.Loaded, null));
@@ -252,12 +243,11 @@ class SimpleMp3Player: Object {
     public void decode(string filename) throws GLib.Error {
         Omx.try_run(Omx.init());
         get_handles();
-        audiodec_allocate_buffers();
-        audiosink_allocate_buffers();
+        pass_to_idle_and_allocate_buffers();
         pass_to_executing();
         move_buffers(filename);
         pass_to_idle();
-        free_buffers();
+        pass_to_loaded_and_free_buffers();
         free_handles();
         Omx.try_run(Omx.deinit());
     }
