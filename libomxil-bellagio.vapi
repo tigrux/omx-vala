@@ -759,16 +759,16 @@ namespace Omx {
                 uint32 frame_length;
                 
                 [CCode (cname="nAACtools")]
-                uint32 aac_tools;
+                uint32 tools;
                 
                 [CCode (cname="nAACERtools")]
-                uint32 aac_er_tools;
+                uint32 er_tools;
                 
                 [CCode (cname="eAACProfile")]
-                Audio.AacProfile aac_profile;
+                Audio.AacProfile profile;
                 
                 [CCode (cname="eAACStreamFormat")]
-                AacStreamFormat aac_stream_format;
+                AacStreamFormat stream_format;
                 
                 [CCode (cname="eChannelMode")]
                 ChannelMode channel_mode;
@@ -844,7 +844,34 @@ namespace Omx {
                 
                 [CCode (cname="nSuperBlockAlign")]
                 uint32 super_block_align;
-            }            
+            }
+            
+            [CCode (cname="OMX_AUDIO_PARAM_AMRTYPE")]
+            struct Amr {
+                [CCode (cname="nSize")]
+                ulong size;
+                
+                [CCode (cname="nVersion")]
+                Version version;
+                
+                [CCode (cname="nPortIndex")]
+                uint32 port_index;
+                
+                [CCode (cname="nChannels")]
+                uint32 channels;
+                
+                [CCode (cname="nBitRate")]
+                uint32 bit_rate;
+                
+                [CCode (cname="eAMRBandMode")]
+                AmrBandMode band_mode;
+                
+                [CCode (cname="eAMRDTXMode")]
+                AmrDtxMode  dtx_mode;
+                
+                [CCode (cname="eAMRFrameFormat")]
+                AmrFrameFormat frame_format;
+            }
         } //ns Param
 
         [CCode (cname="OMX_AUDIO_PCMMODETYPE", cprefix="OMX_AUDIO_PCMMode")]
@@ -953,6 +980,47 @@ namespace Omx {
           L3
         }
 
+        [CCode (cname="OMX_AUDIO_AMRFRAMEFORMATTYPE", cprefix="OMX_AUDIO_AMRFrameFormat")]
+        enum AmrFrameFormat { 
+            Conformance,
+            IF1,
+            IF2,
+            FSF, 
+            RTPPayload,
+            ITU
+        }
+
+        [CCode (cname="OMX_AUDIO_AMRBANDMODETYPE", cprefix="OMX_AUDIO_AMRBandMode")]
+        enum AmrBandMode {
+            Unused,
+            NB0,
+            NB1,
+            NB2,
+            NB3,
+            NB4,
+            NB5,
+            NB6,
+            NB7,
+            WB0,
+            WB1,
+            WB2,
+            WB3,
+            WB4,
+            WB5,
+            WB6,
+            WB7,
+            WB8
+        }
+
+        [CCode (cname="OMX_AUDIO_AMRDTXMODETYPE", cprefix="OMX_AUDIO_AMRDTXMode")]
+        enum AmrDtxMode { 
+            Off,
+            OnVAD1,
+            OnVAD2,
+            OnAuto,
+            [CCode (cname="OMX_AUDIO_AMRDTXasEFR")]
+            asEFR
+        }
     } //ns Audio
 
     namespace Video {
