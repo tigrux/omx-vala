@@ -729,7 +729,7 @@ namespace Omx {
                 ChannelMode channel_mode;
                 
                 [CCode (cname="eFormat")]
-                Audio.Mp3StreamFormat format;
+                Mp3StreamFormat format;
             }
 
             [CCode (cname="OMX_AUDIO_PARAM_AACPROFILETYPE")]
@@ -809,7 +809,42 @@ namespace Omx {
                 [CCode (cname="bDownmix")]
                 bool downmix;
             }
-            
+
+            [CCode (cname="OMX_AUDIO_PARAM_WMATYPE")]
+            struct Wma {
+                [CCode (cname="nSize")]
+                ulong nSize;
+                
+                [CCode (cname="nVersion")]
+                Version version;
+                
+                [CCode (cname="nPortIndex")]
+                uint32 port_index;
+                
+                [CCode (cname="nChannels")]
+                uint16 channels;
+                
+                [CCode (cname="nBitRate")]
+                uint32 bit_rate;
+                
+                [CCode (cname="eFormat")]
+                WmaFormat format;
+                
+                [CCode (cname="eProfile")]
+            	WmaProfile profile;
+            	
+            	[CCode (cname="nSamplingRate")]
+                uint32 sampling_rate;
+                
+                [CCode (cname="nBlockAlign")]
+                uint16 block_align;
+                
+                [CCode (cname="nEncodeOptions")]
+                uint16 encode_options;
+                
+                [CCode (cname="nSuperBlockAlign")]
+                uint32 super_block_align;
+            }            
         } //ns Param
 
         [CCode (cname="OMX_AUDIO_PCMMODETYPE", cprefix="OMX_AUDIO_PCMMode")]
@@ -898,14 +933,15 @@ namespace Omx {
             All
         }
 
-        [CCode (cname="OMX_AUDIO_WMAFORMATTYPE", cprefix="OMX_AUDIO_WMAFormat")]
+        [CCode (cname="OMX_AUDIO_WMAFORMATTYPE")]
         enum WmaFormat {
+          [CCode (cname="OMX_AUDIO_WMAFormatUnused")]
           Unused,
-          [CCode (cname="OMX_AUDIO_WMAFORMATTYPE7")]
+          [CCode (cname="OMX_AUDIO_WMAFormat7")]
           V7,
-          [CCode (cname="OMX_AUDIO_WMAFORMATTYPE8")]
+          [CCode (cname="OMX_AUDIO_WMAFormat8")]
           V8,
-          [CCode (cname="OMX_AUDIO_WMAFORMATTYPE9")]
+          [CCode (cname="OMX_AUDIO_WMAFormat9")]
           V9
         }
 
