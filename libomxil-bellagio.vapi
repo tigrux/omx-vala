@@ -310,7 +310,15 @@ namespace Omx {
         Image, 
         Other
     }
-    
+
+    [CCode (cname="OMX_MARKTYPE")]
+    struct Mark {
+        [CCode (cname="hMarkTargetComponent")]
+        Handle mark_target_component;
+        [CCode (cname="pMarkData")]
+        void *mark_data;
+    }
+
     [CCode (instance_pos=1.1)]
     public delegate Error EventHandlerFunc(
         Handle component,
@@ -379,22 +387,22 @@ namespace Omx {
         public Error free_handle();
 
         [CCode (cname="OMX_GetConfig")]
-        public Error get_config(Handle component, int config_index, void *component_config_structure);
+        public Error get_config(int config_index, void *component_config_structure);
         
         [CCode (cname="OMX_SetConfig")]
-        public Error set_config(Handle component, int config_index, void *component_config_structure);
+        public Error set_config(int config_index, void *component_config_structure);
 
         [CCode (cname="OMX_GetExtensionIndex")]
-        public Error get_extension_index(Handle component, string parameter_name, out int index_type);
+        public Error get_extension_index(string parameter_name, out int index_type);
 
         [CCode (cname="OMX_GetState")]
-        public Error get_state(Handle component, out State state);
+        public Error get_state(out State state);
 
         [CCode (cname="OMX_GetParameter")]
-        public Error get_parameter(Handle component, int param_index, void *component_parameter_structure);
+        public Error get_parameter(int param_index, void *component_parameter_structure);
 
         [CCode (cname="OMX_SetParameter")]
-        public Error set_parameter(Handle component, int param_index, void *component_parameter_structure);
+        public Error set_parameter(int param_index, void *component_parameter_structure);
     }
 
     [CCode (cname="OMX_Init")]
