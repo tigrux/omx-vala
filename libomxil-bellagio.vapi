@@ -194,6 +194,17 @@ namespace Omx {
         CODECCONFIG
     }
 
+    public struct Structure {
+        [CCode (cname="nSize")]
+        ulong size;
+        
+        [CCode (cname="nVersion")]
+        Version version;
+        
+        [CCode (cname="nPortIndex")]
+        uint32 port_Index;
+    }
+
     [CCode (cname="OMX_BUFFERHEADERTYPE", default_value="NULL", ref_function = "", unref_function = "")]
     public class BufferHeader {
         [CCode (cname="nSize")]
@@ -353,7 +364,7 @@ namespace Omx {
     public enum BufferSupplier {
         Unspecified,
         Input,
-        Output;
+        Output
     }
 
     [Flags]
@@ -387,10 +398,10 @@ namespace Omx {
         public Error free_handle();
 
         [CCode (cname="OMX_GetConfig")]
-        public Error get_config(int config_index, void *component_config_structure);
+        public Error get_config(int config_index, ref Structure component_config_structure);
         
         [CCode (cname="OMX_SetConfig")]
-        public Error set_config(int config_index, void *component_config_structure);
+        public Error set_config(int config_index, ref Structure component_config_structure);
 
         [CCode (cname="OMX_GetExtensionIndex")]
         public Error get_extension_index(string parameter_name, out int index_type);
@@ -399,10 +410,10 @@ namespace Omx {
         public Error get_state(out State state);
 
         [CCode (cname="OMX_GetParameter")]
-        public Error get_parameter(int param_index, void *component_parameter_structure);
+        public Error get_parameter(int param_index, ref Structure component_parameter_structure);
 
         [CCode (cname="OMX_SetParameter")]
-        public Error set_parameter(int param_index, void *component_parameter_structure);
+        public Error set_parameter(int param_index, ref Structure component_parameter_structure);
     }
 
     [CCode (cname="OMX_Init")]
@@ -435,16 +446,16 @@ namespace Omx {
         Unsigned
     }
 
-    [CCode (cname="OMX_BS32")]
-    struct BS32 {
+    [CCode (cname="OMX_bounded")]
+    struct bounded {
         [CCode (cname="nValue")]
-        uint32 value;
+        int32 value;
         
         [CCode (cname="nMin")]
-        uint32 min;
+        int32 min;
         
         [CCode (cname="nMax")]
-        uint32 max;
+        int32 max;
     }
 
     [CCode (cname="OMX_INDEXTYPE", cprefix="OMX_Index")]
@@ -635,16 +646,7 @@ namespace Omx {
 
     namespace Param {
         [CCode (cname="OMX_PARAM_BUFFERSUPPLIERTYPE")]
-        struct BufferSupplier {
-            [CCode (cname="nSize")]
-            ulong size;
-            
-            [CCode (cname="nVersion")]
-            Version version;
-            
-            [CCode (cname="nPortIndex")]
-            uint32 port_Index;
-            
+        struct BufferSupplier: Structure {
             [CCode (cname="eBufferSupplier")]
             Omx.BufferSupplier buffer_supplier;
         }
@@ -656,17 +658,8 @@ namespace Omx {
             Other.PortDefinition other;
         }
 
-        [CCode (cname="OMX_PARAM_PortDefinition")]
-         struct PortDefinition {
-            [CCode (cname="nSize")]
-            ulong size;
-            
-            [CCode (cname="nVersion")]
-            Version version;
-            
-            [CCode (cname="nPortIndex")]
-            uint32 port_index;
-            
+        [CCode (cname="OMX_PARAM_PORTDEFINITIONTYPE")]
+         struct PortDefinition : Structure {
             [CCode (cname="eDir")]
             Dir dir;
             
@@ -698,16 +691,7 @@ namespace Omx {
         }
 
         [CCode (cname="OMX_PARAM_SENSORMODETYPE")]
-        struct SensorMode {
-            [CCode (cname="nSize")]
-            ulong size;
-            
-            [CCode (cname="nVersion")]
-            Version version;
-            
-            [CCode (cname="PortIndex")]
-            uint32 port_index;
-            
+        struct SensorMode: Structure {
             [CCode (cname="nFrameRate")]
             uint32 frame_rate;
             
@@ -721,33 +705,14 @@ namespace Omx {
     } //ns Param
 
     namespace Config {
-
         [CCode (cname="OMX_CONFIG_BRIGHTNESSTYPE")]
-        struct Brightness {
-            [CCode (cname="nSize")]
-            ulong size;
-            
-            [CCode (cname="nVersion")]
-            Version version;
-            
-            [CCode (cname="nPortIndex")]
-            uint32 port_index;
-            
+        struct Brightness: Structure {
             [CCode (cname="nBrightness")]
             uint32 brightness;
         }
 
         [CCode (cname="OMX_CONFIG_COLORBLENDTYPE")]
-        struct ColorBlend {
-            [CCode (cname="nSize")]
-            ulong size;
-            
-            [CCode (cname="nVersion")]
-            Version version;
-            
-            [CCode (cname="nPortIndex")]
-            uint32 port_index;
-            
+        struct ColorBlend: Structure {
             [CCode (cname="nRGBAlphaConstant")]
             uint32 rgb_alpha_constant;
             
@@ -756,76 +721,31 @@ namespace Omx {
         }
 
         [CCode (cname="OMX_CONFIG_CONTRASTTYPE")]
-        struct Constrast {
-            [CCode (cname="nSize")]
-            ulong size;
-            
-            [CCode (cname="nVersion")]
-            Version version;
-            
-            [CCode (cname="PortIndex")]
-            uint32 port_index;
-
+        struct Constrast: Structure {
             [CCode (cname="nContrast")]
             uint32 constrast;
         }
         
         [CCode (cname="OMX_CONFIG_EXPOSURECONTROLTYPE")]
-        struct ExposureControl {
-                [CCode (cname="nSize")]
-                ulong size;
-                
-                [CCode (cname="nVersion")]
-                Version version;
-                
-                [CCode (cname="PortIndex")]
-                uint32 port_index;
-
+        struct ExposureControl: Structure {
                 [CCode (cname="eExposureControl")]
                 Omx.ExposureControl exposure_control;
         }
         
         [CCode (cname="OMX_CONFIG_FRAMESTABTYPE")]
-        struct FrameStab {
-            [CCode (cname="nSize")]
-            ulong size;
-            
-            [CCode (cname="nVersion")]
-            Version version;
-            
-            [CCode (cname="PortIndex")]
-            uint32 port_index;
-
+        struct FrameStab: Structure {
             [CCode (cname="bStab")]
             bool stab;
         }
 
         [CCode (cname="OMX_CONFIG_MIRRORTYPE")]
-        struct Mirror {
-            [CCode (cname="nSize")]
-            ulong size;
-            
-            [CCode (cname="nVersion")]
-            Version version;
-            
-            [CCode (cname="PortIndex")]
-            uint32 port_index;
-
+        struct Mirror: Structure {
             [CCode (cname="eMirror")]
             Omx.Mirror mirror;
         }
         
         [CCode (cname="OMX_CONFIG_POINTTYPE")]
-        struct Point {
-            [CCode (cname="nSize")]
-            ulong size;
-            
-            [CCode (cname="nVersion")]
-            Version version;
-            
-            [CCode (cname="PortIndex")]
-            uint32 port_index;
-
+        struct Point: Structure {
             [CCode (cname="nX")]
             int32 x;
             
@@ -834,16 +754,7 @@ namespace Omx {
         }
 
         [CCode (cname="OMX_CONFIG_RECTTYPE")]
-        struct Rect {
-            [CCode (cname="nSize")]
-            ulong size;
-            
-            [CCode (cname="nVersion")]
-            Version version;
-            
-            [CCode (cname="PortIndex")]
-            uint32 port_index;
-
+        struct Rect: Structure {
             [CCode (cname="nLeft")]
             uint32 left;
             
@@ -858,31 +769,13 @@ namespace Omx {
         }
 
         [CCode (cname="OMX_CONFIG_ROTATIONTYPE")]
-        struct Rotation {
-            [CCode (cname="nSize")]
-            ulong size;
-            
-            [CCode (cname="nVersion")]
-            Version version;
-            
-            [CCode (cname="PortIndex")]
-            uint32 port_index;
-
+        struct Rotation: Structure {
             [CCode (cname="nRotation")]
             int32 rotation; 
         }
 
         [CCode (cname="OMX_CONFIG_SCALEFACTORTYPE")]
-        struct ScaleFactor {
-            [CCode (cname="nSize")]
-            ulong size;
-            
-            [CCode (cname="nVersion")]
-            Version version;
-            
-            [CCode (cname="PortIndex")]
-            uint32 port_index;
-
+        struct ScaleFactor: Structure {
             [CCode (cname="xWidth")]
             int32 width;
 
@@ -891,20 +784,10 @@ namespace Omx {
         }
 
         [CCode (cname="OMX_CONFIG_WHITEBALCONTROLTYPE")]
-        struct WhiteBalControl {
-            [CCode (cname="nSize")]
-            ulong size;
-            
-            [CCode (cname="nVersion")]
-            Version version;
-            
-            [CCode (cname="PortIndex")]
-            uint32 port_index;
-
+        struct WhiteBalControl: Structure {
             [CCode (cname="eWhiteBalControl")]
             Omx.WhiteBalControl white_bal_control;
         }
-
     } //ns Config
 
     [CCode (cname="OMX_COLORBLENDTYPE", cprefix="OMX_ColorBlend")]
@@ -954,16 +837,7 @@ namespace Omx {
         Horizon
     }
 
-    struct FrameSize {
-        [CCode (cname="nSize")]
-        ulong size;
-        
-        [CCode (cname="nVersion")]
-        Version version;
-        
-        [CCode (cname="PortIndex")]
-        uint32 port_index;
-
+    struct FrameSize: Structure {
         [CCode (cname="nWidth")]
         uint32 width;
         
@@ -973,7 +847,6 @@ namespace Omx {
 
     [CCode (cheader_filename="OMX_Component.h")]
     namespace Audio {
-
         [CCode (cname="OMX_AUDIO_CODINGTYPE", cprefix="OMX_AUDIO_Coding")]
         enum Coding {
             Unused,
@@ -1022,18 +895,8 @@ namespace Omx {
         }
 
         namespace Param {
-
             [CCode (cname="OMX_AUDIO_PARAM_PORTFORMATTYPE")]
-            struct PortFormat {
-                [CCode (cname="nSize")]
-                ulong size;
-                
-                [CCode (cname="nVersion")]
-                Version version;
-                
-                [CCode (cname="PortIndex")]
-                uint32 port_index;
-                
+            struct PortFormat: Structure {
                 [CCode (cname="Index")]
                 uint32 index;
                 
@@ -1042,16 +905,7 @@ namespace Omx {
             }
             
             [CCode (cname="OMX_AUDIO_PARAM_PCMMODETYPE")]
-            struct PcmMode {
-                [CCode (cname="nSize")]
-                ulong size;
-                
-                [CCode (cname="nVersion")]
-                Version version;
-                
-                [CCode (cname="nPortIndex")]
-                uint32 port_index;
-                
+            struct PcmMode: Structure {
                 [CCode (cname="nChannels")]
                 uint32 channels;
                 
@@ -1078,21 +932,12 @@ namespace Omx {
             }
 
             [CCode (cname="OMX_AUDIO_PARAM_MP3TYPE")]
-            struct Mp3 {
-                [CCode (cname="nSize")]
-                ulong size;
-                
-                [CCode (cname="nVersion")]
-                Version version;
-                
-                [CCode (cname="nPortIndex")]
-                uint32 port_index;
-                
+            struct Mp3: Structure {
                 [CCode (cname="nChannels")]
                 uint32 channels;
                 
                 [CCode (cname="nBitRate")]
-                uint32 bit_Rate;
+                uint32 bit_rate;
                 
                 [CCode (cname="nSampleRate")]
                 uint32 sample_rate;
@@ -1108,16 +953,7 @@ namespace Omx {
             }
 
             [CCode (cname="OMX_AUDIO_PARAM_AACPROFILETYPE")]
-            struct AacProfile {
-                [CCode (cname="nSize")]
-                ulong size;
-                
-                [CCode (cname="nVersion")]
-                Version version;
-                
-                [CCode (cname="nPortIndex")]
-                uint32 port_index;
-                
+            struct AacProfile: Structure {
                 [CCode (cname="nChannels")]
                 uint32 channels;
                 
@@ -1125,7 +961,7 @@ namespace Omx {
                 uint32 sample_rate;
                 
                 [CCode (cname="nBitRate")]
-                uint32 bit_Rate;
+                uint32 bit_rate;
                 
                 [CCode (cname="nAudioBandWidth")]
                 uint32 audio_band_width;
@@ -1150,16 +986,7 @@ namespace Omx {
             }
 
             [CCode (cname="OMX_AUDIO_PARAM_VORBISTYPE")]
-            struct Vorbis {
-                [CCode (cname="nSize")]
-                ulong size;
-                
-                [CCode (cname="nVersion")]
-                Version version;
-                
-                [CCode (cname="nPortIndex")]
-                uint32 port_index;
-                
+            struct Vorbis: Structure {
                 [CCode (cname="nChannels")]
                 uint32 channels;
                 
@@ -1186,16 +1013,7 @@ namespace Omx {
             }
 
             [CCode (cname="OMX_AUDIO_PARAM_WMATYPE")]
-            struct Wma {
-                [CCode (cname="nSize")]
-                ulong nSize;
-                
-                [CCode (cname="nVersion")]
-                Version version;
-                
-                [CCode (cname="nPortIndex")]
-                uint32 port_index;
-                
+            struct Wma: Structure {
                 [CCode (cname="nChannels")]
                 uint16 channels;
                 
@@ -1222,16 +1040,7 @@ namespace Omx {
             }
             
             [CCode (cname="OMX_AUDIO_PARAM_AMRTYPE")]
-            struct Amr {
-                [CCode (cname="nSize")]
-                ulong size;
-                
-                [CCode (cname="nVersion")]
-                Version version;
-                
-                [CCode (cname="nPortIndex")]
-                uint32 port_index;
-                
+            struct Amr: Structure {
                 [CCode (cname="nChannels")]
                 uint32 channels;
                 
@@ -1249,16 +1058,7 @@ namespace Omx {
             }
 
             [CCode (cname="OMX_AUDIO_PARAM_GSMFRTYPE")]
-            struct GsmFr {
-                [CCode (cname="nSize")]
-                ulong size;
-                
-                [CCode (cname="nVersion")]
-                Version version;
-                
-                [CCode (cname="PortIndex")]
-                uint32 port_index;
-
+            struct GsmFr: Structure {
                 [CCode (cname="bDTX")]
                 bool dtx;
                 
@@ -1267,16 +1067,7 @@ namespace Omx {
             }
 
             [CCode (cname="OMX_AUDIO_PARAM_GSMHRTYPE")]
-            struct GsmHr {
-                [CCode (cname="nSize")]
-                ulong size;
-                
-                [CCode (cname="nVersion")]
-                Version version;
-                
-                [CCode (cname="PortIndex")]
-                uint32 port_index;
-
+            struct GsmHr: Structure {
                 [CCode (cname="bDTX")]
                 bool dtx;
                 
@@ -1285,16 +1076,7 @@ namespace Omx {
             }
 
             [CCode (cname="OMX_AUDIO_PARAM_GSMEFRTYPE")]
-            struct GsmEfr {
-                [CCode (cname="nSize")]
-                ulong size;
-                
-                [CCode (cname="nVersion")]
-                Version version;
-                
-                [CCode (cname="PortIndex")]
-                uint32 port_index;
-
+            struct GsmEfr: Structure {
                 [CCode (cname="bDTX")]
                 bool dtx;
 
@@ -1447,36 +1229,17 @@ namespace Omx {
         }
         
         namespace Config {
-
             [CCode (cname="OMX_AUDIO_CONFIG_VOLUMETYPE")]
-            struct Volume {
-                [CCode (cname="nSize")]
-                ulong size;
-                
-                [CCode (cname="nVersion")]
-                Version version;
-                
-                [CCode (cname="nPortIndex")]
-                uint32 port_index;
-                
+            struct Volume: Structure {
                 [CCode (cname="bLinear")]
                 bool linear;
                 
                 [CCode (cname="sVolume")]
-                BS32 volume;
+                bounded volume;
             }
 
             [CCode (cname="OMX_AUDIO_CONFIG_CHANNELVOLUMETYPE")]
-            struct ChannelVolume {
-                [CCode (cname="nSize")]
-                ulong size;
-                
-                [CCode (cname="nVersion")]
-                Version Version;
-                
-                [CCode (cname="nPortIndex")]
-                uint32 port_index;
-                
+            struct ChannelVolume: Structure {
                 [CCode (cname="nChannel")]
                 uint32 channel;
                 
@@ -1484,53 +1247,26 @@ namespace Omx {
                 bool linear;
                 
                 [CCode (cname="sVolume")]
-                BS32 volume;
+                bounded volume;
                 
                 [CCode (cname="bIsMIDI")]
                 bool is_midi;
             }
             
             [CCode (cname="OMX_AUDIO_CONFIG_BALANCETYPE")]
-            struct Balance {
-                [CCode (cname="nSize")]
-                ulong size;
-                
-                [CCode (cname="nVersion")]
-                Version version;
-                
-                [CCode (cname="nPortIndex")]
-                uint32 port_index;
-                
+            struct Balance: Structure {
                 [CCode (cname="nBalance")]
                 int32 balance;
             }
             
             [CCode (cname="OMX_AUDIO_CONFIG_MUTETYPE")]
-            struct Mute {
-                [CCode (cname="nSize")]
-                ulong size;
-                
-                [CCode (cname="nVersion")]
-                Version version;
-                
-                [CCode (cname="nPortIndex")]
-                uint32 port_index;
-                
+            struct Mute: Structure {
                 [CCode (cname="bMute")]
                 bool mute;
             }
             
             [CCode (cname="OMX_AUDIO_CONFIG_CHANNELMUTETYPE")]
-            struct ChannelMute {
-                [CCode (cname="nSize")]
-                ulong size;
-                
-                [CCode (cname="nVersion")]
-                Version nVersion;
-                
-                [CCode (cname="nPortIndex")]
-                uint32 port_index;
-                
+            struct ChannelMute: Structure {
                 [CCode (cname="nChannel")]
                 uint32 channel;
                 
@@ -1545,7 +1281,6 @@ namespace Omx {
 
     [CCode (cheader_filename="OMX_Component.h")]
     namespace Video {
-
         [CCode (cname="OMX_VIDEO_CODINGTYPE", cprefix="OMX_VIDEO_Coding")]
         enum Coding {
             Unused,
@@ -1703,18 +1438,8 @@ namespace Omx {
         }
 
         namespace Param {
-
             [CCode (cname="OMX_VIDEO_PARAM_AVCTYPE")]
-            struct Avc {
-                [CCode (cname="nSize")]
-                ulong size;
-                
-                [CCode (cname="nVersion")]
-                Version version;
-                
-                [CCode (cname="PortIndex")]
-                uint32 port_index;
-
+            struct Avc: Structure {
                 [CCode (cname="nSliceHeaderSpacing")]
                 uint32 slice_header_spacing;
                 
@@ -1790,16 +1515,7 @@ namespace Omx {
             }
 
             [CCode (cname="OMX_VIDEO_PARAM_BITRATETYPE")]
-            struct Bitrate {
-                [CCode (cname="nSize")]
-                ulong size;
-                
-                [CCode (cname="nVersion")]
-                Version version;
-                
-                [CCode (cname="PortIndex")]
-                uint32 port_index;
-
+            struct Bitrate: Structure {
                 [CCode (cname="eControlRate")]
                 ControlRate control_rate;
                 
@@ -1808,16 +1524,7 @@ namespace Omx {
             }
           
             [CCode (cname="OMX_VIDEO_PARAM_H263TYPE")]
-            struct H263 {
-                [CCode (cname="nSize")]
-                ulong size;
-                
-                [CCode (cname="nVersion")]
-                Version version;
-                
-                [CCode (cname="PortIndex")]
-                uint32 port_index;
-
+            struct H263: Structure {
                 [CCode (cname="nPFrames")]
                 uint32 p_frames;
                 
@@ -1847,16 +1554,7 @@ namespace Omx {
             }
             
             [CCode (cname="OMX_VIDEO_PARAM_MPEG4TYPE")]
-            struct Mpeg4 {
-                [CCode (cname="nSize")]
-                ulong size;
-                
-                [CCode (cname="nVersion")]
-                Version version;
-                
-                [CCode (cname="PortIndex")]
-                uint32 port_index;
-
+            struct Mpeg4: Structure {
                 [CCode (cname="nSliceHeaderSpacing")]
                 uint32 slice_header_spacing;
                 
@@ -1901,16 +1599,7 @@ namespace Omx {
             }
             
             [CCode (cname="OMX_VIDEO_PARAM_QUANTIZATIONTYPE")]
-            struct Quantization {
-                [CCode (cname="nSize")]
-                ulong size;
-                
-                [CCode (cname="nVersion")]
-                Version version;
-                
-                [CCode (cname="PortIndex")]
-                uint32 port_index;
-
+            struct Quantization: Structure {
                 [CCode (cname="nQpI")]
                 uint32 qp_i;
                 
@@ -1925,7 +1614,6 @@ namespace Omx {
 
     [CCode (cheader_filename="OMX_Component.h")]
     namespace Image {
-
         [CCode (cname="OMX_IMAGE_CODINGTYPE", cprefix="OMX_IMAGE_Coding")]
         enum Coding {
             Unused,
@@ -1974,28 +1662,16 @@ namespace Omx {
         }
         
         namespace Param {
-
             [CCode (cname="OMX_IMAGE_PARAM_QFACTORTYPE")]
-            struct QFactor {
-                [CCode (cname="nSize")]
-                ulong size;
-                
-                [CCode (cname="nVersion")]
-                Version version;
-                
-                [CCode (cname="PortIndex")]
-                uint32 port_index;
-
+            struct QFactor: Structure {
                 [CCode (cname="nQFactor")]
                 uint32 q_factor;                                        
             }
-
         } //ns Param
     } //ns Image
 
     [CCode (cheader_filename="OMX_Component.h")]
     namespace Color {
-
         [CCode (cname="OMX_COLOR_FORMATTYPE", cprefix="OMX_COLOR_Format")]
         enum Format {
             Unused,
@@ -2045,8 +1721,8 @@ namespace Omx {
         }
     }
 
+    [CCode (cheader_filename="OMX_Component.h")]
     namespace Other {
-
         [CCode (cname="OMX_OTHER_FORMATTYPE", cprefix="OMX_OTHER_Format")]
         enum Format {
             Time,
@@ -2064,18 +1740,8 @@ namespace Omx {
 
     namespace Time {
         namespace Config {
-
             [CCode (cname="OMX_TIME_CONFIG_TIMESTAMPTYPE")]
-            struct TimeStamp {
-                [CCode (cname="nSize")]
-                ulong size;
-                
-                [CCode (cname="nVersion")]
-                Version version;
-                
-                [CCode (cname="PortIndex")]
-                uint32 port_index;
-
+            struct TimeStamp: Structure {
                 [CCode (cname="nTimestamp")]
                 int64 time_stamp;
             }
@@ -2134,7 +1800,6 @@ namespace Omx {
 }
 
 namespace Bellagio {
-    
     [CCode (cname="tsem_t", cheader_filename="bellagio/tsemaphore.h", cprefix="tsem_")]
     public struct Semaphore {
         public int init(uint val);
@@ -2142,5 +1807,4 @@ namespace Bellagio {
         public void up();
         public void down();
     }
-
 }
