@@ -1259,7 +1259,7 @@ namespace Omx {
             }
 
             [CCode (cname="OMX_AUDIO_PARAM_GSMHRTYPE")]
-            struct GsmEHr {
+            struct GsmHr {
                 [CCode (cname="nSize")]
                 ulong size;
                 
