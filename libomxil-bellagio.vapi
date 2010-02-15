@@ -2117,8 +2117,8 @@ namespace Omx {
         if(err != Omx.Error.None) {
             var e = new GLib.Error(
                        error_domain(), err,
-                       "%s from function %s at %s:%d\n",
-                       err.to_string(), function, file, line);
+                       "%s (0x%x) in function %s at %s:%d\n",
+                       err.to_string(), err, function, file, line);
             throw (GLib.Error)e;
             }
     }
