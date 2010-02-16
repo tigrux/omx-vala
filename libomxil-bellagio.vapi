@@ -12,15 +12,15 @@ namespace Omx {
         public string to_string() {
             switch(this) {
                 case StateSet:
-                    return "OMX.Command.StateSet";
+                    return "Omx.Command.StateSet";
                 case Flush:
-                    return "OMX.Command.Flush";
+                    return "Omx.Command.Flush";
                 case PortDisable:
-                    return "OMX.Command.PortDisable";
+                    return "Omx.Command.PortDisable";
                 case PortEnable:
-                    return "OMX.Command.PortEnable";
+                    return "Omx.Command.PortEnable";
                 case MarkBuffer:
-                    return "OMX.Command.MarkBuffer";
+                    return "Omx.Command.MarkBuffer";
                 default:
                     return "(unknown)";
             }
@@ -39,17 +39,17 @@ namespace Omx {
         public string to_string() {
             switch(this) {
                 case Invalid:
-                    return "OMX.State.Invalid";
+                    return "Omx.State.Invalid";
                 case Loaded:
-                    return "OMX.State.Loaded";
+                    return "Omx.State.Loaded";
                 case Idle:
-                    return "OMX.State.Idle";
+                    return "Omx.State.Idle";
                 case Executing:
-                    return "OMX.State.Invalid";
+                    return "Omx.State.Invalid";
                 case Pause:
-                    return "OMX.State.Pause";
+                    return "Omx.State.Pause";
                 case WaitForResources:
-                    return "OMX.State.WaitForResources";
+                    return "Omx.State.WaitForResources";
                 default:
                     return "(unknown)";
             }
@@ -100,81 +100,81 @@ namespace Omx {
         public string to_string() {
             switch(this) {
                 case None:
-                    return "OMX.Error.None";
+                    return "Omx.Error.None";
                 case InsufficientResources:
-                    return "OMX.Error.InsufficientResources";
+                    return "Omx.Error.InsufficientResources";
                 case Undefined:
-                    return "OMX.Error.Undefined";
+                    return "Omx.Error.Undefined";
                 case InvalidComponentName:
-                    return "OMX.Error.InvalidComponentName";
+                    return "Omx.Error.InvalidComponentName";
                 case ComponentNotFound:
-                    return "OMX.Error.ComponentNotFound";
+                    return "Omx.Error.ComponentNotFound";
                 case InvalidComponent:
-                    return "OMX.Error.InvalidComponent";
+                    return "Omx.Error.InvalidComponent";
                 case BadParameter:
-                    return "OMX.Error.BadParameter";
+                    return "Omx.Error.BadParameter";
                 case NotImplemented:
-                    return "OMX.Error.NotImplemented";
+                    return "Omx.Error.NotImplemented";
                 case Underflow:
-                    return "OMX.Error.Underflow";
+                    return "Omx.Error.Underflow";
                 case Overflow:
-                    return "OMX.Error.Overflow";
+                    return "Omx.Error.Overflow";
                 case Hardware:
-                    return "OMX.Error.Hardware";
+                    return "Omx.Error.Hardware";
                 case InvalidState:
-                    return "OMX.Error.InvalidState";
+                    return "Omx.Error.InvalidState";
                 case StreamCorrupt:
-                    return "OMX.Error.StreamCorrupt";
+                    return "Omx.Error.StreamCorrupt";
                 case PortsNotCompatible:
-                    return "OMX.Error.PortsNotCompatible";
+                    return "Omx.Error.PortsNotCompatible";
                 case ResourcesLost:
-                    return "OMX.Error.ResourcesLost";
+                    return "Omx.Error.ResourcesLost";
                 case NoMore:
-                    return "OMX.Error.NoMore";
+                    return "Omx.Error.NoMore";
                 case VersionMismatch:
-                    return "OMX.Error.VersionMismatch";
+                    return "Omx.Error.VersionMismatch";
                 case NotReady:
-                    return "OMX.Error.NotReady";
+                    return "Omx.Error.NotReady";
                 case Timeout:
-                    return "OMX.Error.Timeout";
+                    return "Omx.Error.Timeout";
                 case SameState:
-                    return "OMX.Error.SameState";
+                    return "Omx.Error.SameState";
                 case ResourcesPreempted:
-                    return "OMX.Error.ResourcesPreempted";
+                    return "Omx.Error.ResourcesPreempted";
                 case PortUnresponsiveDuringAllocation:
-                    return "OMX.Error.PortUnresponsiveDuringAllocation";
+                    return "Omx.Error.PortUnresponsiveDuringAllocation";
                 case PortUnresponsiveDuringDeallocation:
-                    return "OMX.Error.PortUnresponsiveDuringDeallocation";
+                    return "Omx.Error.PortUnresponsiveDuringDeallocation";
                 case PortUnresponsiveDuringStop:
-                    return "OMX.Error.PortUnresponsiveDuringStop";
+                    return "Omx.Error.PortUnresponsiveDuringStop";
                 case IncorrectStateTransition:
-                    return "OMX.Error.IncorrectStateTransition";
+                    return "Omx.Error.IncorrectStateTransition";
                 case IncorrectStateOperation:
-                    return "OMX.Error.IncorrectStateOperation";
+                    return "Omx.Error.IncorrectStateOperation";
                 case UnsupportedSetting:
-                    return "OMX.Error.UnsupportedSetting";
+                    return "Omx.Error.UnsupportedSetting";
                 case UnsupportedIndex:
-                    return "OMX.Error.UnsupportedIndex";
+                    return "Omx.Error.UnsupportedIndex";
                 case BadPortIndex:
-                    return "OMX.Error.BadPortIndex";
+                    return "Omx.Error.BadPortIndex";
                 case PortUnpopulated:
-                    return "OMX.Error.PortUnpopulated";
+                    return "Omx.Error.PortUnpopulated";
                 case ComponentSuspended:
-                    return "OMX.Error.ComponentSuspended";
+                    return "Omx.Error.ComponentSuspended";
                 case DynamicResourcesUnavailable:
-                    return "OMX.Error.DynamicResourcesUnavailable";
+                    return "Omx.Error.DynamicResourcesUnavailable";
                 case MbErrorsInFrame:
-                    return "OMX.Error.MbErrorsInFrame";
+                    return "Omx.Error.MbErrorsInFrame";
                 case FormatNotDetected:
-                    return "OMX.Error.FormatNotDetected";
+                    return "Omx.Error.FormatNotDetected";
                 case ContentPipeOpenFailed:
-                    return "OMX.Error.ContentPipeOpenFailed";
+                    return "Omx.Error.ContentPipeOpenFailed";
                 case ContentPipeCreationFailed:
-                    return "OMX.Error.ContentPipeCreationFailed";
+                    return "Omx.Error.ContentPipeCreationFailed";
                 case SeperateTablesUsed:
-                    return "OMX.Error.SeperateTablesUsed";
+                    return "Omx.Error.SeperateTablesUsed";
                 case TunnelingUnsupported:
-                    return "OMX.Error.TunnelingUnsupported";
+                    return "Omx.Error.TunnelingUnsupported";
                 default:
                     return "(unknown)";
             }
@@ -287,23 +287,23 @@ namespace Omx {
         public string to_string() {
             switch(this) {
                 case CmdComplete:
-                    return "OMX.Event.CmdComplete";
+                    return "Omx.Event.CmdComplete";
                 case Error:
-                    return "OMX.Event.Error";
+                    return "Omx.Event.Error";
                 case Mark:
-                    return "OMX.Event.Mark";
+                    return "Omx.Event.Mark";
                 case PortSettingsChanged:
-                    return "OMX.Event.PortSettingsChanged";
+                    return "Omx.Event.PortSettingsChanged";
                 case BufferFlag:
-                    return "OMX.Event.BufferFlag";
+                    return "Omx.Event.BufferFlag";
                 case ResourcesAcquired:
-                    return "OMX.Event.ResourcesAcquired";
+                    return "Omx.Event.ResourcesAcquired";
                 case ComponentResumed:
-                    return "OMX.Event.ComponentResumed";
+                    return "Omx.Event.ComponentResumed";
                 case DynamicResourcesAvailable:
-                    return "OMX.Event.DynamicResourcesAvailable";
+                    return "Omx.Event.DynamicResourcesAvailable";
                 case PortFormatDetected:
-                    return "OMX.Event.PortFormatDetected";
+                    return "Omx.Event.PortFormatDetected";
                 default:
                     return "(unknown)";
             }
@@ -1775,7 +1775,7 @@ namespace Omx {
     string __FUNCTION__;
 
     GLib.Quark error_domain() {
-        return GLib.Quark.from_string("OMX.Error");
+        return GLib.Quark.from_string("Omx.Error");
     }
 
     void try_run(
