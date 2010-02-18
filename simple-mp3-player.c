@@ -163,6 +163,14 @@ static OMX_ERRORTYPE simple_mp3_player_audiodec_event_handler (SimpleMp3Player* 
 }
 
 
+static gsize g_file_stream_read_data (FILE* self, guchar* buf, int buf_length1) {
+	gsize result;
+	g_return_val_if_fail (self != NULL, 0UL);
+	result = fread (buf, (gsize) 1, (gsize) buf_length1, self);
+	return result;
+}
+
+
 static OMX_ERRORTYPE simple_mp3_player_audiodec_empty_buffer_done (SimpleMp3Player* self, OMX_HANDLETYPE component, OMX_BUFFERHEADERTYPE* buffer) {
 	OMX_ERRORTYPE result;
 	gsize data_read;
@@ -172,7 +180,7 @@ static OMX_ERRORTYPE simple_mp3_player_audiodec_empty_buffer_done (SimpleMp3Play
 		result = OMX_ErrorNone;
 		return result;
 	}
-	data_read = fread (buffer->pBuffer, 1, buffer->nAllocLen, self->priv->fd);
+	data_read = g_file_stream_read_data (self->priv->fd, buffer->pBuffer, buffer->nAllocLen);
 	buffer->nOffset = (gsize) 0;
 	if (data_read == 0) {
 		buffer->nFilledLen = (gsize) 0;
@@ -580,6 +588,7 @@ static void simple_mp3_player_move_buffers (SimpleMp3Player* self, const char* f
 			gboolean _tmp1_;
 			_tmp1_ = TRUE;
 			while (TRUE) {
+				OMX_BUFFERHEADERTYPE* buffer;
 				gsize data_read;
 				if (!_tmp1_) {
 					i++;
@@ -588,7 +597,8 @@ static void simple_mp3_player_move_buffers (SimpleMp3Player* self, const char* f
 				if (!(i < SIMPLE_MP3_PLAYER_n_buffers)) {
 					break;
 				}
-				data_read = fread (self->priv->in_buffer_audiodec[i]->pBuffer, 1, self->priv->in_buffer_audiodec[i]->nAllocLen, self->priv->fd);
+				buffer = self->priv->in_buffer_audiodec[i];
+				data_read = fread (buffer->pBuffer, (gsize) 1, buffer->nAllocLen, self->priv->fd);
 				self->priv->in_buffer_audiodec[i]->nFilledLen = data_read;
 				self->priv->in_buffer_audiodec[i]->nOffset = (gsize) 0;
 				omx_try_run (OMX_EmptyThisBuffer (self->priv->audiodec_handle, self->priv->in_buffer_audiodec[i]), __FILE__, __FUNCTION__, __LINE__, &_inner_error_);

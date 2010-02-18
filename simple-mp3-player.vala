@@ -57,8 +57,8 @@ class SimpleMp3Player: Object {
             default:
                 break;
         }
-        return Omx.Error.None; 
-    }    
+        return Omx.Error.None;
+    }
 
     Omx.Error audiodec_empty_buffer_done(
             Omx.Handle component,
@@ -92,7 +92,7 @@ class SimpleMp3Player: Object {
 
     Omx.Error audiosink_event_handler(
             Omx.Handle component,
-            Omx.Event event, 
+            Omx.Event event,
             uint32 data1, uint32 data2,
             void *event_data) {
         switch(event) {
@@ -108,8 +108,8 @@ class SimpleMp3Player: Object {
             default:
                 break;
         }
-        return Omx.Error.None;        
-    }    
+        return Omx.Error.None;
+    }
 
     Omx.Error audiosink_empty_buffer_done(
             Omx.Handle component,
@@ -183,7 +183,7 @@ class SimpleMp3Player: Object {
         for(int i=0; i<n_buffers; i++) {
             var buffer = in_buffer_audiodec[i];
             var data_read = fd.read(buffer.buffer, 1, buffer.alloc_len);
-            
+
             in_buffer_audiodec[i].filled_len = data_read;
             in_buffer_audiodec[i].offset = 0;
             Omx.try_run(

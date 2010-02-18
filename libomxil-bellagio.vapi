@@ -8,7 +8,7 @@ namespace Omx {
         PortDisable,
         PortEnable,
         MarkBuffer;
-        
+
         public string to_string() {
             switch(this) {
                 case StateSet:
@@ -96,7 +96,7 @@ namespace Omx {
         ContentPipeCreationFailed,
         SeperateTablesUsed,
         TunnelingUnsupported;
-        
+
         public string to_string() {
             switch(this) {
                 case None:
@@ -197,7 +197,7 @@ namespace Omx {
     public struct Structure {
         [CCode (cname="nSize")]
         ulong size;
-        
+
         [CCode (cname="nVersion")]
         Version version;
     }
@@ -211,7 +211,7 @@ namespace Omx {
     public class BufferHeader {
         [CCode (cname="nSize")]
         ulong size;
-        
+
         [CCode (cname="nVersion")]
         Version version;
 
@@ -311,10 +311,10 @@ namespace Omx {
     }
 
     [CCode (cname="OMX_PORTDOMAINTYPE", cprefix="OMX_PortDomain")]
-    enum PortDomain { 
-        Audio, 
-        Video, 
-        Image, 
+    enum PortDomain {
+        Audio,
+        Video,
+        Image,
         Other
     }
 
@@ -396,7 +396,7 @@ namespace Omx {
 
         [CCode (cname="OMX_GetConfig")]
         public Error get_config(int config_index, ref Structure config_structure);
-        
+
         [CCode (cname="OMX_SetConfig")]
         public Error set_config(int config_index, ref Structure config_structure);
 
@@ -430,7 +430,7 @@ namespace Omx {
         Input,
         Output
     }
-    
+
     [CCode (cname="OMX_ENDIANTYPE", cprefix="OMX_Endian")]
     enum Endian {
         Big,
@@ -447,10 +447,10 @@ namespace Omx {
     struct bounded {
         [CCode (cname="nValue")]
         int32 value;
-        
+
         [CCode (cname="nMin")]
         int32 min;
-        
+
         [CCode (cname="nMax")]
         int32 max;
     }
@@ -634,7 +634,7 @@ namespace Omx {
         [CCode (cname="OMX_NATIVE_DEVICETYPE", default_value="NULL")]
         struct Device {
         }
-        
+
         [SimpleType]
         [CCode (cname="OMX_NATIVE_WINDOWTYPE", default_value="NULL")]
         struct Window {
@@ -659,30 +659,30 @@ namespace Omx {
          struct PortDefinition : PortStructure {
             [CCode (cname="eDir")]
             Dir dir;
-            
+
             [CCode (cname="nBufferCountActual")]
             uint32 buffer_count_actual;
-            
+
             [CCode (cname="nBufferCountMin")]
             uint32 Buffer_count_min;
-            
+
             [CCode (cname="nBufferSize")]
             uint32 buffer_size;
-            
+
             [CCode (cname="bEnabled")]
             bool enabled;
-            
+
             [CCode (cname="bPopulated")]
             bool populated;
-            
+
             [CCode (cname="eDomain")]
             PortDomain domain;
-            
+
             FormatDetail format;
-            
+
             [CCode (cname="bBuffersContiguous")]
             bool buffers_contiguous;
-            
+
             [CCode (cname="nBufferAlignment")]
             uint32 buffer_alignment;
         }
@@ -691,10 +691,10 @@ namespace Omx {
         struct SensorMode: PortStructure {
             [CCode (cname="nFrameRate")]
             uint32 frame_rate;
-            
+
             [CCode (cname="bOneShot")]
             bool one_shot;
-            
+
             [CCode (cname="sFrameSize")]
             FrameSize frame_size;
         }
@@ -711,7 +711,7 @@ namespace Omx {
         struct ColorBlend: PortStructure {
             [CCode (cname="nRGBAlphaConstant")]
             uint32 rgb_alpha_constant;
-            
+
             [CCode (cname="eColorBlend")]
             Omx.ColorBlend color_blend;
         }
@@ -721,13 +721,13 @@ namespace Omx {
             [CCode (cname="nContrast")]
             uint32 constrast;
         }
-        
+
         [CCode (cname="OMX_CONFIG_EXPOSURECONTROLTYPE")]
         struct ExposureControl: PortStructure {
             [CCode (cname="eExposureControl")]
             Omx.ExposureControl exposure_control;
         }
-        
+
         [CCode (cname="OMX_CONFIG_FRAMESTABTYPE")]
         struct FrameStab: PortStructure {
             [CCode (cname="bStab")]
@@ -739,12 +739,12 @@ namespace Omx {
             [CCode (cname="eMirror")]
             Omx.Mirror mirror;
         }
-        
+
         [CCode (cname="OMX_CONFIG_POINTTYPE")]
         struct Point: PortStructure {
             [CCode (cname="nX")]
             int32 x;
-            
+
             [CCode (cname="nY")]
             int32 y;
         }
@@ -753,13 +753,13 @@ namespace Omx {
         struct Rect: PortStructure {
             [CCode (cname="nLeft")]
             uint32 left;
-            
+
             [CCode (cname="nTop")]
             uint32 top;
-            
+
             [CCode (cname="nWidth")]
             uint32 width;
-            
+
             [CCode (cname="nHeight")]
             uint32 height;
         }
@@ -767,7 +767,7 @@ namespace Omx {
         [CCode (cname="OMX_CONFIG_ROTATIONTYPE")]
         struct Rotation: PortStructure {
             [CCode (cname="nRotation")]
-            int32 rotation; 
+            int32 rotation;
         }
 
         [CCode (cname="OMX_CONFIG_SCALEFACTORTYPE")]
@@ -816,7 +816,7 @@ namespace Omx {
         None,
         Vertical,
         Horizontal,
-        Both, 
+        Both,
     }
 
     [CCode (cname="OMX_WHITEBALCONTROLTYPE", cprefix="OMX_WhiteBalControl")]
@@ -836,7 +836,7 @@ namespace Omx {
     struct FrameSize: PortStructure {
         [CCode (cname="nWidth")]
         uint32 width;
-        
+
         [CCode (cname="nHeight")]
         uint32 height;
     }
@@ -879,13 +879,13 @@ namespace Omx {
         struct PortDefinition {
             [CCode (cname="cMIMEType")]
             string mime_type;
-            
+
             [CCode (cname="pNativeRender")]
             Native.Device native_render;
-            
+
             [CCode (cname="bFlagErrorConcealment")]
             bool flag_error_concealment;
-            
+
             [CCode (cname="eEncoding")]
             Coding encoding;
         }
@@ -895,34 +895,34 @@ namespace Omx {
             struct PortFormat: PortStructure {
                 [CCode (cname="Index")]
                 uint32 index;
-                
+
                 [CCode (cname="eEncoding")]
                 Coding encoding;
             }
-            
+
             [CCode (cname="OMX_AUDIO_PARAM_PCMMODETYPE")]
             struct PcmMode: PortStructure {
                 [CCode (cname="nChannels")]
                 uint32 channels;
-                
+
                 [CCode (cname="eNumData")]
                 NumericalData num_data;
-                
+
                 [CCode (cname="eEndian")]
                 Endian endian;
-                
+
                 [CCode (cname="bInterleaved")]
                 bool interleaved;
-                
+
                 [CCode (cname="nBitPerSample")]
                 uint32 bit_per_sample;
-                
+
                 [CCode (cname="nSamplingRate")]
                 uint32 sampling_rate;
-                
+
                 [CCode (cname="ePCMMode")]
                 Audio.PcmMode pcm_mode;
-                
+
                 [CCode (cname="eChannelMapping")]
                 Channel[] channel_mapping;
             }
@@ -931,19 +931,19 @@ namespace Omx {
             struct Mp3: PortStructure {
                 [CCode (cname="nChannels")]
                 uint32 channels;
-                
+
                 [CCode (cname="nBitRate")]
                 uint32 bit_rate;
-                
+
                 [CCode (cname="nSampleRate")]
                 uint32 sample_rate;
-                
+
                 [CCode (cname="nAudioBandWidth")]
                 uint32 audio_band_width;
-                
+
                 [CCode (cname="eChannelMode")]
                 ChannelMode channel_mode;
-                
+
                 [CCode (cname="eFormat")]
                 Mp3StreamFormat format;
             }
@@ -952,31 +952,31 @@ namespace Omx {
             struct AacProfile: PortStructure {
                 [CCode (cname="nChannels")]
                 uint32 channels;
-                
+
                 [CCode (cname="nSampleRate")]
                 uint32 sample_rate;
-                
+
                 [CCode (cname="nBitRate")]
                 uint32 bit_rate;
-                
+
                 [CCode (cname="nAudioBandWidth")]
                 uint32 audio_band_width;
-                
+
                 [CCode (cname="nFrameLength")]
                 uint32 frame_length;
-                
+
                 [CCode (cname="nAACtools")]
                 uint32 tools;
-                
+
                 [CCode (cname="nAACERtools")]
                 uint32 er_tools;
-                
+
                 [CCode (cname="eAACProfile")]
                 Audio.AacProfile profile;
-                
+
                 [CCode (cname="eAACStreamFormat")]
                 AacStreamFormat stream_format;
-                
+
                 [CCode (cname="eChannelMode")]
                 ChannelMode channel_mode;
             }
@@ -985,25 +985,25 @@ namespace Omx {
             struct Vorbis: PortStructure {
                 [CCode (cname="nChannels")]
                 uint32 channels;
-                
+
                 [CCode (cname="nBitRate")]
                 uint32 bit_rate;
-                
+
                 [CCode (cname="nMaxBitRate")]
                 uint32 max_bit_rate;
-                
+
                 [CCode (cname="nSampleRate")]
                 uint32 sample_rate;
-                
+
                 [CCode (cname="nAudioBandWidth")]
                 uint32 audio_band_width;
-                
+
                 [CCode (cname="nQuality")]
                 int32 quality;
-                
+
                 [CCode (cname="bManaged")]
                 bool managed;
-                
+
                 [CCode (cname="bDownmix")]
                 bool downmix;
             }
@@ -1012,43 +1012,43 @@ namespace Omx {
             struct Wma: PortStructure {
                 [CCode (cname="nChannels")]
                 uint16 channels;
-                
+
                 [CCode (cname="nBitRate")]
                 uint32 bit_rate;
-                
+
                 [CCode (cname="eFormat")]
                 WmaFormat format;
-                
+
                 [CCode (cname="eProfile")]
-            	WmaProfile profile;
-            	
-            	[CCode (cname="nSamplingRate")]
+                WmaProfile profile;
+
+                [CCode (cname="nSamplingRate")]
                 uint32 sampling_rate;
-                
+
                 [CCode (cname="nBlockAlign")]
                 uint16 block_align;
-                
+
                 [CCode (cname="nEncodeOptions")]
                 uint16 encode_options;
-                
+
                 [CCode (cname="nSuperBlockAlign")]
                 uint32 super_block_align;
             }
-            
+
             [CCode (cname="OMX_AUDIO_PARAM_AMRTYPE")]
             struct Amr: PortStructure {
                 [CCode (cname="nChannels")]
                 uint32 channels;
-                
+
                 [CCode (cname="nBitRate")]
                 uint32 bit_rate;
-                
+
                 [CCode (cname="eAMRBandMode")]
                 AmrBandMode band_mode;
-                
+
                 [CCode (cname="eAMRDTXMode")]
                 AmrDtxMode  dtx_mode;
-                
+
                 [CCode (cname="eAMRFrameFormat")]
                 AmrFrameFormat frame_format;
             }
@@ -1057,7 +1057,7 @@ namespace Omx {
             struct GsmFr: PortStructure {
                 [CCode (cname="bDTX")]
                 bool dtx;
-                
+
                 [CCode (cname="bHiPassFilter")]
                 bool hi_pass_filter;
             }
@@ -1066,7 +1066,7 @@ namespace Omx {
             struct GsmHr: PortStructure {
                 [CCode (cname="bDTX")]
                 bool dtx;
-                
+
                 [CCode (cname="bHiPassFilter")]
                 bool hi_pass_filter;
             }
@@ -1082,7 +1082,7 @@ namespace Omx {
         } //ns Param
 
         [CCode (cname="OMX_AUDIO_PCMMODETYPE", cprefix="OMX_AUDIO_PCMMode")]
-        enum PcmMode { 
+        enum PcmMode {
             Linear,
             ALaw,
             MULaw
@@ -1183,11 +1183,11 @@ namespace Omx {
         }
 
         [CCode (cname="OMX_AUDIO_AMRFRAMEFORMATTYPE", cprefix="OMX_AUDIO_AMRFrameFormat")]
-        enum AmrFrameFormat { 
+        enum AmrFrameFormat {
             Conformance,
             IF1,
             IF2,
-            FSF, 
+            FSF,
             RTPPayload,
             ITU
         }
@@ -1215,7 +1215,7 @@ namespace Omx {
         }
 
         [CCode (cname="OMX_AUDIO_AMRDTXMODETYPE", cprefix="OMX_AUDIO_AMRDTXMode")]
-        enum AmrDtxMode { 
+        enum AmrDtxMode {
             Off,
             OnVAD1,
             OnVAD2,
@@ -1223,13 +1223,13 @@ namespace Omx {
             [CCode (cname="OMX_AUDIO_AMRDTXasEFR")]
             asEFR
         }
-        
+
         namespace Config {
             [CCode (cname="OMX_AUDIO_CONFIG_VOLUMETYPE")]
             struct Volume: PortStructure {
                 [CCode (cname="bLinear")]
                 bool linear;
-                
+
                 [CCode (cname="sVolume")]
                 bounded volume;
             }
@@ -1238,40 +1238,40 @@ namespace Omx {
             struct ChannelVolume: PortStructure {
                 [CCode (cname="nChannel")]
                 uint32 channel;
-                
+
                 [CCode (cname="bLinear")]
                 bool linear;
-                
+
                 [CCode (cname="sVolume")]
                 bounded volume;
-                
+
                 [CCode (cname="bIsMIDI")]
                 bool is_midi;
             }
-            
+
             [CCode (cname="OMX_AUDIO_CONFIG_BALANCETYPE")]
             struct Balance: PortStructure {
                 [CCode (cname="nBalance")]
                 int32 balance;
             }
-            
+
             [CCode (cname="OMX_AUDIO_CONFIG_MUTETYPE")]
             struct Mute: PortStructure {
                 [CCode (cname="bMute")]
                 bool mute;
             }
-            
+
             [CCode (cname="OMX_AUDIO_CONFIG_CHANNELMUTETYPE")]
             struct ChannelMute: PortStructure {
                 [CCode (cname="nChannel")]
                 uint32 channel;
-                
+
                 [CCode (cname="bMute")]
                 bool mute;
-                
+
                 [CCode (cname="bIsMIDI")]
                 bool is_midi;
-            }            
+            }
         } //ns Config
     } //ns Audio
 
@@ -1289,42 +1289,42 @@ namespace Omx {
             AVC,
             MJPEG
         }
-    
+
         [CCode (cname="OMX_VIDEO_PORTDEFINITIONTYPE")]
         struct PortDefinition {
             [CCode (cname="cMIMEType")]
             string mime_type;
-            
+
             [CCode (cname="pNativeRender")]
             Native.Device native_Render;
-            
+
             [CCode (cname="nFrameWidth")]
             uint32 frame_width;
-            
+
             [CCode (cname="nFrameHeight")]
             uint32 frame_height;
-            
+
             [CCode (cname="nStride")]
             int32 stride;
-            
+
             [CCode (cname="nSliceHeight")]
             uint32 slice_height;
-            
+
             [CCode (cname="nBitrate")]
             uint32 bitrate;
-            
+
             [CCode (cname="xFramerate")]
             uint32 framerate;
-            
+
             [CCode (cname="bFlagErrorConcealment")]
             bool flag_error_concealment;
-            
+
             [CCode (cname="eCompressionFormat")]
             Video.Coding compression_format;
-            
+
             [CCode (cname="eColorFormat")]
             Color.Format color_format;
-            
+
             [CCode (cname="pNativeWindow")]
             Native.Window native_window;
         }
@@ -1438,169 +1438,169 @@ namespace Omx {
             struct Avc: PortStructure {
                 [CCode (cname="nSliceHeaderSpacing")]
                 uint32 slice_header_spacing;
-                
+
                 [CCode (cname="nPFrames")]
                 uint32 p_frames;
-                
+
                 [CCode (cname="nBFrames")]
                 uint32 b_frames;
-                
+
                 [CCode (cname="bUseHadamard")]
                 bool use_hadamard;
-                
+
                 [CCode (cname="nRefFrames")]
                 uint32 ref_frames;
-                
+
                 [CCode (cname="nRefIdx10ActiveMinus1")]
-            	uint32 ref_idx10_active_minus1;
-            	
-            	[CCode (cname="nRefIdx11ActiveMinus1")]
-            	uint32 ref_idx11_active_minus1;
-            	
-            	[CCode (cname="bEnableUEP")]
+                uint32 ref_idx10_active_minus1;
+
+                [CCode (cname="nRefIdx11ActiveMinus1")]
+                uint32 ref_idx11_active_minus1;
+
+                [CCode (cname="bEnableUEP")]
                 bool enable_uep;
-                
+
                 [CCode (cname="bEnableFMO")]
                 bool enable_fmo;
-                
+
                 [CCode (cname="bEnableASO")]
                 bool enable_aso;
-                
+
                 [CCode (cname="bEnableRS")]
                 bool enable_rs;
-                
+
                 [CCode (cname="eProfile")]
                 AvcProfile profile;
-                
+
                 [CCode (cname="eLevel")]
-            	AvcLevel level;
-            	
-            	[CCode (cname="nAllowedPictureTypes")]
+                AvcLevel level;
+
+                [CCode (cname="nAllowedPictureTypes")]
                 uint32 allowed_picture_types;
-                
+
                 [CCode (cname="bFrameMBsOnly")]
-            	bool frame_mbs_only;
-            	
-            	[CCode (cname="bMBAFF")]    									
+                bool frame_mbs_only;
+
+                [CCode (cname="bMBAFF")]
                 bool mbaff;
-                
+
                 [CCode (cname="bEntropyCodingCABAC")]
                 bool entropy_coding_cabac;
-                
+
                 [CCode (cname="bWeightedPPrediction")]
                 bool weighted_p_prediction;
-                
+
                 [CCode (cname="nWeightedBipredicitonMode")]
                 uint32 weighted_biprediction_mode;
-                
+
                 [CCode (cname="bconstIpred")]
                 bool const_ipred;
-                
+
                 [CCode (cname="bDirect8x8Inference")]
                 bool direct8x8_inference;
-                
+
                 [CCode (cname="bDirectSpatialTemporal")]
-            	bool direct_spatial_temporal;
-            	
-            	[CCode (cname="nCabacInitIdc")]
-            	uint32 cabac_init_idc;
-            	
-            	[CCode (cname="eLoopFilterMode")]
-            	AvcLoopFilter loop_Filter_mode;            
+                bool direct_spatial_temporal;
+
+                [CCode (cname="nCabacInitIdc")]
+                uint32 cabac_init_idc;
+
+                [CCode (cname="eLoopFilterMode")]
+                AvcLoopFilter loop_Filter_mode;
             }
 
             [CCode (cname="OMX_VIDEO_PARAM_BITRATETYPE")]
             struct Bitrate: PortStructure {
                 [CCode (cname="eControlRate")]
                 ControlRate control_rate;
-                
+
                 [CCode (cname="nTargetBitrate")]
                 uint32 target_bitrate;
             }
-          
+
             [CCode (cname="OMX_VIDEO_PARAM_H263TYPE")]
             struct H263: PortStructure {
                 [CCode (cname="nPFrames")]
                 uint32 p_frames;
-                
+
                 [CCode (cname="nBFrames")]
                 uint32 b_frames;
-                
+
                 [CCode (cname="eProfile")]
                 H263Profile profile;
-                
+
                 [CCode (cname="eLevel")]
-            	H263Level level;
-            	
-            	[CCode (cname="bPLUSPTYPEAllowed")]
+                H263Level level;
+
+                [CCode (cname="bPLUSPTYPEAllowed")]
                 bool plus_ptype_allowed;
-                
+
                 [CCode (cname="nAllowedPictureTypes")]
                 uint32 allowed_picture_types;
-                
+
                 [CCode (cname="bForceRoundingTypeToZero")]
                 bool force_rounding_type_to_zero;
-                
+
                 [CCode (cname="nPictureHeaderRepetition")]
                 uint32 picture_header_repetition;
-                
+
                 [CCode (cname="nGOBHeaderInterval")]
                 uint32 gob_header_interval;
             }
-            
+
             [CCode (cname="OMX_VIDEO_PARAM_MPEG4TYPE")]
             struct Mpeg4: PortStructure {
                 [CCode (cname="nSliceHeaderSpacing")]
                 uint32 slice_header_spacing;
-                
+
                 [CCode (cname="bSVH")]
                 bool svh;
-                
+
                 [CCode (cname="bGov")]
                 bool gov;
-                
+
                 [CCode (cname="nPFrames")]
                 uint32 p_frames;
-                
+
                 [CCode (cname="nBFrames")]
                 uint32 b_frames;
-                
+
                 [CCode (cname="nIDCVLCThreshold")]
                 uint32 i_dc_vlc_threshold;
-                
+
                 [CCode (cname="bACPred")]
                 bool ac_pred;
-                
+
                 [CCode (cname="nMaxPacketSize")]
                 uint32 max_packet_size;
-                
+
                 [CCode (cname="nTimeIncRes")]
                 uint32 time_inc_res;
-                
+
                 [CCode (cname="eProfile")]
                 Mpeg4Profile profile;
-                
+
                 [CCode (cname="eLevel")]
                 Mpeg4Level level;
-                
+
                 [CCode (cname="nAllowedPictureTypes")]
                 uint32 allowed_picture_types;
-                
+
                 [CCode (cname="nHeaderExtension")]
                 uint32 header_extension;
-                
+
                 [CCode (cname="bReversibleVLC")]
                 bool reversible_vlc;
             }
-            
+
             [CCode (cname="OMX_VIDEO_PARAM_QUANTIZATIONTYPE")]
             struct Quantization: PortStructure {
                 [CCode (cname="nQpI")]
                 uint32 qp_i;
-                
+
                 [CCode (cname="nQpP")]
                 uint32 qp_p;
-                
+
                 [CCode (cname="nQpB")]
                 uint32 qp_b;
             }
@@ -1627,40 +1627,40 @@ namespace Omx {
         struct PortDefinition {
             [CCode (cname="cMIMEType")]
             string mime_type;
-            
+
             [CCode (cname="pNativeRender")]
             Native.Device native_render;
-            
+
             [CCode (cname="nFrameWidth")]
             uint32 frame_width;
-            
+
             [CCode (cname="nFrameHeight")]
             uint32 frame_height;
-            
+
             [CCode (cname="nStride")]
             int32 stride;
-            
+
             [CCode (cname="nSliceHeight")]
             uint32 slice_height;
-            
+
             [CCode (cname="bFlagErrorConcealment")]
             bool flag_error_concealment;
-            
+
             [CCode (cname="eCompressionFormat")]
             Image.Coding compression_format;
-            
+
             [CCode (cname="eColorFormat")]
             Color.Format color_format;
-            
+
             [CCode (cname="pNativeWindow")]
             Native.Window native_window;
         }
-        
+
         namespace Param {
             [CCode (cname="OMX_IMAGE_PARAM_QFACTORTYPE")]
             struct QFactor: PortStructure {
                 [CCode (cname="nQFactor")]
-                uint32 q_factor;                                        
+                uint32 q_factor;
             }
         } //ns Param
     } //ns Image
@@ -1679,7 +1679,7 @@ namespace Omx {
             @16bitBGR565,
             @18bitRGB666,
             @18bitARGB1665,
-            @19bitARGB1666, 
+            @19bitARGB1666,
             @24bitRGB888,
             @24bitBGR888,
             @24bitARGB1887,
@@ -1702,11 +1702,11 @@ namespace Omx {
             RawBayer8bit,
             RawBayer10bit,
             RawBayer8bitcompressed,
-            L2, 
-            L4, 
-            L8, 
-            L16, 
-            L24, 
+            L2,
+            L4,
+            L8,
+            L16,
+            L24,
             L32,
             YUV420PackedSemiPlanar,
             YUV422PackedSemiPlanar,
@@ -1725,12 +1725,12 @@ namespace Omx {
             Stats,
             Binary
         }
-    
+
         [CCode (cname="OMX_OTHER_PORTDEFINITIONTYPE")]
         struct PortDefinition {
             [CCode (cname="eFormat")]
             Format format;
-        }    
+        }
     }
 
     namespace Time {
