@@ -66,7 +66,8 @@ class SimpleMp3Player: Object {
         if(eos_found)
             return Omx.Error.None;
 
-        var data_read = fd.read(buffer.buffer);
+        //var data_read = fd.read(buffer.buffer, 1, buffer.alloc_len);
+        var data_read = fd.read_data(buffer.buffer);
         buffer.offset = 0;
 
         if(data_read == 0) {
@@ -180,7 +181,9 @@ class SimpleMp3Player: Object {
         fd = FileStream.open(filename, "rb");
 
         for(int i=0; i<n_buffers; i++) {
-            var data_read = fd.read(in_buffer_audiodec[i].buffer);
+            var buffer = in_buffer_audiodec[i];
+            var data_read = fd.read(buffer.buffer, 1, buffer.alloc_len);
+            
             in_buffer_audiodec[i].filled_len = data_read;
             in_buffer_audiodec[i].offset = 0;
             Omx.try_run(
