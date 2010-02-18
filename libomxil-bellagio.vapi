@@ -395,10 +395,10 @@ namespace Omx {
         public Error free_handle();
 
         [CCode (cname="OMX_GetConfig")]
-        public Error get_config(int config_index, ref Structure config_structure);
+        public Error get_config(int config_index, ref PortStructure config_structure);
 
         [CCode (cname="OMX_SetConfig")]
-        public Error set_config(int config_index, ref Structure config_structure);
+        public Error set_config(int config_index, ref PortStructure config_structure);
 
         [CCode (cname="OMX_GetExtensionIndex")]
         public Error get_extension_index(string parameter_name, out int index_type);
@@ -407,10 +407,10 @@ namespace Omx {
         public Error get_state(out State state);
 
         [CCode (cname="OMX_GetParameter")]
-        public Error get_parameter(int param_index, ref Structure parameter_structure);
+        public Error get_parameter(int param_index, ref PortStructure parameter_structure);
 
         [CCode (cname="OMX_SetParameter")]
-        public Error set_parameter(int param_index, ref Structure parameter_structure);
+        public Error set_parameter(int param_index, ref PortStructure parameter_structure);
     }
 
     [CCode (cname="OMX_Init")]
