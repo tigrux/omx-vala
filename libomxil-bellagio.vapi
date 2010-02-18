@@ -1,6 +1,5 @@
 [CCode (cheader_filename="OMX_Core.h")]
 namespace Omx {
-
     [CCode (cname="OMX_COMMANDTYPE", cprefix="OMX_Command")]
     public enum Command {
         StateSet,
@@ -45,7 +44,7 @@ namespace Omx {
                 case Idle:
                     return "Omx.State.Idle";
                 case Executing:
-                    return "Omx.State.Invalid";
+                    return "Omx.State.Executing";
                 case Pause:
                     return "Omx.State.Pause";
                 case WaitForResources:
@@ -443,7 +442,7 @@ namespace Omx {
         Unsigned
     }
 
-    [CCode (cname="OMX_bounded")]
+    [CCode (cname="OMX_BS32")]
     struct bounded {
         [CCode (cname="nValue")]
         int32 value;
@@ -453,6 +452,18 @@ namespace Omx {
 
         [CCode (cname="nMax")]
         int32 max;
+    }
+
+    [CCode (cname="OMX_BU32")]
+    struct ubounded {
+        [CCode (cname="nValue")]
+        uint32 value;
+
+        [CCode (cname="nMin")]
+        uint32 min;
+
+        [CCode (cname="nMax")]
+        uint32 max;
     }
 
     [CCode (cname="OMX_INDEXTYPE", cprefix="OMX_Index")]
@@ -664,7 +675,7 @@ namespace Omx {
             uint32 buffer_count_actual;
 
             [CCode (cname="nBufferCountMin")]
-            uint32 Buffer_count_min;
+            uint32 buffer_count_min;
 
             [CCode (cname="nBufferSize")]
             uint32 buffer_size;
@@ -923,8 +934,8 @@ namespace Omx {
                 [CCode (cname="ePCMMode")]
                 Audio.PcmMode pcm_mode;
 
-                [CCode (cname="eChannelMapping")]
-                Channel[] channel_mapping;
+                [CCode (cname="eChannelMapping", array_length = false)]
+                weak Channel[] channel_mapping;
             }
 
             [CCode (cname="OMX_AUDIO_PARAM_MP3TYPE")]
@@ -1620,7 +1631,7 @@ namespace Omx {
             GIF,
             PNG,
             LZW,
-            BMP,
+            BMP
         }
 
         [CCode (cname="OMX_IMAGE_PORTDEFINITIONTYPE")]
@@ -1712,7 +1723,7 @@ namespace Omx {
             YUV422PackedSemiPlanar,
             @18BitBGR666,
             @24BitARGB6666,
-            @24BitABGR6666,
+            @24BitABGR6666
         }
     }
 
@@ -1791,7 +1802,6 @@ namespace Omx {
             throw (GLib.Error)e;
             }
     }
-
 }
 
 namespace Bellagio {
