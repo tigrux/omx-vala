@@ -61,7 +61,7 @@ static gpointer simple_mp3_player_parent_class = NULL;
 SimpleMp3Player* simple_mp3_player_new (void);
 SimpleMp3Player* simple_mp3_player_construct (GType object_type);
 GType simple_mp3_player_get_type (void);
-void simple_mp3_player_decode (SimpleMp3Player* self, const char* filename, GError** error);
+void simple_mp3_player_play (SimpleMp3Player* self, const char* filename, GError** error);
 gint _main (char** args, int args_length1);
 #define SIMPLE_MP3_PLAYER_GET_PRIVATE(o) (G_TYPE_INSTANCE_GET_PRIVATE ((o), TYPE_SIMPLE_MP3_PLAYER, SimpleMp3PlayerPrivate))
 enum  {
@@ -97,21 +97,21 @@ static const OMX_CALLBACKTYPE SIMPLE_MP3_PLAYER_audiosink_callbacks = {_simple_m
 gint _main (char** args, int args_length1) {
 	gint result;
 	GError * _inner_error_;
-	SimpleMp3Player* decoder;
+	SimpleMp3Player* player;
 	_inner_error_ = NULL;
 	if (args_length1 != 2) {
 		g_print ("%s <file.mp3>\n", args[0]);
 		result = 1;
 		return result;
 	}
-	decoder = simple_mp3_player_new ();
+	player = simple_mp3_player_new ();
 	{
-		simple_mp3_player_decode (decoder, args[1], &_inner_error_);
+		simple_mp3_player_play (player, args[1], &_inner_error_);
 		if (_inner_error_ != NULL) {
 			goto __catch0_g_error;
 		}
 		result = 0;
-		_g_object_unref0 (decoder);
+		_g_object_unref0 (player);
 		return result;
 	}
 	goto __finally0;
@@ -124,18 +124,18 @@ gint _main (char** args, int args_length1) {
 			g_print ("%s\n", e->message);
 			result = 1;
 			_g_error_free0 (e);
-			_g_object_unref0 (decoder);
+			_g_object_unref0 (player);
 			return result;
 		}
 	}
 	__finally0:
 	if (_inner_error_ != NULL) {
-		_g_object_unref0 (decoder);
+		_g_object_unref0 (player);
 		g_critical ("file %s: line %d: uncaught error: %s (%s, %d)", __FILE__, __LINE__, _inner_error_->message, g_quark_to_string (_inner_error_->domain), _inner_error_->code);
 		g_clear_error (&_inner_error_);
 		return 0;
 	}
-	_g_object_unref0 (decoder);
+	_g_object_unref0 (player);
 }
 
 
@@ -405,7 +405,7 @@ static void omx_try_run (OMX_ERRORTYPE err, const char* file, const char* functi
 }
 
 
-void simple_mp3_player_decode (SimpleMp3Player* self, const char* filename, GError** error) {
+void simple_mp3_player_play (SimpleMp3Player* self, const char* filename, GError** error) {
 	GError * _inner_error_;
 	FILE* _tmp0_;
 	g_return_if_fail (self != NULL);

@@ -4,10 +4,10 @@ int main(string[] args) {
         return 1;
     }
 
-    var decoder = new SimpleMp3Player();
+    var player = new SimpleMp3Player();
 
     try {
-        decoder.decode(args[1]);
+        player.play(args[1]);
         return 0;
     }
     catch(Error e) {
@@ -33,7 +33,7 @@ class SimpleMp3Player: Object {
 
     FileStream fd;
 
-    public void decode(string filename) throws GLib.Error {
+    public void play(string filename) throws GLib.Error {
         fd = FileStream.open(filename, "rb");
         if(fd == null)
             throw new FileError.FAILED("Error opening %s", filename);
