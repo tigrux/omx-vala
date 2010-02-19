@@ -42,7 +42,7 @@ class SimpleMp3Player: Object {
         get_handles();
         pass_to_idle_and_allocate_buffers();
         pass_to_executing();
-        move_buffers(filename);
+        move_buffers();
         pass_to_idle();
         pass_to_loaded_and_free_buffers();
         free_handles();
@@ -122,7 +122,7 @@ class SimpleMp3Player: Object {
         audiosink_sem.down();
     }
 
-    void move_buffers(string filename) throws Error {
+    void move_buffers() throws Error {
         for(int i=0; i<N_BUFFERS; i++) {
             var buffer = in_buffer_audiodec[i];
             var data_read = fd.read(buffer.buffer);

@@ -83,7 +83,7 @@ static OMX_ERRORTYPE _simple_mp3_player_audiosink_empty_buffer_done_omx_empty_bu
 static void simple_mp3_player_get_handles (SimpleMp3Player* self, GError** error);
 static void simple_mp3_player_pass_to_idle_and_allocate_buffers (SimpleMp3Player* self, GError** error);
 static void simple_mp3_player_pass_to_executing (SimpleMp3Player* self, GError** error);
-static void simple_mp3_player_move_buffers (SimpleMp3Player* self, const char* filename, GError** error);
+static void simple_mp3_player_move_buffers (SimpleMp3Player* self, GError** error);
 static void simple_mp3_player_pass_to_idle (SimpleMp3Player* self, GError** error);
 static void simple_mp3_player_pass_to_loaded_and_free_buffers (SimpleMp3Player* self, GError** error);
 static void simple_mp3_player_free_handles (SimpleMp3Player* self, GError** error);
@@ -439,7 +439,7 @@ void simple_mp3_player_play (SimpleMp3Player* self, const char* filename, GError
 		g_propagate_error (error, _inner_error_);
 		return;
 	}
-	simple_mp3_player_move_buffers (self, filename, &_inner_error_);
+	simple_mp3_player_move_buffers (self, &_inner_error_);
 	if (_inner_error_ != NULL) {
 		g_propagate_error (error, _inner_error_);
 		return;
@@ -560,10 +560,9 @@ static void simple_mp3_player_pass_to_executing (SimpleMp3Player* self, GError**
 }
 
 
-static void simple_mp3_player_move_buffers (SimpleMp3Player* self, const char* filename, GError** error) {
+static void simple_mp3_player_move_buffers (SimpleMp3Player* self, GError** error) {
 	GError * _inner_error_;
 	g_return_if_fail (self != NULL);
-	g_return_if_fail (filename != NULL);
 	_inner_error_ = NULL;
 	{
 		gint i;
