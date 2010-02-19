@@ -1800,7 +1800,7 @@ namespace Omx {
                        "%s (0x%x) in function %s at %s:%d",
                        err.to_string(), err, function, file, line);
             throw (GLib.Error)e;
-            }
+        }
     }
 }
 

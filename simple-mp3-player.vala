@@ -33,7 +33,7 @@ class SimpleMp3Player: Object {
 
     FileStream fd;
 
-    public void play(string filename) throws GLib.Error {
+    public void play(string filename) throws Error {
         fd = FileStream.open(filename, "rb");
         if(fd == null)
             throw new FileError.FAILED("Error opening %s", filename);
@@ -64,7 +64,7 @@ class SimpleMp3Player: Object {
     Omx.Handle audiodec_handle;
     Omx.Handle audiosink_handle;
 
-    void get_handles() throws GLib.Error {
+    void get_handles() throws Error {
         Omx.try_run(
             Omx.get_handle(
                 out audiodec_handle, "OMX.st.audio_decoder.mp3.mad",
@@ -79,7 +79,7 @@ class SimpleMp3Player: Object {
     Omx.BufferHeader[] in_buffer_audiodec;
     Omx.BufferHeader[] out_buffer_audiodec;
 
-    void pass_to_idle_and_allocate_buffers() throws GLib.Error {
+    void pass_to_idle_and_allocate_buffers() throws Error {
         Omx.try_run(
             audiodec_handle.send_command(
                 Omx.Command.StateSet, Omx.State.Idle, null));
@@ -110,7 +110,7 @@ class SimpleMp3Player: Object {
         audiosink_sem.down();
     }
 
-    void pass_to_executing() throws GLib.Error {
+    void pass_to_executing() throws Error {
         Omx.try_run(
             audiodec_handle.send_command(
                 Omx.Command.StateSet, Omx.State.Executing, null));
@@ -122,7 +122,7 @@ class SimpleMp3Player: Object {
         audiosink_sem.down();
     }
 
-    void move_buffers(string filename) throws GLib.Error {
+    void move_buffers(string filename) throws Error {
         for(int i=0; i<N_BUFFERS; i++) {
             var buffer = in_buffer_audiodec[i];
             var data_read = fd.read(buffer.buffer);
@@ -141,7 +141,7 @@ class SimpleMp3Player: Object {
         eos_sem.down();
     }
 
-    void pass_to_idle() throws GLib.Error {
+    void pass_to_idle() throws Error {
         Omx.try_run(
             audiodec_handle.send_command(
                 Omx.Command.StateSet, Omx.State.Idle, null));
@@ -153,7 +153,7 @@ class SimpleMp3Player: Object {
         audiosink_sem.down();
     }
 
-    void pass_to_loaded_and_free_buffers() throws GLib.Error {
+    void pass_to_loaded_and_free_buffers() throws Error {
         Omx.try_run(
             audiodec_handle.send_command(
                 Omx.Command.StateSet, Omx.State.Loaded, null));
@@ -177,7 +177,7 @@ class SimpleMp3Player: Object {
         audiosink_sem.down();
     }
 
-    void free_handles() throws GLib.Error {
+    void free_handles() throws Error {
         Omx.try_run(
             audiodec_handle.free_handle());
         Omx.try_run(
