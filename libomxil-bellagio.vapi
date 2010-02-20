@@ -8,7 +8,7 @@ namespace Omx {
         PortEnable,
         MarkBuffer;
 
-        public string to_string() {
+        public weak string to_string() {
             switch(this) {
                 case StateSet:
                     return "Omx.Command.StateSet";
@@ -35,7 +35,7 @@ namespace Omx {
         Pause,
         WaitForResources;
 
-        public string to_string() {
+        public weak string to_string() {
             switch(this) {
                 case Invalid:
                     return "Omx.State.Invalid";
@@ -96,7 +96,7 @@ namespace Omx {
         SeperateTablesUsed,
         TunnelingUnsupported;
 
-        public string to_string() {
+        public weak string to_string() {
             switch(this) {
                 case None:
                     return "Omx.Error.None";
@@ -283,7 +283,7 @@ namespace Omx {
         DynamicResourcesAvailable,
         PortFormatDetected;
 
-        public string to_string() {
+        public weak string to_string() {
             switch(this) {
                 case CmdComplete:
                     return "Omx.Event.CmdComplete";

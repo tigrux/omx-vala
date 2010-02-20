@@ -25,7 +25,6 @@ typedef struct _SimpleMp3PlayerClass SimpleMp3PlayerClass;
 #define _g_error_free0(var) ((var == NULL) ? NULL : (var = (g_error_free (var), NULL)))
 typedef struct _SimpleMp3PlayerPrivate SimpleMp3PlayerPrivate;
 #define _fclose0(var) ((var == NULL) ? NULL : (var = (fclose (var), NULL)))
-#define _g_free0(var) (var = (g_free (var), NULL))
 
 struct _SimpleMp3Player {
 	GObject parent_instance;
@@ -177,202 +176,202 @@ static GQuark omx_error_domain (void) {
 }
 
 
-static char* omx_error_to_string (OMX_ERRORTYPE self) {
-	char* result;
+static const char* omx_error_to_string (OMX_ERRORTYPE self) {
+	const char* result;
 	switch (self) {
 		case OMX_ErrorNone:
 		{
-			result = g_strdup ("Omx.Error.None");
+			result = "Omx.Error.None";
 			return result;
 		}
 		case OMX_ErrorInsufficientResources:
 		{
-			result = g_strdup ("Omx.Error.InsufficientResources");
+			result = "Omx.Error.InsufficientResources";
 			return result;
 		}
 		case OMX_ErrorUndefined:
 		{
-			result = g_strdup ("Omx.Error.Undefined");
+			result = "Omx.Error.Undefined";
 			return result;
 		}
 		case OMX_ErrorInvalidComponentName:
 		{
-			result = g_strdup ("Omx.Error.InvalidComponentName");
+			result = "Omx.Error.InvalidComponentName";
 			return result;
 		}
 		case OMX_ErrorComponentNotFound:
 		{
-			result = g_strdup ("Omx.Error.ComponentNotFound");
+			result = "Omx.Error.ComponentNotFound";
 			return result;
 		}
 		case OMX_ErrorInvalidComponent:
 		{
-			result = g_strdup ("Omx.Error.InvalidComponent");
+			result = "Omx.Error.InvalidComponent";
 			return result;
 		}
 		case OMX_ErrorBadParameter:
 		{
-			result = g_strdup ("Omx.Error.BadParameter");
+			result = "Omx.Error.BadParameter";
 			return result;
 		}
 		case OMX_ErrorNotImplemented:
 		{
-			result = g_strdup ("Omx.Error.NotImplemented");
+			result = "Omx.Error.NotImplemented";
 			return result;
 		}
 		case OMX_ErrorUnderflow:
 		{
-			result = g_strdup ("Omx.Error.Underflow");
+			result = "Omx.Error.Underflow";
 			return result;
 		}
 		case OMX_ErrorOverflow:
 		{
-			result = g_strdup ("Omx.Error.Overflow");
+			result = "Omx.Error.Overflow";
 			return result;
 		}
 		case OMX_ErrorHardware:
 		{
-			result = g_strdup ("Omx.Error.Hardware");
+			result = "Omx.Error.Hardware";
 			return result;
 		}
 		case OMX_ErrorInvalidState:
 		{
-			result = g_strdup ("Omx.Error.InvalidState");
+			result = "Omx.Error.InvalidState";
 			return result;
 		}
 		case OMX_ErrorStreamCorrupt:
 		{
-			result = g_strdup ("Omx.Error.StreamCorrupt");
+			result = "Omx.Error.StreamCorrupt";
 			return result;
 		}
 		case OMX_ErrorPortsNotCompatible:
 		{
-			result = g_strdup ("Omx.Error.PortsNotCompatible");
+			result = "Omx.Error.PortsNotCompatible";
 			return result;
 		}
 		case OMX_ErrorResourcesLost:
 		{
-			result = g_strdup ("Omx.Error.ResourcesLost");
+			result = "Omx.Error.ResourcesLost";
 			return result;
 		}
 		case OMX_ErrorNoMore:
 		{
-			result = g_strdup ("Omx.Error.NoMore");
+			result = "Omx.Error.NoMore";
 			return result;
 		}
 		case OMX_ErrorVersionMismatch:
 		{
-			result = g_strdup ("Omx.Error.VersionMismatch");
+			result = "Omx.Error.VersionMismatch";
 			return result;
 		}
 		case OMX_ErrorNotReady:
 		{
-			result = g_strdup ("Omx.Error.NotReady");
+			result = "Omx.Error.NotReady";
 			return result;
 		}
 		case OMX_ErrorTimeout:
 		{
-			result = g_strdup ("Omx.Error.Timeout");
+			result = "Omx.Error.Timeout";
 			return result;
 		}
 		case OMX_ErrorSameState:
 		{
-			result = g_strdup ("Omx.Error.SameState");
+			result = "Omx.Error.SameState";
 			return result;
 		}
 		case OMX_ErrorResourcesPreempted:
 		{
-			result = g_strdup ("Omx.Error.ResourcesPreempted");
+			result = "Omx.Error.ResourcesPreempted";
 			return result;
 		}
 		case OMX_ErrorPortUnresponsiveDuringAllocation:
 		{
-			result = g_strdup ("Omx.Error.PortUnresponsiveDuringAllocation");
+			result = "Omx.Error.PortUnresponsiveDuringAllocation";
 			return result;
 		}
 		case OMX_ErrorPortUnresponsiveDuringDeallocation:
 		{
-			result = g_strdup ("Omx.Error.PortUnresponsiveDuringDeallocation");
+			result = "Omx.Error.PortUnresponsiveDuringDeallocation";
 			return result;
 		}
 		case OMX_ErrorPortUnresponsiveDuringStop:
 		{
-			result = g_strdup ("Omx.Error.PortUnresponsiveDuringStop");
+			result = "Omx.Error.PortUnresponsiveDuringStop";
 			return result;
 		}
 		case OMX_ErrorIncorrectStateTransition:
 		{
-			result = g_strdup ("Omx.Error.IncorrectStateTransition");
+			result = "Omx.Error.IncorrectStateTransition";
 			return result;
 		}
 		case OMX_ErrorIncorrectStateOperation:
 		{
-			result = g_strdup ("Omx.Error.IncorrectStateOperation");
+			result = "Omx.Error.IncorrectStateOperation";
 			return result;
 		}
 		case OMX_ErrorUnsupportedSetting:
 		{
-			result = g_strdup ("Omx.Error.UnsupportedSetting");
+			result = "Omx.Error.UnsupportedSetting";
 			return result;
 		}
 		case OMX_ErrorUnsupportedIndex:
 		{
-			result = g_strdup ("Omx.Error.UnsupportedIndex");
+			result = "Omx.Error.UnsupportedIndex";
 			return result;
 		}
 		case OMX_ErrorBadPortIndex:
 		{
-			result = g_strdup ("Omx.Error.BadPortIndex");
+			result = "Omx.Error.BadPortIndex";
 			return result;
 		}
 		case OMX_ErrorPortUnpopulated:
 		{
-			result = g_strdup ("Omx.Error.PortUnpopulated");
+			result = "Omx.Error.PortUnpopulated";
 			return result;
 		}
 		case OMX_ErrorComponentSuspended:
 		{
-			result = g_strdup ("Omx.Error.ComponentSuspended");
+			result = "Omx.Error.ComponentSuspended";
 			return result;
 		}
 		case OMX_ErrorDynamicResourcesUnavailable:
 		{
-			result = g_strdup ("Omx.Error.DynamicResourcesUnavailable");
+			result = "Omx.Error.DynamicResourcesUnavailable";
 			return result;
 		}
 		case OMX_ErrorMbErrorsInFrame:
 		{
-			result = g_strdup ("Omx.Error.MbErrorsInFrame");
+			result = "Omx.Error.MbErrorsInFrame";
 			return result;
 		}
 		case OMX_ErrorFormatNotDetected:
 		{
-			result = g_strdup ("Omx.Error.FormatNotDetected");
+			result = "Omx.Error.FormatNotDetected";
 			return result;
 		}
 		case OMX_ErrorContentPipeOpenFailed:
 		{
-			result = g_strdup ("Omx.Error.ContentPipeOpenFailed");
+			result = "Omx.Error.ContentPipeOpenFailed";
 			return result;
 		}
 		case OMX_ErrorContentPipeCreationFailed:
 		{
-			result = g_strdup ("Omx.Error.ContentPipeCreationFailed");
+			result = "Omx.Error.ContentPipeCreationFailed";
 			return result;
 		}
 		case OMX_ErrorSeperateTablesUsed:
 		{
-			result = g_strdup ("Omx.Error.SeperateTablesUsed");
+			result = "Omx.Error.SeperateTablesUsed";
 			return result;
 		}
 		case OMX_ErrorTunnelingUnsupported:
 		{
-			result = g_strdup ("Omx.Error.TunnelingUnsupported");
+			result = "Omx.Error.TunnelingUnsupported";
 			return result;
 		}
 		default:
 		{
-			result = g_strdup ("(unknown)");
+			result = "(unknown)";
 			return result;
 		}
 	}
@@ -390,10 +389,8 @@ static void omx_try_run (OMX_ERRORTYPE err, const char* file, const char* functi
 	g_return_if_fail (function != NULL);
 	_inner_error_ = NULL;
 	if (err != OMX_ErrorNone) {
-		char* _tmp0_;
-		GError* _tmp1_;
 		GError* e;
-		e = (_tmp1_ = g_error_new (omx_error_domain (), (gint) err, "%s (0x%x) in function %s at %s:%d", _tmp0_ = omx_error_to_string (err), err, function, file, line, NULL), _g_free0 (_tmp0_), _tmp1_);
+		e = g_error_new (omx_error_domain (), (gint) err, "%s (0x%x) in function %s at %s:%d", omx_error_to_string (err), err, function, file, line, NULL);
 		_inner_error_ = _g_error_copy0 ((GError*) e);
 		{
 			g_propagate_error (error, _inner_error_);
