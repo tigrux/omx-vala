@@ -79,6 +79,8 @@ static OMX_ERRORTYPE simple_mp3_player_audiosink_event_handler (SimpleMp3Player*
 static OMX_ERRORTYPE _simple_mp3_player_audiosink_event_handler_omx_event_handler_func (OMX_HANDLETYPE component, gpointer self, OMX_EVENTTYPE event, guint32 data1, guint32 data2, void* event_data);
 static OMX_ERRORTYPE simple_mp3_player_audiosink_empty_buffer_done (SimpleMp3Player* self, OMX_HANDLETYPE component, OMX_BUFFERHEADERTYPE* buffer);
 static OMX_ERRORTYPE _simple_mp3_player_audiosink_empty_buffer_done_omx_empty_buffer_done_func (OMX_HANDLETYPE component, gpointer self, OMX_BUFFERHEADERTYPE* buffer);
+#define SIMPLE_MP3_PLAYER_AUDIODEC_COMPONENT_NAME "OMX.st.audio_decoder.mp3.mad"
+#define SIMPLE_MP3_PLAYER_AUDIOSINK_COMPONENT_NAME "OMX.st.alsa.alsasink"
 static void simple_mp3_player_get_handles (SimpleMp3Player* self, GError** error);
 static void simple_mp3_player_pass_to_idle_and_allocate_buffers (SimpleMp3Player* self, GError** error);
 static void simple_mp3_player_pass_to_executing (SimpleMp3Player* self, GError** error);
@@ -468,12 +470,12 @@ static void simple_mp3_player_get_handles (SimpleMp3Player* self, GError** error
 	GError * _inner_error_;
 	g_return_if_fail (self != NULL);
 	_inner_error_ = NULL;
-	omx_try_run (OMX_GetHandle (&self->priv->audiodec_handle, "OMX.st.audio_decoder.mp3.mad", self, &SIMPLE_MP3_PLAYER_audiodec_callbacks), __FILE__, __FUNCTION__, __LINE__, &_inner_error_);
+	omx_try_run (OMX_GetHandle (&self->priv->audiodec_handle, SIMPLE_MP3_PLAYER_AUDIODEC_COMPONENT_NAME, self, &SIMPLE_MP3_PLAYER_audiodec_callbacks), __FILE__, __FUNCTION__, __LINE__, &_inner_error_);
 	if (_inner_error_ != NULL) {
 		g_propagate_error (error, _inner_error_);
 		return;
 	}
-	omx_try_run (OMX_GetHandle (&self->priv->audiosink_handle, "OMX.st.alsa.alsasink", self, &SIMPLE_MP3_PLAYER_audiosink_callbacks), __FILE__, __FUNCTION__, __LINE__, &_inner_error_);
+	omx_try_run (OMX_GetHandle (&self->priv->audiosink_handle, SIMPLE_MP3_PLAYER_AUDIOSINK_COMPONENT_NAME, self, &SIMPLE_MP3_PLAYER_audiosink_callbacks), __FILE__, __FUNCTION__, __LINE__, &_inner_error_);
 	if (_inner_error_ != NULL) {
 		g_propagate_error (error, _inner_error_);
 		return;

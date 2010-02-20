@@ -64,14 +64,17 @@ class SimpleMp3Player: Object {
     Omx.Handle audiodec_handle;
     Omx.Handle audiosink_handle;
 
+    const string AUDIODEC_COMPONENT_NAME = "OMX.st.audio_decoder.mp3.mad";
+    const string AUDIOSINK_COMPONENT_NAME = "OMX.st.alsa.alsasink";
+
     void get_handles() throws Error {
         Omx.try_run(
             Omx.get_handle(
-                out audiodec_handle, "OMX.st.audio_decoder.mp3.mad",
+                out audiodec_handle, AUDIODEC_COMPONENT_NAME,
                 this, audiodec_callbacks));
         Omx.try_run(
             Omx.get_handle(
-                out audiosink_handle, "OMX.st.alsa.alsasink",
+                out audiosink_handle, AUDIOSINK_COMPONENT_NAME,
                 this, audiosink_callbacks));
     }
 
