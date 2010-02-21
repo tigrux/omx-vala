@@ -535,7 +535,7 @@ static void simple_mp3_player_handle_print_info (SimpleMp3Player* self, const ch
 	}
 	port_def = (memset (&_tmp1_, 0, sizeof (OMX_PARAM_PORTDEFINITIONTYPE)), _tmp1_);
 	omx_structure_init (&port_def);
-	g_print ("ports for %s\n", name);
+	g_print ("ports for %s (%p)\n", name, (void*) handle);
 	{
 		guint i;
 		i = (guint) param.nStartPortNumber;
@@ -794,7 +794,7 @@ static OMX_ERRORTYPE simple_mp3_player_audiodec_event_handler (SimpleMp3Player* 
 			switch (data2) {
 				case OMX_BUFFERFLAG_EOS:
 				{
-					g_print ("Got eos in %s\n", "SimpleMp3Player.audiodec_event_handler");
+					g_print ("Got Omx.BufferFlag.EOS\n");
 					tsem_up (&self->priv->eos_sem);
 					break;
 				}
@@ -843,8 +843,13 @@ static OMX_ERRORTYPE simple_mp3_player_audiodec_fill_buffer_done (SimpleMp3Playe
 	OMX_ERRORTYPE result;
 	g_return_val_if_fail (self != NULL, 0);
 	g_return_val_if_fail (buffer != NULL, 0);
-	result = OMX_EmptyThisBuffer (self->priv->audiosink_handle, buffer);
-	return result;
+	if (buffer->nFilledLen > 0) {
+		result = OMX_EmptyThisBuffer (self->priv->audiosink_handle, buffer);
+		return result;
+	} else {
+		result = OMX_ErrorNone;
+		return result;
+	}
 }
 
 
@@ -881,8 +886,8 @@ static OMX_ERRORTYPE simple_mp3_player_audiosink_empty_buffer_done (SimpleMp3Pla
 	OMX_ERRORTYPE result;
 	g_return_val_if_fail (self != NULL, 0);
 	g_return_val_if_fail (buffer != NULL, 0);
-	if ((buffer->nFlags & OMX_BUFFERFLAG_EOS) != 0) {
-		g_print ("Got eos in %s\n", "SimpleMp3Player.audiosink_empty_buffer_done");
+	if (self->priv->eos_found) {
+		g_print ("EOS was found, not filling buffer\n");
 		tsem_up (&self->priv->eos_sem);
 		result = OMX_ErrorNone;
 		return result;
