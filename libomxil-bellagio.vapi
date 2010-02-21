@@ -199,6 +199,9 @@ namespace Omx {
 
         [CCode (cname="nVersion")]
         Version version;
+        
+        [CCode (cheader_filename="omx-util.h")]
+        public void init();
     }
 
     public struct PortStructure: Structure {
@@ -394,10 +397,10 @@ namespace Omx {
         public Error free_handle();
 
         [CCode (cname="OMX_GetConfig")]
-        public Error get_config(int config_index, ref PortStructure config_structure);
+        public Error get_config(int config_index, PortStructure *config_structure);
 
         [CCode (cname="OMX_SetConfig")]
-        public Error set_config(int config_index, ref PortStructure config_structure);
+        public Error set_config(int config_index, PortStructure *config_structure);
 
         [CCode (cname="OMX_GetExtensionIndex")]
         public Error get_extension_index(string parameter_name, out int index_type);
@@ -406,10 +409,10 @@ namespace Omx {
         public Error get_state(out State state);
 
         [CCode (cname="OMX_GetParameter")]
-        public Error get_parameter(int param_index, ref PortStructure parameter_structure);
+        public Error get_parameter(int param_index, Structure *parameter_structure);
 
         [CCode (cname="OMX_SetParameter")]
-        public Error set_parameter(int param_index, ref PortStructure parameter_structure);
+        public Error set_parameter(int param_index, Structure *parameter_structure);
     }
 
     [CCode (cname="OMX_Init")]
@@ -427,7 +430,18 @@ namespace Omx {
     [CCode (cname="OMX_DIRTYPE", cprefix="OMX_Dir")]
     public enum Dir {
         Input,
-        Output
+        Output;
+        
+        public weak string to_string() {
+            switch(this) {
+                case Input:
+                    return "Omx.Dir.Input";
+                case Output:
+                    return "Omx.Dir.Output";
+                default:
+                    return "(uknnown)";
+            }
+        }
     }
 
     [CCode (cname="OMX_ENDIANTYPE", cprefix="OMX_Endian")]
@@ -844,6 +858,7 @@ namespace Omx {
         Horizon
     }
 
+    [CCode (cname="OMX_FRAMESIZETYPE")]
     struct FrameSize: PortStructure {
         [CCode (cname="nWidth")]
         uint32 width;
@@ -889,7 +904,7 @@ namespace Omx {
         [CCode (cname="OMX_AUDIO_PORTDEFINITIONTYPE")]
         struct PortDefinition {
             [CCode (cname="cMIMEType")]
-            string mime_type;
+            weak string mime_type;
 
             [CCode (cname="pNativeRender")]
             Native.Device native_render;
@@ -1304,7 +1319,7 @@ namespace Omx {
         [CCode (cname="OMX_VIDEO_PORTDEFINITIONTYPE")]
         struct PortDefinition {
             [CCode (cname="cMIMEType")]
-            string mime_type;
+            weak string mime_type;
 
             [CCode (cname="pNativeRender")]
             Native.Device native_Render;
@@ -1637,7 +1652,7 @@ namespace Omx {
         [CCode (cname="OMX_IMAGE_PORTDEFINITIONTYPE")]
         struct PortDefinition {
             [CCode (cname="cMIMEType")]
-            string mime_type;
+            weak string mime_type;
 
             [CCode (cname="pNativeRender")]
             Native.Device native_render;

@@ -10,6 +10,7 @@
 #include <stdio.h>
 #include <OMX_Component.h>
 #include <OMX_Core.h>
+#include <omx-util.h>
 
 
 #define TYPE_SIMPLE_MP3_PLAYER (simple_mp3_player_get_type ())
@@ -67,7 +68,7 @@ enum  {
 	SIMPLE_MP3_PLAYER_DUMMY_PROPERTY
 };
 #define SIMPLE_MP3_PLAYER_N_BUFFERS 2
-#define SIMPLE_MP3_PLAYER_BUFFER_OUT_SIZE (4 * 8192)
+#define SIMPLE_MP3_PLAYER_BUFFER_OUT_SIZE 32768
 #define SIMPLE_MP3_PLAYER_BUFFER_IN_SIZE 4096
 static OMX_ERRORTYPE simple_mp3_player_audiodec_event_handler (SimpleMp3Player* self, OMX_HANDLETYPE component, OMX_EVENTTYPE event, guint32 data1, guint32 data2, void* event_data);
 static OMX_ERRORTYPE _simple_mp3_player_audiodec_event_handler_omx_event_handler_func (OMX_HANDLETYPE component, gpointer self, OMX_EVENTTYPE event, guint32 data1, guint32 data2, void* event_data);
@@ -88,6 +89,7 @@ static void simple_mp3_player_move_buffers (SimpleMp3Player* self, GError** erro
 static void simple_mp3_player_pass_to_idle (SimpleMp3Player* self, GError** error);
 static void simple_mp3_player_pass_to_loaded_and_free_buffers (SimpleMp3Player* self, GError** error);
 static void simple_mp3_player_free_handles (SimpleMp3Player* self, GError** error);
+static void simple_mp3_player_handle_print_info (SimpleMp3Player* self, const char* name, OMX_HANDLETYPE handle, GError** error);
 static GObject * simple_mp3_player_constructor (GType type, guint n_construct_properties, GObjectConstructParam * construct_properties);
 static void simple_mp3_player_finalize (GObject* obj);
 
@@ -483,6 +485,76 @@ static void simple_mp3_player_get_handles (SimpleMp3Player* self, GError** error
 }
 
 
+static const char* omx_dir_to_string (OMX_DIRTYPE self) {
+	const char* result;
+	switch (self) {
+		case OMX_DirInput:
+		{
+			result = "Omx.Dir.Input";
+			return result;
+		}
+		case OMX_DirOutput:
+		{
+			result = "Omx.Dir.Output";
+			return result;
+		}
+		default:
+		{
+			result = "(uknnown)";
+			return result;
+		}
+	}
+}
+
+
+static void simple_mp3_player_handle_print_info (SimpleMp3Player* self, const char* name, OMX_HANDLETYPE handle, GError** error) {
+	GError * _inner_error_;
+	OMX_PORT_PARAM_TYPE _tmp0_ = {0};
+	OMX_PORT_PARAM_TYPE param;
+	OMX_PARAM_PORTDEFINITIONTYPE _tmp1_ = {0};
+	OMX_PARAM_PORTDEFINITIONTYPE port_def;
+	g_return_if_fail (self != NULL);
+	g_return_if_fail (name != NULL);
+	_inner_error_ = NULL;
+	param = (memset (&_tmp0_, 0, sizeof (OMX_PORT_PARAM_TYPE)), _tmp0_);
+	omx_structure_init (&param);
+	omx_try_run (OMX_GetParameter (handle, (gint) OMX_IndexParamAudioInit, &param), __FILE__, __FUNCTION__, __LINE__, &_inner_error_);
+	if (_inner_error_ != NULL) {
+		g_propagate_error (error, _inner_error_);
+		return;
+	}
+	port_def = (memset (&_tmp1_, 0, sizeof (OMX_PARAM_PORTDEFINITIONTYPE)), _tmp1_);
+	omx_structure_init (&port_def);
+	g_print ("ports for %s\n", name);
+	{
+		guint i;
+		i = (guint) param.nStartPortNumber;
+		{
+			gboolean _tmp2_;
+			_tmp2_ = TRUE;
+			while (TRUE) {
+				if (!_tmp2_) {
+					i++;
+				}
+				_tmp2_ = FALSE;
+				if (!(i < param.nPorts)) {
+					break;
+				}
+				g_print ("\tPort %u:\n", i);
+				port_def.nPortIndex = (guint32) i;
+				omx_try_run (OMX_GetParameter (handle, (gint) OMX_IndexParamPortDefinition, &port_def), __FILE__, __FUNCTION__, __LINE__, &_inner_error_);
+				if (_inner_error_ != NULL) {
+					g_propagate_error (error, _inner_error_);
+					return;
+				}
+				g_print ("\t\thas direction %s\n", omx_dir_to_string (port_def.eDir));
+				g_print ("\t\thas %u buffers of size %u\n", (guint) port_def.nBufferCountActual, (guint) port_def.nBufferSize);
+			}
+		}
+	}
+}
+
+
 static void simple_mp3_player_pass_to_idle_and_allocate_buffers (SimpleMp3Player* self, GError** error) {
 	GError * _inner_error_;
 	OMX_BUFFERHEADERTYPE** _tmp0_;
@@ -517,17 +589,17 @@ static void simple_mp3_player_pass_to_idle_and_allocate_buffers (SimpleMp3Player
 				if (!(i < SIMPLE_MP3_PLAYER_N_BUFFERS)) {
 					break;
 				}
-				omx_try_run (OMX_AllocateBuffer (self->priv->audiodec_handle, &self->priv->in_buffer_audiodec[i], (gint) OMX_DirInput, NULL, (guint) SIMPLE_MP3_PLAYER_BUFFER_IN_SIZE), __FILE__, __FUNCTION__, __LINE__, &_inner_error_);
+				omx_try_run (OMX_AllocateBuffer (self->priv->audiodec_handle, &self->priv->in_buffer_audiodec[i], 0, NULL, (guint) SIMPLE_MP3_PLAYER_BUFFER_IN_SIZE), __FILE__, __FUNCTION__, __LINE__, &_inner_error_);
 				if (_inner_error_ != NULL) {
 					g_propagate_error (error, _inner_error_);
 					return;
 				}
-				omx_try_run (OMX_AllocateBuffer (self->priv->audiodec_handle, &self->priv->out_buffer_audiodec[i], (gint) OMX_DirOutput, NULL, (guint) SIMPLE_MP3_PLAYER_BUFFER_OUT_SIZE), __FILE__, __FUNCTION__, __LINE__, &_inner_error_);
+				omx_try_run (OMX_AllocateBuffer (self->priv->audiodec_handle, &self->priv->out_buffer_audiodec[i], 1, NULL, (guint) SIMPLE_MP3_PLAYER_BUFFER_OUT_SIZE), __FILE__, __FUNCTION__, __LINE__, &_inner_error_);
 				if (_inner_error_ != NULL) {
 					g_propagate_error (error, _inner_error_);
 					return;
 				}
-				omx_try_run (OMX_UseBuffer (self->priv->audiosink_handle, &self->priv->in_buffer_audiosink[i], (gint) OMX_DirInput, NULL, (guint) SIMPLE_MP3_PLAYER_BUFFER_OUT_SIZE, self->priv->out_buffer_audiodec[i]->pBuffer), __FILE__, __FUNCTION__, __LINE__, &_inner_error_);
+				omx_try_run (OMX_AllocateBuffer (self->priv->audiosink_handle, &self->priv->in_buffer_audiosink[i], 0, NULL, (guint) SIMPLE_MP3_PLAYER_BUFFER_OUT_SIZE), __FILE__, __FUNCTION__, __LINE__, &_inner_error_);
 				if (_inner_error_ != NULL) {
 					g_propagate_error (error, _inner_error_);
 					return;
@@ -596,6 +668,7 @@ static void simple_mp3_player_move_buffers (SimpleMp3Player* self, GError** erro
 			}
 		}
 	}
+	g_print ("Waiting for eos\n");
 	tsem_down (&self->priv->eos_sem);
 }
 
@@ -647,17 +720,17 @@ static void simple_mp3_player_pass_to_loaded_and_free_buffers (SimpleMp3Player* 
 				if (!(i < SIMPLE_MP3_PLAYER_N_BUFFERS)) {
 					break;
 				}
-				omx_try_run (OMX_FreeBuffer (self->priv->audiodec_handle, (gint) OMX_DirInput, self->priv->in_buffer_audiodec[i]), __FILE__, __FUNCTION__, __LINE__, &_inner_error_);
+				omx_try_run (OMX_FreeBuffer (self->priv->audiodec_handle, 0, self->priv->in_buffer_audiodec[i]), __FILE__, __FUNCTION__, __LINE__, &_inner_error_);
 				if (_inner_error_ != NULL) {
 					g_propagate_error (error, _inner_error_);
 					return;
 				}
-				omx_try_run (OMX_FreeBuffer (self->priv->audiodec_handle, (gint) OMX_DirOutput, self->priv->out_buffer_audiodec[i]), __FILE__, __FUNCTION__, __LINE__, &_inner_error_);
+				omx_try_run (OMX_FreeBuffer (self->priv->audiodec_handle, 1, self->priv->out_buffer_audiodec[i]), __FILE__, __FUNCTION__, __LINE__, &_inner_error_);
 				if (_inner_error_ != NULL) {
 					g_propagate_error (error, _inner_error_);
 					return;
 				}
-				omx_try_run (OMX_FreeBuffer (self->priv->audiosink_handle, (gint) OMX_DirInput, self->priv->in_buffer_audiosink[i]), __FILE__, __FUNCTION__, __LINE__, &_inner_error_);
+				omx_try_run (OMX_FreeBuffer (self->priv->audiosink_handle, 0, self->priv->in_buffer_audiosink[i]), __FILE__, __FUNCTION__, __LINE__, &_inner_error_);
 				if (_inner_error_ != NULL) {
 					g_propagate_error (error, _inner_error_);
 					return;
@@ -687,6 +760,63 @@ static void simple_mp3_player_free_handles (SimpleMp3Player* self, GError** erro
 }
 
 
+static const char* omx_event_to_string (OMX_EVENTTYPE self) {
+	const char* result;
+	switch (self) {
+		case OMX_EventCmdComplete:
+		{
+			result = "Omx.Event.CmdComplete";
+			return result;
+		}
+		case OMX_EventError:
+		{
+			result = "Omx.Event.Error";
+			return result;
+		}
+		case OMX_EventMark:
+		{
+			result = "Omx.Event.Mark";
+			return result;
+		}
+		case OMX_EventPortSettingsChanged:
+		{
+			result = "Omx.Event.PortSettingsChanged";
+			return result;
+		}
+		case OMX_EventBufferFlag:
+		{
+			result = "Omx.Event.BufferFlag";
+			return result;
+		}
+		case OMX_EventResourcesAcquired:
+		{
+			result = "Omx.Event.ResourcesAcquired";
+			return result;
+		}
+		case OMX_EventComponentResumed:
+		{
+			result = "Omx.Event.ComponentResumed";
+			return result;
+		}
+		case OMX_EventDynamicResourcesAvailable:
+		{
+			result = "Omx.Event.DynamicResourcesAvailable";
+			return result;
+		}
+		case OMX_EventPortFormatDetected:
+		{
+			result = "Omx.Event.PortFormatDetected";
+			return result;
+		}
+		default:
+		{
+			result = "(unknown)";
+			return result;
+		}
+	}
+}
+
+
 static OMX_ERRORTYPE simple_mp3_player_audiodec_event_handler (SimpleMp3Player* self, OMX_HANDLETYPE component, OMX_EVENTTYPE event, guint32 data1, guint32 data2, void* event_data) {
 	OMX_ERRORTYPE result;
 	g_return_val_if_fail (self != NULL, 0);
@@ -711,6 +841,7 @@ static OMX_ERRORTYPE simple_mp3_player_audiodec_event_handler (SimpleMp3Player* 
 			switch (data2) {
 				case OMX_BUFFERFLAG_EOS:
 				{
+					g_print ("Got eos\n");
 					tsem_up (&self->priv->eos_sem);
 					break;
 				}
@@ -723,6 +854,7 @@ static OMX_ERRORTYPE simple_mp3_player_audiodec_event_handler (SimpleMp3Player* 
 		}
 		default:
 		{
+			g_print ("Got event %s\n", omx_event_to_string (event));
 			break;
 		}
 	}
@@ -742,12 +874,13 @@ static OMX_ERRORTYPE simple_mp3_player_audiodec_empty_buffer_done (SimpleMp3Play
 	}
 	data_read = fread (buffer->pBuffer, 1, buffer->nAllocLen, self->priv->fd);
 	buffer->nOffset = (gsize) 0;
-	if (data_read == 0) {
+	if (data_read > 0) {
+		buffer->nFilledLen = data_read;
+	} else {
+		g_print ("Marking eos\n");
 		buffer->nFilledLen = (gsize) 0;
 		buffer->nFlags = buffer->nFlags | ((guint32) OMX_BUFFERFLAG_EOS);
 		self->priv->eos_found = TRUE;
-	} else {
-		buffer->nFilledLen = data_read;
 	}
 	result = OMX_EmptyThisBuffer (component, buffer);
 	return result;

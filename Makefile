@@ -1,5 +1,5 @@
 MODULE="libomxil-bellagio gobject-2.0"
-CFLAGS=`pkg-config $(MODULE) --cflags` -Wall -ggdb
+CFLAGS=`pkg-config $(MODULE) --cflags` -I . -Wall -ggdb
 LDFLAGS=`pkg-config $(MODULE) --libs`
 
 all: simple-mp3-player

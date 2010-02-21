@@ -18,7 +18,7 @@ int main(string[] args) {
 
 class SimpleMp3Player: Object {
     const int N_BUFFERS = 2;
-    const int BUFFER_OUT_SIZE = 4*8192;
+    const int BUFFER_OUT_SIZE = 32768;
     const int BUFFER_IN_SIZE = 4096;
 
     Bellagio.Semaphore audiodec_sem;
@@ -31,6 +31,7 @@ class SimpleMp3Player: Object {
         eos_sem.init(0);
     }
 
+
     FileStream fd;
 
     public void play(string filename) throws Error {
@@ -40,6 +41,8 @@ class SimpleMp3Player: Object {
 
         Omx.try_run(Omx.init());
         get_handles();
+        //handle_print_info("audiodec", audiodec_handle);
+        //handle_print_info("audiosink", audiosink_handle);
         pass_to_idle_and_allocate_buffers();
         pass_to_executing();
         move_buffers();
@@ -78,6 +81,30 @@ class SimpleMp3Player: Object {
                 this, audiosink_callbacks));
     }
 
+    void handle_print_info(string name, Omx.Handle handle) throws Error {
+        var param = Omx.Port.Param();
+        param.init();
+        
+        Omx.try_run(
+            handle.get_parameter(
+                Omx.Index.ParamAudioInit, &param));
+
+        var port_def = Omx.Param.PortDefinition();
+        port_def.init();
+
+        print("ports for %s\n", name);
+        for(uint i = param.start_port_number; i<param.ports; i++) {
+            print("\tPort %u:\n", i);
+            port_def.port_index = i;
+            Omx.try_run(
+                handle.get_parameter(
+                    Omx.Index.ParamPortDefinition, &port_def));
+            print("\t\thas direction %s\n", port_def.dir.to_string());
+            print("\t\thas %u buffers of size %u\n",
+                port_def.buffer_count_actual, port_def.buffer_size);
+        }
+    }
+
     Omx.BufferHeader[] in_buffer_audiosink;
     Omx.BufferHeader[] in_buffer_audiodec;
     Omx.BufferHeader[] out_buffer_audiodec;
@@ -97,16 +124,16 @@ class SimpleMp3Player: Object {
         for(int i=0; i<N_BUFFERS; i++) {
             Omx.try_run(
                 audiodec_handle.allocate_buffer(
-                    out in_buffer_audiodec[i], Omx.Dir.Input,
+                    out in_buffer_audiodec[i], 0,
                     null, BUFFER_IN_SIZE));
             Omx.try_run(
                 audiodec_handle.allocate_buffer(
-                    out out_buffer_audiodec[i], Omx.Dir.Output,
+                    out out_buffer_audiodec[i], 1,
                     null, BUFFER_OUT_SIZE));
             Omx.try_run(
-                audiosink_handle.use_buffer(
-                    out in_buffer_audiosink[i], Omx.Dir.Input,
-                    null, BUFFER_OUT_SIZE, out_buffer_audiodec[i].buffer));
+                audiosink_handle.allocate_buffer(
+                    out in_buffer_audiosink[i], 0,
+                    null, BUFFER_OUT_SIZE));
         }
 
         audiodec_sem.down();
@@ -141,6 +168,7 @@ class SimpleMp3Player: Object {
                     out_buffer_audiodec[i]));
         }
 
+        print("Waiting for eos\n");
         eos_sem.down();
     }
 
@@ -167,13 +195,13 @@ class SimpleMp3Player: Object {
         for(int i=0; i<N_BUFFERS; i++) {
             Omx.try_run(
                 audiodec_handle.free_buffer(
-                    Omx.Dir.Input, in_buffer_audiodec[i]));
+                    0, in_buffer_audiodec[i]));
             Omx.try_run(
                 audiodec_handle.free_buffer(
-                    Omx.Dir.Output, out_buffer_audiodec[i]));
+                    1, out_buffer_audiodec[i]));
             Omx.try_run(
                 audiosink_handle.free_buffer(
-                    Omx.Dir.Input, in_buffer_audiosink[i]));
+                    0, in_buffer_audiosink[i]));
         }
 
         audiodec_sem.down();
@@ -205,6 +233,7 @@ class SimpleMp3Player: Object {
             case Omx.Event.BufferFlag:
                 switch(data2) {
                     case Omx.BufferFlag.EOS:
+                        print("Got eos\n");
                         eos_sem.up();
                         break;
                     default:
@@ -212,6 +241,7 @@ class SimpleMp3Player: Object {
                 }
                 break;
             default:
+                print("Got event %s\n", event.to_string());
                 break;
         }
 
@@ -229,13 +259,14 @@ class SimpleMp3Player: Object {
         var data_read = fd.read(buffer.buffer);
         buffer.offset = 0;
 
-        if(data_read == 0) {
+        if(data_read > 0)
+            buffer.filled_len = data_read;
+         else {
+            print("Marking eos\n");
             buffer.filled_len = 0;
             buffer.flags |= Omx.BufferFlag.EOS;
             eos_found = true;
         }
-        else
-            buffer.filled_len = data_read;
 
         return component.empty_this_buffer(buffer);
     }
