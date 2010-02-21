@@ -378,6 +378,9 @@ namespace Omx {
         [CCode (cname="OMX_SendCommand")]
         public Error send_command(Command cmd, int param, void *cmd_data);
 
+        [CCode (cname="OMX_GetState")]
+        public Error get_state(out State state);
+
         [CCode (cname="OMX_UseBuffer")]
         public Error use_buffer(out BufferHeader buffer, int n_port, void *app_priv, uint n_bytes, char *pbuffer);
 
@@ -397,22 +400,19 @@ namespace Omx {
         public Error free_handle();
 
         [CCode (cname="OMX_GetConfig")]
-        public Error get_config(int config_index, PortStructure *config_structure);
+        public Error get_config(int config_index, PortStructure config_structure);
 
         [CCode (cname="OMX_SetConfig")]
-        public Error set_config(int config_index, PortStructure *config_structure);
+        public Error set_config(int config_index, PortStructure config_structure);
 
         [CCode (cname="OMX_GetExtensionIndex")]
         public Error get_extension_index(string parameter_name, out int index_type);
 
-        [CCode (cname="OMX_GetState")]
-        public Error get_state(out State state);
-
         [CCode (cname="OMX_GetParameter")]
-        public Error get_parameter(int param_index, Structure *parameter_structure);
+        public Error get_parameter(int param_index, Structure parameter_structure);
 
         [CCode (cname="OMX_SetParameter")]
-        public Error set_parameter(int param_index, Structure *parameter_structure);
+        public Error set_parameter(int param_index, Structure parameter_structure);
     }
 
     [CCode (cname="OMX_Init")]

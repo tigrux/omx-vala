@@ -41,8 +41,8 @@ class SimpleMp3Player: Object {
 
         Omx.try_run(Omx.init());
         get_handles();
-        //handle_print_info("audiodec", audiodec_handle);
-        //handle_print_info("audiosink", audiosink_handle);
+        handle_print_info("audiodec", audiodec_handle);
+        handle_print_info("audiosink", audiosink_handle);
         pass_to_idle_and_allocate_buffers();
         pass_to_executing();
         move_buffers();
@@ -87,7 +87,7 @@ class SimpleMp3Player: Object {
         
         Omx.try_run(
             handle.get_parameter(
-                Omx.Index.ParamAudioInit, &param));
+                Omx.Index.ParamAudioInit, param));
 
         var port_def = Omx.Param.PortDefinition();
         port_def.init();
@@ -98,7 +98,7 @@ class SimpleMp3Player: Object {
             port_def.port_index = i;
             Omx.try_run(
                 handle.get_parameter(
-                    Omx.Index.ParamPortDefinition, &port_def));
+                    Omx.Index.ParamPortDefinition, port_def));
             print("\t\thas direction %s\n", port_def.dir.to_string());
             print("\t\thas %u buffers of size %u\n",
                 port_def.buffer_count_actual, port_def.buffer_size);
@@ -233,7 +233,7 @@ class SimpleMp3Player: Object {
             case Omx.Event.BufferFlag:
                 switch(data2) {
                     case Omx.BufferFlag.EOS:
-                        print("Got eos\n");
+                        print("Got eos in %s\n", GLib.Log.METHOD);
                         eos_sem.up();
                         break;
                     default:
@@ -241,7 +241,6 @@ class SimpleMp3Player: Object {
                 }
                 break;
             default:
-                print("Got event %s\n", event.to_string());
                 break;
         }
 
@@ -259,25 +258,22 @@ class SimpleMp3Player: Object {
         var data_read = fd.read(buffer.buffer);
         buffer.offset = 0;
 
-        if(data_read > 0)
-            buffer.filled_len = data_read;
-         else {
+        if(data_read == 0) {
             print("Marking eos\n");
             buffer.filled_len = 0;
             buffer.flags |= Omx.BufferFlag.EOS;
             eos_found = true;
         }
+        else
+            buffer.filled_len = data_read;
 
-        return component.empty_this_buffer(buffer);
+        return audiodec_handle.empty_this_buffer(buffer);
     }
 
     Omx.Error audiodec_fill_buffer_done(
             Omx.Handle component,
             Omx.BufferHeader buffer) {
-        if(buffer.filled_len == 0)
-            return Omx.Error.None;
-        else
-            return audiosink_handle.empty_this_buffer(buffer);
+        return audiosink_handle.empty_this_buffer(buffer);
     }
 
     Omx.Error audiosink_event_handler(
@@ -304,6 +300,11 @@ class SimpleMp3Player: Object {
     Omx.Error audiosink_empty_buffer_done(
             Omx.Handle component,
             Omx.BufferHeader buffer) {
+        if((buffer.flags & Omx.BufferFlag.EOS) != 0) {
+            print("Got eos in %s\n", GLib.Log.METHOD);
+            eos_sem.up();
+            return Omx.Error.None;
+        }
         return audiodec_handle.fill_this_buffer(buffer);
     }
 }
