@@ -52,7 +52,7 @@ struct _SimpleMp3PlayerPrivate {
 	OMX_BUFFERHEADERTYPE** out_buffer_audiodec;
 	gint out_buffer_audiodec_length1;
 	gint out_buffer_audiodec_size;
-	gboolean eos_found;
+	gint eos_found;
 };
 
 
@@ -535,7 +535,7 @@ static void simple_mp3_player_handle_print_info (SimpleMp3Player* self, const ch
 	}
 	port_def = (memset (&_tmp1_, 0, sizeof (OMX_PARAM_PORTDEFINITIONTYPE)), _tmp1_);
 	omx_structure_init (&port_def);
-	g_print ("ports for %s (%p)\n", name, (void*) handle);
+	g_print ("%s (%p)\n", name, (void*) handle);
 	{
 		guint i;
 		i = (guint) param.nStartPortNumber;
@@ -789,22 +789,6 @@ static OMX_ERRORTYPE simple_mp3_player_audiodec_event_handler (SimpleMp3Player* 
 			}
 			break;
 		}
-		case OMX_EventBufferFlag:
-		{
-			switch (data2) {
-				case OMX_BUFFERFLAG_EOS:
-				{
-					g_print ("Got Omx.BufferFlag.EOS\n");
-					tsem_up (&self->priv->eos_sem);
-					break;
-				}
-				default:
-				{
-					break;
-				}
-			}
-			break;
-		}
 		default:
 		{
 			break;
@@ -817,22 +801,24 @@ static OMX_ERRORTYPE simple_mp3_player_audiodec_event_handler (SimpleMp3Player* 
 
 static OMX_ERRORTYPE simple_mp3_player_audiodec_empty_buffer_done (SimpleMp3Player* self, OMX_HANDLETYPE component, OMX_BUFFERHEADERTYPE* buffer) {
 	OMX_ERRORTYPE result;
-	gsize data_read;
 	g_return_val_if_fail (self != NULL, 0);
 	g_return_val_if_fail (buffer != NULL, 0);
-	if (self->priv->eos_found) {
+	if (self->priv->eos_found != 0) {
+		g_print ("Requesting buffer after eos was found\n");
+		if (self->priv->eos_found == SIMPLE_MP3_PLAYER_N_BUFFERS) {
+			tsem_up (&self->priv->eos_sem);
+		} else {
+			self->priv->eos_found++;
+		}
 		result = OMX_ErrorNone;
 		return result;
 	}
-	data_read = fread (buffer->pBuffer, 1, buffer->nAllocLen, self->priv->fd);
 	buffer->nOffset = (gsize) 0;
-	if (data_read == 0) {
-		g_print ("Marking eos\n");
-		buffer->nFilledLen = (gsize) 0;
+	buffer->nFilledLen = fread (buffer->pBuffer, 1, buffer->nAllocLen, self->priv->fd);
+	if (feof (self->priv->fd)) {
+		g_print ("Setting eos flag\n");
 		buffer->nFlags = buffer->nFlags | ((guint32) OMX_BUFFERFLAG_EOS);
-		self->priv->eos_found = TRUE;
-	} else {
-		buffer->nFilledLen = data_read;
+		self->priv->eos_found++;
 	}
 	result = OMX_EmptyThisBuffer (self->priv->audiodec_handle, buffer);
 	return result;
@@ -843,13 +829,8 @@ static OMX_ERRORTYPE simple_mp3_player_audiodec_fill_buffer_done (SimpleMp3Playe
 	OMX_ERRORTYPE result;
 	g_return_val_if_fail (self != NULL, 0);
 	g_return_val_if_fail (buffer != NULL, 0);
-	if (buffer->nFilledLen > 0) {
-		result = OMX_EmptyThisBuffer (self->priv->audiosink_handle, buffer);
-		return result;
-	} else {
-		result = OMX_ErrorNone;
-		return result;
-	}
+	result = OMX_EmptyThisBuffer (self->priv->audiosink_handle, buffer);
+	return result;
 }
 
 
@@ -886,12 +867,6 @@ static OMX_ERRORTYPE simple_mp3_player_audiosink_empty_buffer_done (SimpleMp3Pla
 	OMX_ERRORTYPE result;
 	g_return_val_if_fail (self != NULL, 0);
 	g_return_val_if_fail (buffer != NULL, 0);
-	if (self->priv->eos_found) {
-		g_print ("EOS was found, not filling buffer\n");
-		tsem_up (&self->priv->eos_sem);
-		result = OMX_ErrorNone;
-		return result;
-	}
 	result = OMX_FillThisBuffer (self->priv->audiodec_handle, buffer);
 	return result;
 }

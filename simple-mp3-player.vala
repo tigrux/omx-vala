@@ -92,7 +92,7 @@ class SimpleMp3Player: Object {
         var port_def = Omx.Param.PortDefinition();
         port_def.init();
 
-        print("ports for %s (%p)\n", name, (void*)handle);
+        print("%s (%p)\n", name, (void*)handle);
         for(uint i = param.start_port_number; i<param.ports; i++) {
             print("\tPort %u:\n", i);
             port_def.port_index = i;
@@ -230,16 +230,6 @@ class SimpleMp3Player: Object {
                         break;
                 }
                 break;
-            case Omx.Event.BufferFlag:
-                switch(data2) {
-                    case Omx.BufferFlag.EOS:
-                        print("Got Omx.BufferFlag.EOS\n");
-                        eos_sem.up();
-                        break;
-                    default:
-                        break;
-                }
-                break;
             default:
                 break;
         }
@@ -247,25 +237,28 @@ class SimpleMp3Player: Object {
         return Omx.Error.None;
     }
 
-    bool eos_found;
+    int eos_found;
 
     Omx.Error audiodec_empty_buffer_done(
             Omx.Handle component,
             Omx.BufferHeader buffer) {
-        if(eos_found)
+        if(eos_found != 0) {
+            print("Requesting buffer after eos was found\n");
+            if(eos_found == N_BUFFERS)
+                eos_sem.up();
+            else
+                eos_found++;
             return Omx.Error.None;
-
-        var data_read = fd.read(buffer.buffer);
-        buffer.offset = 0;
-
-        if(data_read == 0) {
-            print("Marking eos\n");
-            buffer.filled_len = 0;
-            buffer.flags |= Omx.BufferFlag.EOS;
-            eos_found = true;
         }
-        else
-            buffer.filled_len = data_read;
+
+        buffer.offset = 0;
+        buffer.filled_len = fd.read(buffer.buffer);
+        
+        if(fd.eof()) {
+            print("Setting eos flag\n");
+            buffer.flags |= Omx.BufferFlag.EOS;
+            eos_found++;
+        }
 
         return audiodec_handle.empty_this_buffer(buffer);
     }
@@ -273,10 +266,7 @@ class SimpleMp3Player: Object {
     Omx.Error audiodec_fill_buffer_done(
             Omx.Handle component,
             Omx.BufferHeader buffer) {
-        if(buffer.filled_len > 0)
-            return audiosink_handle.empty_this_buffer(buffer);
-        else
-            return Omx.Error.None;
+        return audiosink_handle.empty_this_buffer(buffer);
     }
 
     Omx.Error audiosink_event_handler(
@@ -303,11 +293,6 @@ class SimpleMp3Player: Object {
     Omx.Error audiosink_empty_buffer_done(
             Omx.Handle component,
             Omx.BufferHeader buffer) {
-        if(eos_found) {
-            print("EOS was found, not filling buffer\n");
-            eos_sem.up();
-            return Omx.Error.None;
-        }
         return audiodec_handle.fill_this_buffer(buffer);
     }
 }
