@@ -91,6 +91,7 @@ static void simple_mp3_player_move_buffers (SimpleMp3Player* self, GError** erro
 static void simple_mp3_player_wait_for_eos (SimpleMp3Player* self);
 static void simple_mp3_player_free_buffers (SimpleMp3Player* self, GError** error);
 static void simple_mp3_player_free_handles (SimpleMp3Player* self, GError** error);
+static void simple_mp3_player_read_buffer_from_fd (SimpleMp3Player* self, OMX_BUFFERHEADERTYPE* buffer);
 static void simple_mp3_player_finalize (GObject* obj);
 
 static const OMX_CALLBACKTYPE SIMPLE_MP3_PLAYER_audiodec_callbacks = {_simple_mp3_player_audiodec_event_handler_omx_event_handler_func, _simple_mp3_player_audiodec_empty_buffer_done_omx_empty_buffer_done_func, _simple_mp3_player_audiodec_fill_buffer_done_omx_fill_buffer_done_func};
@@ -572,6 +573,7 @@ static void simple_mp3_player_handle_print_info (SimpleMp3Player* self, const ch
 					g_propagate_error (error, _inner_error_);
 					return;
 				}
+				g_print ("\t\thas mime-type %s\n", port_def.format.audio.cMIMEType);
 				g_print ("\t\thas direction %s\n", omx_dir_to_string (port_def.eDir));
 				g_print ("\t\thas %u buffers of size %u\n", (guint) port_def.nBufferCountActual, (guint) port_def.nBufferSize);
 			}
@@ -631,7 +633,7 @@ static void simple_mp3_player_allocate_buffers (SimpleMp3Player* self, GError** 
 					g_propagate_error (error, _inner_error_);
 					return;
 				}
-				omx_try_run (OMX_AllocateBuffer (self->priv->audiosink_handle, &self->priv->in_buffer_audiosink[i], 0, NULL, (guint) SIMPLE_MP3_PLAYER_BUFFER_OUT_SIZE), __FILE__, __FUNCTION__, __LINE__, &_inner_error_);
+				omx_try_run (OMX_UseBuffer (self->priv->audiosink_handle, &self->priv->in_buffer_audiosink[i], 0, NULL, (guint) SIMPLE_MP3_PLAYER_BUFFER_OUT_SIZE, NULL), __FILE__, __FUNCTION__, __LINE__, &_inner_error_);
 				if (_inner_error_ != NULL) {
 					g_propagate_error (error, _inner_error_);
 					return;
@@ -642,42 +644,30 @@ static void simple_mp3_player_allocate_buffers (SimpleMp3Player* self, GError** 
 }
 
 
+static void simple_mp3_player_read_buffer_from_fd (SimpleMp3Player* self, OMX_BUFFERHEADERTYPE* buffer) {
+	g_return_if_fail (self != NULL);
+	g_return_if_fail (buffer != NULL);
+	buffer->nOffset = (gsize) 0;
+	buffer->nFilledLen = fread (buffer->pBuffer, 1, buffer->nAllocLen, self->priv->fd);
+}
+
+
 static void simple_mp3_player_move_buffers (SimpleMp3Player* self, GError** error) {
 	GError * _inner_error_;
+	gint i;
 	g_return_if_fail (self != NULL);
 	_inner_error_ = NULL;
-	{
-		gint i;
-		i = 0;
-		{
-			gboolean _tmp0_;
-			_tmp0_ = TRUE;
-			while (TRUE) {
-				OMX_BUFFERHEADERTYPE* buffer;
-				gsize data_read;
-				if (!_tmp0_) {
-					i++;
-				}
-				_tmp0_ = FALSE;
-				if (!(i < SIMPLE_MP3_PLAYER_N_BUFFERS)) {
-					break;
-				}
-				buffer = self->priv->in_buffer_audiodec[i];
-				data_read = fread (buffer->pBuffer, 1, buffer->nAllocLen, self->priv->fd);
-				self->priv->in_buffer_audiodec[i]->nFilledLen = data_read;
-				self->priv->in_buffer_audiodec[i]->nOffset = (gsize) 0;
-				omx_try_run (OMX_EmptyThisBuffer (self->priv->audiodec_handle, self->priv->in_buffer_audiodec[i]), __FILE__, __FUNCTION__, __LINE__, &_inner_error_);
-				if (_inner_error_ != NULL) {
-					g_propagate_error (error, _inner_error_);
-					return;
-				}
-				omx_try_run (OMX_FillThisBuffer (self->priv->audiodec_handle, self->priv->out_buffer_audiodec[i]), __FILE__, __FUNCTION__, __LINE__, &_inner_error_);
-				if (_inner_error_ != NULL) {
-					g_propagate_error (error, _inner_error_);
-					return;
-				}
-			}
-		}
+	i = 0;
+	simple_mp3_player_read_buffer_from_fd (self, self->priv->in_buffer_audiodec[i]);
+	omx_try_run (OMX_EmptyThisBuffer (self->priv->audiodec_handle, self->priv->in_buffer_audiodec[i]), __FILE__, __FUNCTION__, __LINE__, &_inner_error_);
+	if (_inner_error_ != NULL) {
+		g_propagate_error (error, _inner_error_);
+		return;
+	}
+	omx_try_run (OMX_FillThisBuffer (self->priv->audiodec_handle, self->priv->out_buffer_audiodec[i]), __FILE__, __FUNCTION__, __LINE__, &_inner_error_);
+	if (_inner_error_ != NULL) {
+		g_propagate_error (error, _inner_error_);
+		return;
 	}
 }
 
@@ -790,8 +780,7 @@ static OMX_ERRORTYPE simple_mp3_player_audiodec_empty_buffer_done (SimpleMp3Play
 		result = OMX_ErrorNone;
 		return result;
 	}
-	buffer->nOffset = (gsize) 0;
-	buffer->nFilledLen = fread (buffer->pBuffer, 1, buffer->nAllocLen, self->priv->fd);
+	simple_mp3_player_read_buffer_from_fd (self, buffer);
 	if (feof (self->priv->fd)) {
 		self->priv->eos_found = TRUE;
 		g_print ("Setting eos flag\n");

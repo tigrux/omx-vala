@@ -105,6 +105,7 @@ class SimpleMp3Player: Object {
             Omx.try_run(
                 handle.get_parameter(
                     Omx.Index.ParamPortDefinition, port_def));
+	        print("\t\thas mime-type %s\n", port_def.format.audio.mime_type);
             print("\t\thas direction %s\n", port_def.dir.to_string());
             print("\t\thas %u buffers of size %u\n",
                 port_def.buffer_count_actual, port_def.buffer_size);
@@ -139,27 +140,26 @@ class SimpleMp3Player: Object {
                     out out_buffer_audiodec[i], 1,
                     null, BUFFER_OUT_SIZE));
             Omx.try_run(
-                audiosink_handle.allocate_buffer(
+                audiosink_handle.use_buffer(
                     out in_buffer_audiosink[i], 0,
-                    null, BUFFER_OUT_SIZE));
+                    null, BUFFER_OUT_SIZE, null));
         }
     }
 
-    void move_buffers() throws Error {
-        for(int i=0; i<N_BUFFERS; i++) {
-            var buffer = in_buffer_audiodec[i];
-            var data_read = fd.read(buffer.buffer);
+	void read_buffer_from_fd(Omx.BufferHeader buffer) {
+        buffer.offset = 0;
+        buffer.filled_len = fd.read(buffer.buffer);
+	}
 
-            in_buffer_audiodec[i].filled_len = data_read;
-            in_buffer_audiodec[i].offset = 0;
-    
-            Omx.try_run(
-                audiodec_handle.empty_this_buffer(
-                    in_buffer_audiodec[i]));
-            Omx.try_run(
-                audiodec_handle.fill_this_buffer(
-                    out_buffer_audiodec[i]));
-        }
+    void move_buffers() throws Error {
+        int i=0;
+        read_buffer_from_fd(in_buffer_audiodec[i]);
+        Omx.try_run(
+        	audiodec_handle.empty_this_buffer(
+        		in_buffer_audiodec[i]));
+        Omx.try_run(
+        	audiodec_handle.fill_this_buffer(
+        		out_buffer_audiodec[i]));
     }
 
     void free_buffers() throws Error {
@@ -224,8 +224,7 @@ class SimpleMp3Player: Object {
             return Omx.Error.None;
         }
 
-        buffer.offset = 0;
-        buffer.filled_len = fd.read(buffer.buffer);
+        read_buffer_from_fd(buffer);
         
         if(fd.eof()) {
         	eos_found = true;
