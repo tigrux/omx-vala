@@ -52,7 +52,7 @@ struct _SimpleMp3PlayerPrivate {
 	OMX_BUFFERHEADERTYPE** out_buffer_audiodec;
 	gint out_buffer_audiodec_length1;
 	gint out_buffer_audiodec_size;
-	gint eos_found;
+	gboolean eos_found;
 };
 
 
@@ -70,13 +70,13 @@ enum  {
 #define SIMPLE_MP3_PLAYER_N_BUFFERS 2
 #define SIMPLE_MP3_PLAYER_BUFFER_OUT_SIZE 32768
 #define SIMPLE_MP3_PLAYER_BUFFER_IN_SIZE 4096
-static OMX_ERRORTYPE simple_mp3_player_audiodec_event_handler (SimpleMp3Player* self, OMX_HANDLETYPE component, OMX_EVENTTYPE event, guint32 data1, guint32 data2, void* event_data);
+static OMX_ERRORTYPE simple_mp3_player_audiodec_event_handler (SimpleMp3Player* self, OMX_HANDLETYPE component, OMX_EVENTTYPE event, guint32 data1, guint32 data2);
 static OMX_ERRORTYPE _simple_mp3_player_audiodec_event_handler_omx_event_handler_func (OMX_HANDLETYPE component, gpointer self, OMX_EVENTTYPE event, guint32 data1, guint32 data2, void* event_data);
 static OMX_ERRORTYPE simple_mp3_player_audiodec_empty_buffer_done (SimpleMp3Player* self, OMX_HANDLETYPE component, OMX_BUFFERHEADERTYPE* buffer);
 static OMX_ERRORTYPE _simple_mp3_player_audiodec_empty_buffer_done_omx_empty_buffer_done_func (OMX_HANDLETYPE component, gpointer self, OMX_BUFFERHEADERTYPE* buffer);
 static OMX_ERRORTYPE simple_mp3_player_audiodec_fill_buffer_done (SimpleMp3Player* self, OMX_HANDLETYPE component, OMX_BUFFERHEADERTYPE* buffer);
 static OMX_ERRORTYPE _simple_mp3_player_audiodec_fill_buffer_done_omx_fill_buffer_done_func (OMX_HANDLETYPE component, gpointer self, OMX_BUFFERHEADERTYPE* buffer);
-static OMX_ERRORTYPE simple_mp3_player_audiosink_event_handler (SimpleMp3Player* self, OMX_HANDLETYPE component, OMX_EVENTTYPE event, guint32 data1, guint32 data2, void* event_data);
+static OMX_ERRORTYPE simple_mp3_player_audiosink_event_handler (SimpleMp3Player* self, OMX_HANDLETYPE component, OMX_EVENTTYPE event, guint32 data1, guint32 data2);
 static OMX_ERRORTYPE _simple_mp3_player_audiosink_event_handler_omx_event_handler_func (OMX_HANDLETYPE component, gpointer self, OMX_EVENTTYPE event, guint32 data1, guint32 data2, void* event_data);
 static OMX_ERRORTYPE simple_mp3_player_audiosink_empty_buffer_done (SimpleMp3Player* self, OMX_HANDLETYPE component, OMX_BUFFERHEADERTYPE* buffer);
 static OMX_ERRORTYPE _simple_mp3_player_audiosink_empty_buffer_done_omx_empty_buffer_done_func (OMX_HANDLETYPE component, gpointer self, OMX_BUFFERHEADERTYPE* buffer);
@@ -149,7 +149,7 @@ int main (int argc, char ** argv) {
 
 
 static OMX_ERRORTYPE _simple_mp3_player_audiodec_event_handler_omx_event_handler_func (OMX_HANDLETYPE component, gpointer self, OMX_EVENTTYPE event, guint32 data1, guint32 data2, void* event_data) {
-	return simple_mp3_player_audiodec_event_handler (self, component, event, data1, data2, event_data);
+	return simple_mp3_player_audiodec_event_handler (self, component, event, data1, data2);
 }
 
 
@@ -164,7 +164,7 @@ static OMX_ERRORTYPE _simple_mp3_player_audiodec_fill_buffer_done_omx_fill_buffe
 
 
 static OMX_ERRORTYPE _simple_mp3_player_audiosink_event_handler_omx_event_handler_func (OMX_HANDLETYPE component, gpointer self, OMX_EVENTTYPE event, guint32 data1, guint32 data2, void* event_data) {
-	return simple_mp3_player_audiosink_event_handler (self, component, event, data1, data2, event_data);
+	return simple_mp3_player_audiosink_event_handler (self, component, event, data1, data2);
 }
 
 
@@ -770,7 +770,7 @@ static void simple_mp3_player_free_handles (SimpleMp3Player* self, GError** erro
 }
 
 
-static OMX_ERRORTYPE simple_mp3_player_audiodec_event_handler (SimpleMp3Player* self, OMX_HANDLETYPE component, OMX_EVENTTYPE event, guint32 data1, guint32 data2, void* event_data) {
+static OMX_ERRORTYPE simple_mp3_player_audiodec_event_handler (SimpleMp3Player* self, OMX_HANDLETYPE component, OMX_EVENTTYPE event, guint32 data1, guint32 data2) {
 	OMX_ERRORTYPE result;
 	g_return_val_if_fail (self != NULL, 0);
 	switch (event) {
@@ -803,22 +803,17 @@ static OMX_ERRORTYPE simple_mp3_player_audiodec_empty_buffer_done (SimpleMp3Play
 	OMX_ERRORTYPE result;
 	g_return_val_if_fail (self != NULL, 0);
 	g_return_val_if_fail (buffer != NULL, 0);
-	if (self->priv->eos_found != 0) {
-		g_print ("Requesting buffer after eos was found\n");
-		if (self->priv->eos_found == SIMPLE_MP3_PLAYER_N_BUFFERS) {
-			tsem_up (&self->priv->eos_sem);
-		} else {
-			self->priv->eos_found++;
-		}
+	if (self->priv->eos_found) {
+		g_print ("Buffer requested after eos was found\n");
 		result = OMX_ErrorNone;
 		return result;
 	}
 	buffer->nOffset = (gsize) 0;
 	buffer->nFilledLen = fread (buffer->pBuffer, 1, buffer->nAllocLen, self->priv->fd);
 	if (feof (self->priv->fd)) {
+		self->priv->eos_found = TRUE;
 		g_print ("Setting eos flag\n");
 		buffer->nFlags = buffer->nFlags | ((guint32) OMX_BUFFERFLAG_EOS);
-		self->priv->eos_found++;
 	}
 	result = OMX_EmptyThisBuffer (self->priv->audiodec_handle, buffer);
 	return result;
@@ -829,12 +824,18 @@ static OMX_ERRORTYPE simple_mp3_player_audiodec_fill_buffer_done (SimpleMp3Playe
 	OMX_ERRORTYPE result;
 	g_return_val_if_fail (self != NULL, 0);
 	g_return_val_if_fail (buffer != NULL, 0);
+	if ((buffer->nFlags & OMX_BUFFERFLAG_EOS) != 0) {
+		g_print ("Got eos flag\n");
+		tsem_up (&self->priv->eos_sem);
+		result = OMX_ErrorNone;
+		return result;
+	}
 	result = OMX_EmptyThisBuffer (self->priv->audiosink_handle, buffer);
 	return result;
 }
 
 
-static OMX_ERRORTYPE simple_mp3_player_audiosink_event_handler (SimpleMp3Player* self, OMX_HANDLETYPE component, OMX_EVENTTYPE event, guint32 data1, guint32 data2, void* event_data) {
+static OMX_ERRORTYPE simple_mp3_player_audiosink_event_handler (SimpleMp3Player* self, OMX_HANDLETYPE component, OMX_EVENTTYPE event, guint32 data1, guint32 data2) {
 	OMX_ERRORTYPE result;
 	g_return_val_if_fail (self != NULL, 0);
 	switch (event) {

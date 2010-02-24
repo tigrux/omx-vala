@@ -218,8 +218,7 @@ class SimpleMp3Player: Object {
     Omx.Error audiodec_event_handler(
             Omx.Handle component,
             Omx.Event event,
-            uint32 data1, uint32 data2,
-            void *event_data) {
+            uint32 data1, uint32 data2) {
         switch(event) {
             case Omx.Event.CmdComplete:
                 switch(data1) {
@@ -237,17 +236,13 @@ class SimpleMp3Player: Object {
         return Omx.Error.None;
     }
 
-    int eos_found;
+    bool eos_found;
 
     Omx.Error audiodec_empty_buffer_done(
             Omx.Handle component,
             Omx.BufferHeader buffer) {
-        if(eos_found != 0) {
-            print("Requesting buffer after eos was found\n");
-            if(eos_found == N_BUFFERS)
-                eos_sem.up();
-            else
-                eos_found++;
+        if(eos_found) {
+            print("Buffer requested after eos was found\n");
             return Omx.Error.None;
         }
 
@@ -255,9 +250,9 @@ class SimpleMp3Player: Object {
         buffer.filled_len = fd.read(buffer.buffer);
         
         if(fd.eof()) {
+        	eos_found = true;
             print("Setting eos flag\n");
             buffer.flags |= Omx.BufferFlag.EOS;
-            eos_found++;
         }
 
         return audiodec_handle.empty_this_buffer(buffer);
@@ -266,14 +261,17 @@ class SimpleMp3Player: Object {
     Omx.Error audiodec_fill_buffer_done(
             Omx.Handle component,
             Omx.BufferHeader buffer) {
+        if((buffer.flags & Omx.BufferFlag.EOS) != 0) {
+        	print("Got eos flag\n");
+        	eos_sem.up();
+        	return Omx.Error.None;
+    	}
         return audiosink_handle.empty_this_buffer(buffer);
     }
 
     Omx.Error audiosink_event_handler(
-            Omx.Handle component,
-            Omx.Event event,
-            uint32 data1, uint32 data2,
-            void *event_data) {
+            Omx.Handle component, Omx.Event event,
+            uint32 data1, uint32 data2) {
         switch(event) {
             case Omx.Event.CmdComplete:
                 switch(data1) {
