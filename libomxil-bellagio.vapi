@@ -1,5 +1,8 @@
 [CCode (cheader_filename="OMX_Core.h")]
-namespace Omx {
+namespace Omx {	
+	[CCode (cname="OMX_ALL")]
+	const uint ALL;
+
     [CCode (cname="OMX_COMMANDTYPE", cprefix="OMX_Command")]
     public enum Command {
         StateSet,
