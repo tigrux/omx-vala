@@ -27,21 +27,21 @@ void play(string filename) throws Error {
     handle_print_info("audiodec", audiodec_handle);
     handle_print_info("audiosink", audiosink_handle);
 
-    change_state_to(Omx.State.Idle);
+    set_state(Omx.State.Idle);
     allocate_buffers();
-    wait_for_change_of_state();
+    wait_for_state_set();
 
-    change_state_to(Omx.State.Executing);
-    wait_for_change_of_state();
+    set_state(Omx.State.Executing);
+    wait_for_state_set();
     move_buffers();
     wait_for_eos();
 
-    change_state_to(Omx.State.Idle);
-    wait_for_change_of_state();
+    set_state(Omx.State.Idle);
+    wait_for_state_set();
 
-    change_state_to(Omx.State.Loaded);
+    set_state(Omx.State.Loaded);
     free_buffers();
-    wait_for_change_of_state();
+    wait_for_state_set();
 
     free_handles();
     Omx.try_run(Omx.deinit());
@@ -84,24 +84,25 @@ void handle_print_info(string name, Omx.Handle handle) throws Error {
         handle.get_parameter(
             Omx.Index.ParamAudioInit, param));
 
-    var port_def = Omx.Param.PortDefinition();
-    port_def.init();
+    var port_definition = Omx.Param.PortDefinition();
+    port_definition.init();
 
     print("%s (%p)\n", name, (void*)handle);
     for(uint i = param.start_port_number; i<param.ports; i++) {
         print("\tPort %u:\n", i);
-        port_def.port_index = i;
+        port_definition.port_index = i;
         Omx.try_run(
             handle.get_parameter(
-                Omx.Index.ParamPortDefinition, port_def));
-        print("\t\thas mime-type %s\n", port_def.format.audio.mime_type);
-        print("\t\thas direction %s\n", port_def.dir.to_string());
+                Omx.Index.ParamPortDefinition, port_definition));
+        print("\t\thas mime-type %s\n", port_definition.format.audio.mime_type);
+        print("\t\thas direction %s\n", port_definition.dir.to_string());
         print("\t\thas %u buffers of size %u\n",
-            port_def.buffer_count_actual, port_def.buffer_size);
+            port_definition.buffer_count_actual,
+            port_definition.buffer_size);
     }
 }
 
-void change_state_to(Omx.State state) throws Error {
+void set_state(Omx.State state) throws Error {
     Omx.try_run(
         audiodec_handle.send_command(
             Omx.Command.StateSet, state, null));
@@ -179,7 +180,7 @@ Bellagio.Semaphore audiodec_sem;
 Bellagio.Semaphore audiosink_sem;
 Bellagio.Semaphore eos_sem;
 
-void wait_for_change_of_state() {
+void wait_for_state_set() {
     audiodec_sem.down();
     audiosink_sem.down();
 }

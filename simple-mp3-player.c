@@ -48,9 +48,9 @@ void play (const char* filename, GError** error);
 gint _main (char** args, int args_length1);
 void get_handles (GError** error);
 void handle_print_info (const char* name, OMX_HANDLETYPE handle, GError** error);
-void change_state_to (OMX_STATETYPE state, GError** error);
+void set_state (OMX_STATETYPE state, GError** error);
 void allocate_buffers (GError** error);
-void wait_for_change_of_state (void);
+void wait_for_state_set (void);
 void move_buffers (GError** error);
 void wait_for_eos (void);
 void free_buffers (GError** error);
@@ -387,7 +387,7 @@ void play (const char* filename, GError** error) {
 		g_propagate_error (error, _inner_error_);
 		return;
 	}
-	change_state_to (OMX_StateIdle, &_inner_error_);
+	set_state (OMX_StateIdle, &_inner_error_);
 	if (_inner_error_ != NULL) {
 		g_propagate_error (error, _inner_error_);
 		return;
@@ -397,26 +397,26 @@ void play (const char* filename, GError** error) {
 		g_propagate_error (error, _inner_error_);
 		return;
 	}
-	wait_for_change_of_state ();
-	change_state_to (OMX_StateExecuting, &_inner_error_);
+	wait_for_state_set ();
+	set_state (OMX_StateExecuting, &_inner_error_);
 	if (_inner_error_ != NULL) {
 		g_propagate_error (error, _inner_error_);
 		return;
 	}
-	wait_for_change_of_state ();
+	wait_for_state_set ();
 	move_buffers (&_inner_error_);
 	if (_inner_error_ != NULL) {
 		g_propagate_error (error, _inner_error_);
 		return;
 	}
 	wait_for_eos ();
-	change_state_to (OMX_StateIdle, &_inner_error_);
+	set_state (OMX_StateIdle, &_inner_error_);
 	if (_inner_error_ != NULL) {
 		g_propagate_error (error, _inner_error_);
 		return;
 	}
-	wait_for_change_of_state ();
-	change_state_to (OMX_StateLoaded, &_inner_error_);
+	wait_for_state_set ();
+	set_state (OMX_StateLoaded, &_inner_error_);
 	if (_inner_error_ != NULL) {
 		g_propagate_error (error, _inner_error_);
 		return;
@@ -426,7 +426,7 @@ void play (const char* filename, GError** error) {
 		g_propagate_error (error, _inner_error_);
 		return;
 	}
-	wait_for_change_of_state ();
+	wait_for_state_set ();
 	free_handles (&_inner_error_);
 	if (_inner_error_ != NULL) {
 		g_propagate_error (error, _inner_error_);
@@ -508,7 +508,7 @@ void handle_print_info (const char* name, OMX_HANDLETYPE handle, GError** error)
 	OMX_PORT_PARAM_TYPE _tmp0_ = {0};
 	OMX_PORT_PARAM_TYPE param;
 	OMX_PARAM_PORTDEFINITIONTYPE _tmp1_ = {0};
-	OMX_PARAM_PORTDEFINITIONTYPE port_def;
+	OMX_PARAM_PORTDEFINITIONTYPE port_definition;
 	g_return_if_fail (name != NULL);
 	_inner_error_ = NULL;
 	param = (memset (&_tmp0_, 0, sizeof (OMX_PORT_PARAM_TYPE)), _tmp0_);
@@ -518,8 +518,8 @@ void handle_print_info (const char* name, OMX_HANDLETYPE handle, GError** error)
 		g_propagate_error (error, _inner_error_);
 		return;
 	}
-	port_def = (memset (&_tmp1_, 0, sizeof (OMX_PARAM_PORTDEFINITIONTYPE)), _tmp1_);
-	omx_structure_init (&port_def);
+	port_definition = (memset (&_tmp1_, 0, sizeof (OMX_PARAM_PORTDEFINITIONTYPE)), _tmp1_);
+	omx_structure_init (&port_definition);
 	g_print ("%s (%p)\n", name, (void*) handle);
 	{
 		guint i;
@@ -536,22 +536,22 @@ void handle_print_info (const char* name, OMX_HANDLETYPE handle, GError** error)
 					break;
 				}
 				g_print ("\tPort %u:\n", i);
-				port_def.nPortIndex = (guint32) i;
-				omx_try_run (OMX_GetParameter (handle, (gint) OMX_IndexParamPortDefinition, &port_def), __FILE__, __FUNCTION__, __LINE__, &_inner_error_);
+				port_definition.nPortIndex = (guint32) i;
+				omx_try_run (OMX_GetParameter (handle, (gint) OMX_IndexParamPortDefinition, &port_definition), __FILE__, __FUNCTION__, __LINE__, &_inner_error_);
 				if (_inner_error_ != NULL) {
 					g_propagate_error (error, _inner_error_);
 					return;
 				}
-				g_print ("\t\thas mime-type %s\n", port_def.format.audio.cMIMEType);
-				g_print ("\t\thas direction %s\n", omx_dir_to_string (port_def.eDir));
-				g_print ("\t\thas %u buffers of size %u\n", (guint) port_def.nBufferCountActual, (guint) port_def.nBufferSize);
+				g_print ("\t\thas mime-type %s\n", port_definition.format.audio.cMIMEType);
+				g_print ("\t\thas direction %s\n", omx_dir_to_string (port_definition.eDir));
+				g_print ("\t\thas %u buffers of size %u\n", (guint) port_definition.nBufferCountActual, (guint) port_definition.nBufferSize);
 			}
 		}
 	}
 }
 
 
-void change_state_to (OMX_STATETYPE state, GError** error) {
+void set_state (OMX_STATETYPE state, GError** error) {
 	GError * _inner_error_;
 	_inner_error_ = NULL;
 	omx_try_run (OMX_SendCommand (audiodec_handle, OMX_CommandStateSet, (gint) state, NULL), __FILE__, __FUNCTION__, __LINE__, &_inner_error_);
@@ -689,7 +689,7 @@ void free_handles (GError** error) {
 }
 
 
-void wait_for_change_of_state (void) {
+void wait_for_state_set (void) {
 	tsem_down (&audiodec_sem);
 	tsem_down (&audiosink_sem);
 }
