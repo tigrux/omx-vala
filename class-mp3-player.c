@@ -121,7 +121,7 @@ void component_set_state (Component* self, OMX_STATETYPE state, GError** error);
 void component_allocate_ports (Component* self, GError** error);
 void component_wait_for_state_set (Component* self);
 void component_free_ports (Component* self, GError** error);
-void component_deinit (Component* self, GError** error);
+void component_free (Component* self, GError** error);
 GType port_get_type (void);
 #define COMPONENT_GET_PRIVATE(o) (G_TYPE_INSTANCE_GET_PRIVATE ((o), TYPE_COMPONENT, ComponentPrivate))
 enum  {
@@ -136,10 +136,10 @@ static OMX_ERRORTYPE _component_buffer_done_omx_fill_buffer_done_func (OMX_HANDL
 Port* port_new (Component* parent_component, guint32 port_index);
 Port* port_construct (GType object_type, Component* parent_component, guint32 port_index);
 void port_init (Port* self, GError** error);
-void port_allocate_buffers (Port* self);
+void port_allocate_buffers (Port* self, GError** error);
 const char* component_get_name (Component* self);
 void port_set_name (Port* self, const char* value);
-void port_free_buffers (Port* self);
+void port_free_buffers (Port* self, GError** error);
 OMX_STATETYPE component_get_state (Component* self, GError** error);
 const char* port_get_name (Port* self);
 static void component_finalize (GObject* obj);
@@ -524,7 +524,7 @@ void mp3_player_play (Mp3Player* self, const char* filename, GError** error) {
 		return;
 	}
 	component_wait_for_state_set (audiodec);
-	component_deinit (audiodec, &_inner_error_);
+	component_free (audiodec, &_inner_error_);
 	if (_inner_error_ != NULL) {
 		g_propagate_error (error, _inner_error_);
 		_fclose0 (fd);
@@ -607,8 +607,6 @@ Component* component_new (const char* component_name, OMX_INDEXTYPE param_init_i
 
 void component_init (Component* self, GError** error) {
 	GError * _inner_error_;
-	OMX_PARAM_PORTDEFINITIONTYPE _tmp0_ = {0};
-	OMX_PARAM_PORTDEFINITIONTYPE definition;
 	g_return_if_fail (self != NULL);
 	_inner_error_ = NULL;
 	omx_try_run (OMX_GetHandle (&self->handle, self->priv->_component_name, self, &COMPONENT_callbacks), __FILE__, __FUNCTION__, __LINE__, &_inner_error_);
@@ -622,12 +620,10 @@ void component_init (Component* self, GError** error) {
 		g_propagate_error (error, _inner_error_);
 		return;
 	}
-	definition = (memset (&_tmp0_, 0, sizeof (OMX_PARAM_PORTDEFINITIONTYPE)), _tmp0_);
-	omx_structure_init (&definition);
 }
 
 
-void component_deinit (Component* self, GError** error) {
+void component_free (Component* self, GError** error) {
 	GError * _inner_error_;
 	g_return_if_fail (self != NULL);
 	_inner_error_ = NULL;
@@ -676,7 +672,12 @@ void component_allocate_ports (Component* self, GError** error) {
 					_g_object_unref0 (port);
 					return;
 				}
-				port_allocate_buffers (port);
+				port_allocate_buffers (port, &_inner_error_);
+				if (_inner_error_ != NULL) {
+					g_propagate_error (error, _inner_error_);
+					_g_object_unref0 (port);
+					return;
+				}
 				port_set_name (port, _tmp3_ = g_strdup_printf ("%s:port%u", self->priv->_name, i));
 				_g_free0 (_tmp3_);
 				self->ports[i] = (_tmp4_ = _g_object_ref0 (port), _g_object_unref0 (self->ports[i]), _tmp4_);
@@ -688,8 +689,10 @@ void component_allocate_ports (Component* self, GError** error) {
 
 
 void component_free_ports (Component* self, GError** error) {
+	GError * _inner_error_;
 	Port** _tmp0_;
 	g_return_if_fail (self != NULL);
+	_inner_error_ = NULL;
 	{
 		Port** port_collection;
 		int port_collection_length1;
@@ -700,7 +703,12 @@ void component_free_ports (Component* self, GError** error) {
 			Port* port;
 			port = _g_object_ref0 (port_collection[port_it]);
 			{
-				port_free_buffers (port);
+				port_free_buffers (port, &_inner_error_);
+				if (_inner_error_ != NULL) {
+					g_propagate_error (error, _inner_error_);
+					_g_object_unref0 (port);
+					return;
+				}
 				_g_object_unref0 (port);
 			}
 		}
@@ -897,7 +905,7 @@ void port_init (Port* self, GError** error) {
 }
 
 
-void port_allocate_buffers (Port* self) {
+void port_allocate_buffers (Port* self, GError** error) {
 	GError * _inner_error_;
 	OMX_BUFFERHEADERTYPE** _tmp0_;
 	g_return_if_fail (self != NULL);
@@ -919,8 +927,7 @@ void port_allocate_buffers (Port* self) {
 				}
 				omx_try_run (OMX_AllocateBuffer (self->component->handle, &self->buffers[i], (gint) self->definition.eDir, self, (guint) self->definition.nBufferSize), __FILE__, __FUNCTION__, __LINE__, &_inner_error_);
 				if (_inner_error_ != NULL) {
-					g_critical ("file %s: line %d: uncaught error: %s (%s, %d)", __FILE__, __LINE__, _inner_error_->message, g_quark_to_string (_inner_error_->domain), _inner_error_->code);
-					g_clear_error (&_inner_error_);
+					g_propagate_error (error, _inner_error_);
 					return;
 				}
 				g_async_queue_push (self->queue, self->buffers[i]);
@@ -930,7 +937,7 @@ void port_allocate_buffers (Port* self) {
 }
 
 
-void port_free_buffers (Port* self) {
+void port_free_buffers (Port* self, GError** error) {
 	GError * _inner_error_;
 	OMX_BUFFERHEADERTYPE** _tmp0_;
 	g_return_if_fail (self != NULL);
@@ -947,8 +954,7 @@ void port_free_buffers (Port* self) {
 			{
 				omx_try_run (OMX_FreeBuffer (self->component->handle, (gint) self->definition.eDir, buffer), __FILE__, __FUNCTION__, __LINE__, &_inner_error_);
 				if (_inner_error_ != NULL) {
-					g_critical ("file %s: line %d: uncaught error: %s (%s, %d)", __FILE__, __LINE__, _inner_error_->message, g_quark_to_string (_inner_error_->domain), _inner_error_->code);
-					g_clear_error (&_inner_error_);
+					g_propagate_error (error, _inner_error_);
 					return;
 				}
 			}

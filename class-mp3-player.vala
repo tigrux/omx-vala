@@ -28,7 +28,8 @@ public class Mp3Player: Object {
         var audiodec =
             new Component(AUDIODEC_COMPONENT_NAME, Omx.Index.ParamAudioInit);
 
-        Omx.try_run(Omx.init());
+        Omx.try_run(
+            Omx.init());
 
         audiodec.name = "audiodec";        
         audiodec.init();
@@ -47,9 +48,10 @@ public class Mp3Player: Object {
         audiodec.free_ports();
         audiodec.wait_for_state_set();
         
-        audiodec.deinit();
+        audiodec.free();
 
-        Omx.try_run(Omx.deinit());
+        Omx.try_run(
+            Omx.deinit());
     }
 }
 
@@ -77,17 +79,14 @@ public class Component: Object {
                 this, callbacks));
 
         port_param.init();
-
         Omx.try_run(
             handle.get_parameter(
                 _param_init_index, port_param));
-
-        var definition = Omx.Param.PortDefinition();
-        definition.init();
     }
 
-    public void deinit() throws Error {
-        Omx.try_run(handle.free_handle());
+    public void free() throws Error {
+        Omx.try_run(
+            handle.free_handle());
         handle = null;
     }
 
@@ -186,7 +185,7 @@ public class Port: Object {
                 Omx.Index.ParamPortDefinition, definition));
     }
 
-    public void allocate_buffers() {
+    public void allocate_buffers() throws Error {
         buffers = new Omx.BufferHeader[definition.buffer_count_actual];
         for(int i=0; i<definition.buffer_count_actual; i++) {
             Omx.try_run(
@@ -197,7 +196,7 @@ public class Port: Object {
         }
     }
 
-    public void free_buffers() {
+    public void free_buffers() throws Error {
         foreach(var buffer in buffers)
             Omx.try_run(
                 component.handle.free_buffer(
