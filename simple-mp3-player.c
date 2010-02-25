@@ -6,22 +6,16 @@
 #include <glib-object.h>
 #include <stdlib.h>
 #include <string.h>
-#include <bellagio/tsemaphore.h>
 #include <stdio.h>
 #include <OMX_Core.h>
 #include <OMX_Component.h>
 #include <omx-util.h>
+#include <bellagio/tsemaphore.h>
 
 #define _g_error_free0(var) ((var == NULL) ? NULL : (var = (g_error_free (var), NULL)))
 #define _fclose0(var) ((var == NULL) ? NULL : (var = (fclose (var), NULL)))
 
 
-extern tsem_t audiodec_sem;
-tsem_t audiodec_sem = {0};
-extern tsem_t audiosink_sem;
-tsem_t audiosink_sem = {0};
-extern tsem_t eos_sem;
-tsem_t eos_sem = {0};
 extern FILE* fd;
 FILE* fd = NULL;
 extern OMX_HANDLETYPE audiodec_handle;
@@ -43,14 +37,15 @@ extern gint out_buffer_audiodec_length1;
 OMX_BUFFERHEADERTYPE** out_buffer_audiodec = NULL;
 gint out_buffer_audiodec_length1 = 0;
 static gint out_buffer_audiodec_size = 0;
-extern gboolean eos_found;
-gboolean eos_found = FALSE;
+extern tsem_t audiodec_sem;
+tsem_t audiodec_sem = {0};
+extern tsem_t audiosink_sem;
+tsem_t audiosink_sem = {0};
+extern tsem_t eos_sem;
+tsem_t eos_sem = {0};
 
 void play (const char* filename, GError** error);
 gint _main (char** args, int args_length1);
-#define N_BUFFERS 2
-#define BUFFER_OUT_SIZE 32768
-#define BUFFER_IN_SIZE 4096
 void get_handles (GError** error);
 void handle_print_info (const char* name, OMX_HANDLETYPE handle, GError** error);
 void change_state_to (OMX_STATETYPE state, GError** error);
@@ -72,6 +67,9 @@ OMX_ERRORTYPE audiosink_empty_buffer_done (OMX_HANDLETYPE component, OMX_BUFFERH
 static OMX_ERRORTYPE _audiosink_empty_buffer_done_omx_empty_buffer_done_func (OMX_HANDLETYPE component, gpointer self, OMX_BUFFERHEADERTYPE* buffer);
 #define AUDIODEC_COMPONENT_NAME "OMX.st.audio_decoder.mp3.mad"
 #define AUDIOSINK_COMPONENT_NAME "OMX.st.alsa.alsasink"
+#define N_BUFFERS 2
+#define BUFFER_OUT_SIZE 32768
+#define BUFFER_IN_SIZE 4096
 void read_buffer_from_fd (OMX_BUFFERHEADERTYPE* buffer);
 
 const OMX_CALLBACKTYPE audiodec_callbacks = {_audiodec_event_handler_omx_event_handler_func, _audiodec_empty_buffer_done_omx_empty_buffer_done_func, _audiodec_fill_buffer_done_omx_fill_buffer_done_func};
@@ -622,16 +620,14 @@ void read_buffer_from_fd (OMX_BUFFERHEADERTYPE* buffer) {
 
 void move_buffers (GError** error) {
 	GError * _inner_error_;
-	gint i;
 	_inner_error_ = NULL;
-	i = 0;
-	read_buffer_from_fd (in_buffer_audiodec[i]);
-	omx_try_run (OMX_EmptyThisBuffer (audiodec_handle, in_buffer_audiodec[i]), __FILE__, __FUNCTION__, __LINE__, &_inner_error_);
+	read_buffer_from_fd (in_buffer_audiodec[0]);
+	omx_try_run (OMX_EmptyThisBuffer (audiodec_handle, in_buffer_audiodec[0]), __FILE__, __FUNCTION__, __LINE__, &_inner_error_);
 	if (_inner_error_ != NULL) {
 		g_propagate_error (error, _inner_error_);
 		return;
 	}
-	omx_try_run (OMX_FillThisBuffer (audiodec_handle, out_buffer_audiodec[i]), __FILE__, __FUNCTION__, __LINE__, &_inner_error_);
+	omx_try_run (OMX_FillThisBuffer (audiodec_handle, out_buffer_audiodec[0]), __FILE__, __FUNCTION__, __LINE__, &_inner_error_);
 	if (_inner_error_ != NULL) {
 		g_propagate_error (error, _inner_error_);
 		return;
@@ -736,13 +732,12 @@ OMX_ERRORTYPE audiodec_event_handler (OMX_HANDLETYPE component, OMX_EVENTTYPE ev
 OMX_ERRORTYPE audiodec_empty_buffer_done (OMX_HANDLETYPE component, OMX_BUFFERHEADERTYPE* buffer) {
 	OMX_ERRORTYPE result;
 	g_return_val_if_fail (buffer != NULL, 0);
-	if (eos_found) {
+	if (feof (fd)) {
 		result = OMX_ErrorNone;
 		return result;
 	}
 	read_buffer_from_fd (buffer);
 	if (feof (fd)) {
-		eos_found = TRUE;
 		g_print ("Setting eos flag\n");
 		buffer->nFlags = buffer->nFlags | ((guint32) OMX_BUFFERFLAG_EOS);
 	}

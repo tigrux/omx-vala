@@ -14,17 +14,9 @@ int main(string[] args) {
     }
 }
 
-const int N_BUFFERS = 2;
-const int BUFFER_OUT_SIZE = 32768;
-const int BUFFER_IN_SIZE = 4096;
-
-Bellagio.Semaphore audiodec_sem;
-Bellagio.Semaphore audiosink_sem;
-Bellagio.Semaphore eos_sem;
-
 FileStream fd;
 
-public void play(string filename) throws Error {
+void play(string filename) throws Error {
     fd = FileStream.open(filename, "rb");
     if(fd == null)
         throw new FileError.FAILED("Error opening %s", filename);
@@ -109,10 +101,6 @@ void handle_print_info(string name, Omx.Handle handle) throws Error {
     }
 }
 
-Omx.BufferHeader[] in_buffer_audiosink;
-Omx.BufferHeader[] in_buffer_audiodec;
-Omx.BufferHeader[] out_buffer_audiodec;
-
 void change_state_to(Omx.State state) throws Error {
     Omx.try_run(
         audiodec_handle.send_command(
@@ -121,6 +109,14 @@ void change_state_to(Omx.State state) throws Error {
         audiosink_handle.send_command(
             Omx.Command.StateSet, state, null));
 }
+
+Omx.BufferHeader[] in_buffer_audiosink;
+Omx.BufferHeader[] in_buffer_audiodec;
+Omx.BufferHeader[] out_buffer_audiodec;
+
+const int N_BUFFERS = 2;
+const int BUFFER_OUT_SIZE = 32768;
+const int BUFFER_IN_SIZE = 4096;
 
 void allocate_buffers() throws Error {
     in_buffer_audiodec = new Omx.BufferHeader[N_BUFFERS];
@@ -149,14 +145,13 @@ void read_buffer_from_fd(Omx.BufferHeader buffer) {
 }
 
 void move_buffers() throws Error {
-    int i=0;
-    read_buffer_from_fd(in_buffer_audiodec[i]);
+    read_buffer_from_fd(in_buffer_audiodec[0]);
     Omx.try_run(
     	audiodec_handle.empty_this_buffer(
-    		in_buffer_audiodec[i]));
+    		in_buffer_audiodec[0]));
     Omx.try_run(
     	audiodec_handle.fill_this_buffer(
-    		out_buffer_audiodec[i]));
+    		out_buffer_audiodec[0]));
 }
 
 void free_buffers() throws Error {
@@ -179,6 +174,10 @@ void free_handles() throws Error {
     Omx.try_run(
         audiosink_handle.free_handle());
 }
+
+Bellagio.Semaphore audiodec_sem;
+Bellagio.Semaphore audiosink_sem;
+Bellagio.Semaphore eos_sem;
 
 void wait_for_change_of_state() {
     audiodec_sem.down();
@@ -211,18 +210,15 @@ Omx.Error audiodec_event_handler(
     return Omx.Error.None;
 }
 
-bool eos_found;
-
 Omx.Error audiodec_empty_buffer_done(
         Omx.Handle component,
         Omx.BufferHeader buffer) {
-    if(eos_found)
+    if(fd.eof())
         return Omx.Error.None;
 
     read_buffer_from_fd(buffer);
     
     if(fd.eof()) {
-    	eos_found = true;
         print("Setting eos flag\n");
         buffer.flags |= Omx.BufferFlag.EOS;
     }
