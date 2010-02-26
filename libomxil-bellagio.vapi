@@ -266,15 +266,13 @@ namespace Omx {
         public uint32 input_port_index;
     }
 
-    namespace Port {
-        [CCode (cname="OMX_PORT_PARAM_TYPE")]
-        public struct Param: Structure {
-            [CCode (cname="nPorts")]
-            public uint32 ports;
+    [CCode (cname="OMX_PORT_PARAM_TYPE")]
+    public struct PortParam: Structure {
+        [CCode (cname="nPorts")]
+        public uint32 ports;
 
-            [CCode (cname="nStartPortNumber")]
-            public uint32 start_port_number;
-        }
+        [CCode (cname="nStartPortNumber")]
+        public uint32 start_port_number;
     }
 
     [CCode (cname="OMX_EVENTTYPE", cprefix="OMX_Event")]
@@ -380,19 +378,19 @@ namespace Omx {
     [PointerType]
     public struct Handle {
         [CCode (cname="OMX_SendCommand")]
-        public Error send_command(Command cmd, int param, void *cmd_data);
+        public Error send_command(Command cmd, uint param, void *cmd_data);
 
         [CCode (cname="OMX_GetState")]
         public Error get_state(out State state);
 
         [CCode (cname="OMX_UseBuffer")]
-        public Error use_buffer(out BufferHeader buffer, int n_port, void *app_priv, uint n_bytes, char *pbuffer);
+        public Error use_buffer(out BufferHeader buffer, uint n_port, void *app_priv, uint n_bytes, char *pbuffer);
 
         [CCode (cname="OMX_AllocateBuffer")]
-        public Error allocate_buffer(out BufferHeader buffer, int n_port, void *app_priv, uint n_bytes);
+        public Error allocate_buffer(out BufferHeader buffer, uint n_port, void *app_priv, uint n_bytes);
 
         [CCode (cname="OMX_FreeBuffer")]
-        public Error free_buffer(int n_port, BufferHeader buffer);
+        public Error free_buffer(uint n_port, BufferHeader buffer);
 
         [CCode (cname="OMX_EmptyThisBuffer")]
         public Error empty_this_buffer(BufferHeader buffer);
@@ -404,19 +402,19 @@ namespace Omx {
         public Error free_handle();
 
         [CCode (cname="OMX_GetConfig")]
-        public Error get_config(int config_index, PortStructure config_structure);
+        public Error get_config(uint config_index, PortStructure config_structure);
 
         [CCode (cname="OMX_SetConfig")]
-        public Error set_config(int config_index, PortStructure config_structure);
+        public Error set_config(uint config_index, PortStructure config_structure);
 
         [CCode (cname="OMX_GetExtensionIndex")]
-        public Error get_extension_index(string parameter_name, out int index_type);
+        public Error get_extension_index(string parameter_name, out uint index_type);
 
         [CCode (cname="OMX_GetParameter")]
-        public Error get_parameter(int param_index, Structure parameter_structure);
+        public Error get_parameter(uint param_index, Structure parameter_structure);
 
         [CCode (cname="OMX_SetParameter")]
-        public Error set_parameter(int param_index, Structure parameter_structure);
+        public Error set_parameter(uint param_index, Structure parameter_structure);
     }
 
     [CCode (cname="OMX_Init")]
@@ -684,7 +682,7 @@ namespace Omx {
             public Other.PortDefinition other;
         }
 
-        [CCode (cname="OMX_PARAM_PORTDEFINITIONTYPE")]
+        [CCode (cname="OMX_PARAM_PORTDEFINITIONTYPE", cheader_filename="OMX_Component.h")]
         public struct PortDefinition : PortStructure {
             [CCode (cname="eDir")]
             public Dir dir;

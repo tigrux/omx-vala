@@ -77,7 +77,7 @@ void get_handles() throws Error {
 }
 
 void handle_print_info(string name, Omx.Handle handle) throws Error {
-    var param = Omx.Port.Param();
+    var param = Omx.PortParam();
     param.init();
     
     Omx.try_run(
@@ -223,7 +223,6 @@ Omx.Error audiodec_empty_buffer_done(
         print("Setting eos flag\n");
         buffer.flags |= Omx.BufferFlag.EOS;
     }
-
     return audiodec_handle.empty_this_buffer(buffer);
 }
 

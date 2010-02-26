@@ -513,7 +513,7 @@ void handle_print_info (const char* name, OMX_HANDLETYPE handle, GError** error)
 	_inner_error_ = NULL;
 	param = (memset (&_tmp0_, 0, sizeof (OMX_PORT_PARAM_TYPE)), _tmp0_);
 	omx_structure_init (&param);
-	omx_try_run (OMX_GetParameter (handle, (gint) OMX_IndexParamAudioInit, &param), __FILE__, __FUNCTION__, __LINE__, &_inner_error_);
+	omx_try_run (OMX_GetParameter (handle, (guint) OMX_IndexParamAudioInit, &param), __FILE__, __FUNCTION__, __LINE__, &_inner_error_);
 	if (_inner_error_ != NULL) {
 		g_propagate_error (error, _inner_error_);
 		return;
@@ -537,7 +537,7 @@ void handle_print_info (const char* name, OMX_HANDLETYPE handle, GError** error)
 				}
 				g_print ("\tPort %u:\n", i);
 				port_definition.nPortIndex = (guint32) i;
-				omx_try_run (OMX_GetParameter (handle, (gint) OMX_IndexParamPortDefinition, &port_definition), __FILE__, __FUNCTION__, __LINE__, &_inner_error_);
+				omx_try_run (OMX_GetParameter (handle, (guint) OMX_IndexParamPortDefinition, &port_definition), __FILE__, __FUNCTION__, __LINE__, &_inner_error_);
 				if (_inner_error_ != NULL) {
 					g_propagate_error (error, _inner_error_);
 					return;
@@ -554,12 +554,12 @@ void handle_print_info (const char* name, OMX_HANDLETYPE handle, GError** error)
 void set_state (OMX_STATETYPE state, GError** error) {
 	GError * _inner_error_;
 	_inner_error_ = NULL;
-	omx_try_run (OMX_SendCommand (audiodec_handle, OMX_CommandStateSet, (gint) state, NULL), __FILE__, __FUNCTION__, __LINE__, &_inner_error_);
+	omx_try_run (OMX_SendCommand (audiodec_handle, OMX_CommandStateSet, (guint) state, NULL), __FILE__, __FUNCTION__, __LINE__, &_inner_error_);
 	if (_inner_error_ != NULL) {
 		g_propagate_error (error, _inner_error_);
 		return;
 	}
-	omx_try_run (OMX_SendCommand (audiosink_handle, OMX_CommandStateSet, (gint) state, NULL), __FILE__, __FUNCTION__, __LINE__, &_inner_error_);
+	omx_try_run (OMX_SendCommand (audiosink_handle, OMX_CommandStateSet, (guint) state, NULL), __FILE__, __FUNCTION__, __LINE__, &_inner_error_);
 	if (_inner_error_ != NULL) {
 		g_propagate_error (error, _inner_error_);
 		return;
@@ -590,17 +590,17 @@ void allocate_buffers (GError** error) {
 				if (!(i < N_BUFFERS)) {
 					break;
 				}
-				omx_try_run (OMX_AllocateBuffer (audiodec_handle, &in_buffer_audiodec[i], 0, NULL, (guint) BUFFER_IN_SIZE), __FILE__, __FUNCTION__, __LINE__, &_inner_error_);
+				omx_try_run (OMX_AllocateBuffer (audiodec_handle, &in_buffer_audiodec[i], (guint) 0, NULL, (guint) BUFFER_IN_SIZE), __FILE__, __FUNCTION__, __LINE__, &_inner_error_);
 				if (_inner_error_ != NULL) {
 					g_propagate_error (error, _inner_error_);
 					return;
 				}
-				omx_try_run (OMX_AllocateBuffer (audiodec_handle, &out_buffer_audiodec[i], 1, NULL, (guint) BUFFER_OUT_SIZE), __FILE__, __FUNCTION__, __LINE__, &_inner_error_);
+				omx_try_run (OMX_AllocateBuffer (audiodec_handle, &out_buffer_audiodec[i], (guint) 1, NULL, (guint) BUFFER_OUT_SIZE), __FILE__, __FUNCTION__, __LINE__, &_inner_error_);
 				if (_inner_error_ != NULL) {
 					g_propagate_error (error, _inner_error_);
 					return;
 				}
-				omx_try_run (OMX_UseBuffer (audiosink_handle, &in_buffer_audiosink[i], 0, NULL, (guint) BUFFER_OUT_SIZE, NULL), __FILE__, __FUNCTION__, __LINE__, &_inner_error_);
+				omx_try_run (OMX_UseBuffer (audiosink_handle, &in_buffer_audiosink[i], (guint) 0, NULL, (guint) BUFFER_OUT_SIZE, NULL), __FILE__, __FUNCTION__, __LINE__, &_inner_error_);
 				if (_inner_error_ != NULL) {
 					g_propagate_error (error, _inner_error_);
 					return;
@@ -652,17 +652,17 @@ void free_buffers (GError** error) {
 				if (!(i < N_BUFFERS)) {
 					break;
 				}
-				omx_try_run (OMX_FreeBuffer (audiodec_handle, 0, in_buffer_audiodec[i]), __FILE__, __FUNCTION__, __LINE__, &_inner_error_);
+				omx_try_run (OMX_FreeBuffer (audiodec_handle, (guint) 0, in_buffer_audiodec[i]), __FILE__, __FUNCTION__, __LINE__, &_inner_error_);
 				if (_inner_error_ != NULL) {
 					g_propagate_error (error, _inner_error_);
 					return;
 				}
-				omx_try_run (OMX_FreeBuffer (audiodec_handle, 1, out_buffer_audiodec[i]), __FILE__, __FUNCTION__, __LINE__, &_inner_error_);
+				omx_try_run (OMX_FreeBuffer (audiodec_handle, (guint) 1, out_buffer_audiodec[i]), __FILE__, __FUNCTION__, __LINE__, &_inner_error_);
 				if (_inner_error_ != NULL) {
 					g_propagate_error (error, _inner_error_);
 					return;
 				}
-				omx_try_run (OMX_FreeBuffer (audiosink_handle, 0, in_buffer_audiosink[i]), __FILE__, __FUNCTION__, __LINE__, &_inner_error_);
+				omx_try_run (OMX_FreeBuffer (audiosink_handle, (guint) 0, in_buffer_audiosink[i]), __FILE__, __FUNCTION__, __LINE__, &_inner_error_);
 				if (_inner_error_ != NULL) {
 					g_propagate_error (error, _inner_error_);
 					return;

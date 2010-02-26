@@ -9,8 +9,6 @@
 #include <stdio.h>
 #include <OMX_Core.h>
 #include <OMX_Component.h>
-#include <bellagio/tsemaphore.h>
-#include <omx-util.h>
 
 
 #define TYPE_MP3_PLAYER (mp3_player_get_type ())
@@ -27,29 +25,26 @@ typedef struct _Mp3PlayerClass Mp3PlayerClass;
 typedef struct _Mp3PlayerPrivate Mp3PlayerPrivate;
 #define _fclose0(var) ((var == NULL) ? NULL : (var = (fclose (var), NULL)))
 
-#define TYPE_COMPONENT (component_get_type ())
-#define COMPONENT(obj) (G_TYPE_CHECK_INSTANCE_CAST ((obj), TYPE_COMPONENT, Component))
-#define COMPONENT_CLASS(klass) (G_TYPE_CHECK_CLASS_CAST ((klass), TYPE_COMPONENT, ComponentClass))
-#define IS_COMPONENT(obj) (G_TYPE_CHECK_INSTANCE_TYPE ((obj), TYPE_COMPONENT))
-#define IS_COMPONENT_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((klass), TYPE_COMPONENT))
-#define COMPONENT_GET_CLASS(obj) (G_TYPE_INSTANCE_GET_CLASS ((obj), TYPE_COMPONENT, ComponentClass))
+#define OMX_TYPE_COMPONENT (omx_component_get_type ())
+#define OMX_COMPONENT(obj) (G_TYPE_CHECK_INSTANCE_CAST ((obj), OMX_TYPE_COMPONENT, OmxComponent))
+#define OMX_COMPONENT_CLASS(klass) (G_TYPE_CHECK_CLASS_CAST ((klass), OMX_TYPE_COMPONENT, OmxComponentClass))
+#define OMX_IS_COMPONENT(obj) (G_TYPE_CHECK_INSTANCE_TYPE ((obj), OMX_TYPE_COMPONENT))
+#define OMX_IS_COMPONENT_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((klass), OMX_TYPE_COMPONENT))
+#define OMX_COMPONENT_GET_CLASS(obj) (G_TYPE_INSTANCE_GET_CLASS ((obj), OMX_TYPE_COMPONENT, OmxComponentClass))
 
-typedef struct _Component Component;
-typedef struct _ComponentClass ComponentClass;
-typedef struct _ComponentPrivate ComponentPrivate;
+typedef struct _OmxComponent OmxComponent;
+typedef struct _OmxComponentClass OmxComponentClass;
 
-#define TYPE_PORT (port_get_type ())
-#define PORT(obj) (G_TYPE_CHECK_INSTANCE_CAST ((obj), TYPE_PORT, Port))
-#define PORT_CLASS(klass) (G_TYPE_CHECK_CLASS_CAST ((klass), TYPE_PORT, PortClass))
-#define IS_PORT(obj) (G_TYPE_CHECK_INSTANCE_TYPE ((obj), TYPE_PORT))
-#define IS_PORT_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((klass), TYPE_PORT))
-#define PORT_GET_CLASS(obj) (G_TYPE_INSTANCE_GET_CLASS ((obj), TYPE_PORT, PortClass))
+#define OMX_TYPE_PORT (omx_port_get_type ())
+#define OMX_PORT(obj) (G_TYPE_CHECK_INSTANCE_CAST ((obj), OMX_TYPE_PORT, OmxPort))
+#define OMX_PORT_CLASS(klass) (G_TYPE_CHECK_CLASS_CAST ((klass), OMX_TYPE_PORT, OmxPortClass))
+#define OMX_IS_PORT(obj) (G_TYPE_CHECK_INSTANCE_TYPE ((obj), OMX_TYPE_PORT))
+#define OMX_IS_PORT_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((klass), OMX_TYPE_PORT))
+#define OMX_PORT_GET_CLASS(obj) (G_TYPE_INSTANCE_GET_CLASS ((obj), OMX_TYPE_PORT, OmxPortClass))
 
-typedef struct _Port Port;
-typedef struct _PortClass PortClass;
-#define _g_free0(var) (var = (g_free (var), NULL))
-typedef struct _PortPrivate PortPrivate;
-#define _g_async_queue_unref0(var) ((var == NULL) ? NULL : (var = (g_async_queue_unref (var), NULL)))
+typedef struct _OmxPort OmxPort;
+typedef struct _OmxPortClass OmxPortClass;
+typedef struct _OmxPortPrivate OmxPortPrivate;
 
 struct _Mp3Player {
 	GObject parent_instance;
@@ -60,48 +55,22 @@ struct _Mp3PlayerClass {
 	GObjectClass parent_class;
 };
 
-struct _Component {
+struct _OmxPort {
 	GObject parent_instance;
-	ComponentPrivate * priv;
-	OMX_PORT_PARAM_TYPE port_param;
-	OMX_HANDLETYPE handle;
-	Port** ports;
-	gint ports_length1;
-};
-
-struct _ComponentClass {
-	GObjectClass parent_class;
-};
-
-struct _ComponentPrivate {
-	char* _component_name;
-	OMX_INDEXTYPE _param_init_index;
-	char* _name;
-	tsem_t wait_for_state_sem;
-};
-
-struct _Port {
-	GObject parent_instance;
-	PortPrivate * priv;
+	OmxPortPrivate * priv;
 	OMX_PARAM_PORTDEFINITIONTYPE definition;
 	OMX_BUFFERHEADERTYPE** buffers;
 	gint buffers_length1;
-	GAsyncQueue* queue;
-	Component* component;
+	GAsyncQueue* buffer_queue;
+	OmxComponent* component;
 };
 
-struct _PortClass {
+struct _OmxPortClass {
 	GObjectClass parent_class;
-};
-
-struct _PortPrivate {
-	char* _name;
 };
 
 
 static gpointer mp3_player_parent_class = NULL;
-static gpointer component_parent_class = NULL;
-static gpointer port_parent_class = NULL;
 
 Mp3Player* mp3_player_new (void);
 Mp3Player* mp3_player_construct (GType object_type);
@@ -112,53 +81,23 @@ enum  {
 	MP3_PLAYER_DUMMY_PROPERTY
 };
 #define MP3_PLAYER_AUDIODEC_COMPONENT_NAME "OMX.st.audio_decoder.mp3.mad"
-Component* component_new (const char* component_name, OMX_INDEXTYPE param_init_index);
-Component* component_construct (GType object_type, const char* component_name, OMX_INDEXTYPE param_init_index);
-GType component_get_type (void);
-void component_set_name (Component* self, const char* value);
-void component_init (Component* self, GError** error);
-void component_set_state (Component* self, OMX_STATETYPE state, GError** error);
-void component_allocate_ports (Component* self, GError** error);
-void component_wait_for_state_set (Component* self);
-void component_free_ports (Component* self, GError** error);
-void component_free (Component* self, GError** error);
-GType port_get_type (void);
-#define COMPONENT_GET_PRIVATE(o) (G_TYPE_INSTANCE_GET_PRIVATE ((o), TYPE_COMPONENT, ComponentPrivate))
-enum  {
-	COMPONENT_DUMMY_PROPERTY,
-	COMPONENT_NAME
-};
-static OMX_ERRORTYPE component_event_handler (Component* self, OMX_HANDLETYPE component, OMX_EVENTTYPE event, guint32 data1, guint32 data2);
-static OMX_ERRORTYPE _component_event_handler_omx_event_handler_func (OMX_HANDLETYPE component, gpointer self, OMX_EVENTTYPE event, guint32 data1, guint32 data2, void* event_data);
-static OMX_ERRORTYPE component_buffer_done (Component* self, OMX_HANDLETYPE component, OMX_BUFFERHEADERTYPE* buffer);
-static OMX_ERRORTYPE _component_buffer_done_omx_empty_buffer_done_func (OMX_HANDLETYPE component, gpointer self, OMX_BUFFERHEADERTYPE* buffer);
-static OMX_ERRORTYPE _component_buffer_done_omx_fill_buffer_done_func (OMX_HANDLETYPE component, gpointer self, OMX_BUFFERHEADERTYPE* buffer);
-Port* port_new (Component* parent_component, guint32 port_index);
-Port* port_construct (GType object_type, Component* parent_component, guint32 port_index);
-void port_init (Port* self, GError** error);
-void port_allocate_buffers (Port* self, GError** error);
-const char* component_get_name (Component* self);
-void port_set_name (Port* self, const char* value);
-void port_free_buffers (Port* self, GError** error);
-OMX_STATETYPE component_get_state (Component* self, GError** error);
-const char* port_get_name (Port* self);
-static void component_finalize (GObject* obj);
-static void component_get_property (GObject * object, guint property_id, GValue * value, GParamSpec * pspec);
-static void component_set_property (GObject * object, guint property_id, const GValue * value, GParamSpec * pspec);
-#define PORT_GET_PRIVATE(o) (G_TYPE_INSTANCE_GET_PRIVATE ((o), TYPE_PORT, PortPrivate))
-enum  {
-	PORT_DUMMY_PROPERTY,
-	PORT_NAME
-};
-OMX_BUFFERHEADERTYPE* port_pop_buffer (Port* self);
-void port_push_buffer (Port* self, OMX_BUFFERHEADERTYPE* buffer, GError** error);
-static void port_finalize (GObject* obj);
-static void port_get_property (GObject * object, guint property_id, GValue * value, GParamSpec * pspec);
-static void port_set_property (GObject * object, guint property_id, const GValue * value, GParamSpec * pspec);
-static void _vala_array_destroy (gpointer array, gint array_length, GDestroyNotify destroy_func);
-static void _vala_array_free (gpointer array, gint array_length, GDestroyNotify destroy_func);
+OmxComponent* omx_component_new (const char* component_name, OMX_INDEXTYPE param_init_index);
+OmxComponent* omx_component_construct (GType object_type, const char* component_name, OMX_INDEXTYPE param_init_index);
+GType omx_component_get_type (void);
+void omx_component_set_name (OmxComponent* self, const char* value);
+void omx_component_init (OmxComponent* self, GError** error);
+void omx_component_set_state (OmxComponent* self, OMX_STATETYPE state, GError** error);
+void omx_component_allocate_ports (OmxComponent* self, GError** error);
+void omx_component_wait_for_state_set (OmxComponent* self);
+void omx_component_fill_output_buffers (OmxComponent* self, GError** error);
+void omx_component_empty_input_buffers (OmxComponent* self, GError** error);
+GType omx_port_get_type (void);
+OmxPort* omx_component_pop_port (OmxComponent* self);
+OMX_BUFFERHEADERTYPE* omx_port_pop_buffer (OmxPort* self);
+void omx_port_push_buffer (OmxPort* self, OMX_BUFFERHEADERTYPE* buffer, GError** error);
+void omx_component_free_ports (OmxComponent* self, GError** error);
+void omx_component_free (OmxComponent* self, GError** error);
 
-static const OMX_CALLBACKTYPE COMPONENT_callbacks = {_component_event_handler_omx_event_handler_func, _component_buffer_done_omx_empty_buffer_done_func, _component_buffer_done_omx_fill_buffer_done_func};
 
 
 gint _main (char** args, int args_length1) {
@@ -449,7 +388,8 @@ static void omx_try_run (OMX_ERRORTYPE err, const char* file, const char* functi
 void mp3_player_play (Mp3Player* self, const char* filename, GError** error) {
 	GError * _inner_error_;
 	FILE* fd;
-	Component* audiodec;
+	OmxComponent* audiodec;
+	gboolean eos_found;
 	g_return_if_fail (self != NULL);
 	g_return_if_fail (filename != NULL);
 	_inner_error_ = NULL;
@@ -462,7 +402,7 @@ void mp3_player_play (Mp3Player* self, const char* filename, GError** error) {
 			return;
 		}
 	}
-	audiodec = component_new (MP3_PLAYER_AUDIODEC_COMPONENT_NAME, OMX_IndexParamAudioInit);
+	audiodec = omx_component_new (MP3_PLAYER_AUDIODEC_COMPONENT_NAME, OMX_IndexParamAudioInit);
 	omx_try_run (OMX_Init (), __FILE__, __FUNCTION__, __LINE__, &_inner_error_);
 	if (_inner_error_ != NULL) {
 		g_propagate_error (error, _inner_error_);
@@ -470,61 +410,118 @@ void mp3_player_play (Mp3Player* self, const char* filename, GError** error) {
 		_g_object_unref0 (audiodec);
 		return;
 	}
-	component_set_name (audiodec, "audiodec");
-	component_init (audiodec, &_inner_error_);
+	omx_component_set_name (audiodec, "audiodec");
+	omx_component_init (audiodec, &_inner_error_);
 	if (_inner_error_ != NULL) {
 		g_propagate_error (error, _inner_error_);
 		_fclose0 (fd);
 		_g_object_unref0 (audiodec);
 		return;
 	}
-	component_set_state (audiodec, OMX_StateIdle, &_inner_error_);
+	omx_component_set_state (audiodec, OMX_StateIdle, &_inner_error_);
 	if (_inner_error_ != NULL) {
 		g_propagate_error (error, _inner_error_);
 		_fclose0 (fd);
 		_g_object_unref0 (audiodec);
 		return;
 	}
-	component_allocate_ports (audiodec, &_inner_error_);
+	omx_component_allocate_ports (audiodec, &_inner_error_);
 	if (_inner_error_ != NULL) {
 		g_propagate_error (error, _inner_error_);
 		_fclose0 (fd);
 		_g_object_unref0 (audiodec);
 		return;
 	}
-	component_wait_for_state_set (audiodec);
-	component_set_state (audiodec, OMX_StateExecuting, &_inner_error_);
+	omx_component_wait_for_state_set (audiodec);
+	omx_component_set_state (audiodec, OMX_StateExecuting, &_inner_error_);
 	if (_inner_error_ != NULL) {
 		g_propagate_error (error, _inner_error_);
 		_fclose0 (fd);
 		_g_object_unref0 (audiodec);
 		return;
 	}
-	component_wait_for_state_set (audiodec);
-	component_set_state (audiodec, OMX_StateIdle, &_inner_error_);
+	omx_component_fill_output_buffers (audiodec, &_inner_error_);
 	if (_inner_error_ != NULL) {
 		g_propagate_error (error, _inner_error_);
 		_fclose0 (fd);
 		_g_object_unref0 (audiodec);
 		return;
 	}
-	component_wait_for_state_set (audiodec);
-	component_set_state (audiodec, OMX_StateLoaded, &_inner_error_);
+	omx_component_empty_input_buffers (audiodec, &_inner_error_);
 	if (_inner_error_ != NULL) {
 		g_propagate_error (error, _inner_error_);
 		_fclose0 (fd);
 		_g_object_unref0 (audiodec);
 		return;
 	}
-	component_free_ports (audiodec, &_inner_error_);
+	omx_component_wait_for_state_set (audiodec);
+	eos_found = FALSE;
+	while (TRUE) {
+		OmxPort* port;
+		OMX_BUFFERHEADERTYPE* buffer;
+		if (!(!eos_found)) {
+			break;
+		}
+		port = omx_component_pop_port (audiodec);
+		buffer = omx_port_pop_buffer (port);
+		switch (port->definition.eDir) {
+			case OMX_DirInput:
+			{
+				buffer->nOffset = (gsize) 0;
+				buffer->nFilledLen = fread (buffer->pBuffer, 1, buffer->nAllocLen, fd);
+				if (feof (fd)) {
+					buffer->nFlags = buffer->nFlags | ((guint32) OMX_BUFFERFLAG_EOS);
+				}
+				break;
+			}
+			case OMX_DirOutput:
+			{
+				g_print ("Got %d bytes\n", (gint) buffer->nFilledLen);
+				if ((buffer->nFlags & OMX_BUFFERFLAG_EOS) != 0) {
+					g_print ("Got eos\n");
+					eos_found = TRUE;
+				}
+				break;
+			}
+			default:
+			{
+				break;
+			}
+		}
+		omx_port_push_buffer (port, buffer, &_inner_error_);
+		if (_inner_error_ != NULL) {
+			g_propagate_error (error, _inner_error_);
+			_g_object_unref0 (port);
+			_fclose0 (fd);
+			_g_object_unref0 (audiodec);
+			return;
+		}
+		_g_object_unref0 (port);
+	}
+	omx_component_set_state (audiodec, OMX_StateIdle, &_inner_error_);
 	if (_inner_error_ != NULL) {
 		g_propagate_error (error, _inner_error_);
 		_fclose0 (fd);
 		_g_object_unref0 (audiodec);
 		return;
 	}
-	component_wait_for_state_set (audiodec);
-	component_free (audiodec, &_inner_error_);
+	omx_component_wait_for_state_set (audiodec);
+	omx_component_set_state (audiodec, OMX_StateLoaded, &_inner_error_);
+	if (_inner_error_ != NULL) {
+		g_propagate_error (error, _inner_error_);
+		_fclose0 (fd);
+		_g_object_unref0 (audiodec);
+		return;
+	}
+	omx_component_free_ports (audiodec, &_inner_error_);
+	if (_inner_error_ != NULL) {
+		g_propagate_error (error, _inner_error_);
+		_fclose0 (fd);
+		_g_object_unref0 (audiodec);
+		return;
+	}
+	omx_component_wait_for_state_set (audiodec);
+	omx_component_free (audiodec, &_inner_error_);
 	if (_inner_error_ != NULL) {
 		g_propagate_error (error, _inner_error_);
 		_fclose0 (fd);
@@ -571,530 +568,6 @@ GType mp3_player_get_type (void) {
 		mp3_player_type_id = g_type_register_static (G_TYPE_OBJECT, "Mp3Player", &g_define_type_info, 0);
 	}
 	return mp3_player_type_id;
-}
-
-
-static OMX_ERRORTYPE _component_event_handler_omx_event_handler_func (OMX_HANDLETYPE component, gpointer self, OMX_EVENTTYPE event, guint32 data1, guint32 data2, void* event_data) {
-	return component_event_handler (self, component, event, data1, data2);
-}
-
-
-static OMX_ERRORTYPE _component_buffer_done_omx_empty_buffer_done_func (OMX_HANDLETYPE component, gpointer self, OMX_BUFFERHEADERTYPE* buffer) {
-	return component_buffer_done (self, component, buffer);
-}
-
-
-static OMX_ERRORTYPE _component_buffer_done_omx_fill_buffer_done_func (OMX_HANDLETYPE component, gpointer self, OMX_BUFFERHEADERTYPE* buffer) {
-	return component_buffer_done (self, component, buffer);
-}
-
-
-Component* component_construct (GType object_type, const char* component_name, OMX_INDEXTYPE param_init_index) {
-	Component * self;
-	char* _tmp0_;
-	g_return_val_if_fail (component_name != NULL, NULL);
-	self = (Component*) g_object_new (object_type, NULL);
-	self->priv->_component_name = (_tmp0_ = g_strdup (component_name), _g_free0 (self->priv->_component_name), _tmp0_);
-	self->priv->_param_init_index = param_init_index;
-	return self;
-}
-
-
-Component* component_new (const char* component_name, OMX_INDEXTYPE param_init_index) {
-	return component_construct (TYPE_COMPONENT, component_name, param_init_index);
-}
-
-
-void component_init (Component* self, GError** error) {
-	GError * _inner_error_;
-	g_return_if_fail (self != NULL);
-	_inner_error_ = NULL;
-	omx_try_run (OMX_GetHandle (&self->handle, self->priv->_component_name, self, &COMPONENT_callbacks), __FILE__, __FUNCTION__, __LINE__, &_inner_error_);
-	if (_inner_error_ != NULL) {
-		g_propagate_error (error, _inner_error_);
-		return;
-	}
-	omx_structure_init (&self->port_param);
-	omx_try_run (OMX_GetParameter (self->handle, (gint) self->priv->_param_init_index, &self->port_param), __FILE__, __FUNCTION__, __LINE__, &_inner_error_);
-	if (_inner_error_ != NULL) {
-		g_propagate_error (error, _inner_error_);
-		return;
-	}
-}
-
-
-void component_free (Component* self, GError** error) {
-	GError * _inner_error_;
-	g_return_if_fail (self != NULL);
-	_inner_error_ = NULL;
-	omx_try_run (OMX_FreeHandle (self->handle), __FILE__, __FUNCTION__, __LINE__, &_inner_error_);
-	if (_inner_error_ != NULL) {
-		g_propagate_error (error, _inner_error_);
-		return;
-	}
-	self->handle = NULL;
-}
-
-
-static gpointer _g_object_ref0 (gpointer self) {
-	return self ? g_object_ref (self) : NULL;
-}
-
-
-void component_allocate_ports (Component* self, GError** error) {
-	GError * _inner_error_;
-	Port** _tmp1_;
-	gint _tmp0_;
-	g_return_if_fail (self != NULL);
-	_inner_error_ = NULL;
-	self->ports = (_tmp1_ = g_new0 (Port*, (_tmp0_ = self->port_param.nPorts - self->port_param.nStartPortNumber) + 1), self->ports = (_vala_array_free (self->ports, self->ports_length1, (GDestroyNotify) g_object_unref), NULL), self->ports_length1 = _tmp0_, _tmp1_);
-	{
-		guint i;
-		i = (guint) self->port_param.nStartPortNumber;
-		{
-			gboolean _tmp2_;
-			_tmp2_ = TRUE;
-			while (TRUE) {
-				Port* port;
-				char* _tmp3_;
-				Port* _tmp4_;
-				if (!_tmp2_) {
-					i++;
-				}
-				_tmp2_ = FALSE;
-				if (!(i < self->port_param.nPorts)) {
-					break;
-				}
-				port = port_new (self, (guint32) i);
-				port_init (port, &_inner_error_);
-				if (_inner_error_ != NULL) {
-					g_propagate_error (error, _inner_error_);
-					_g_object_unref0 (port);
-					return;
-				}
-				port_allocate_buffers (port, &_inner_error_);
-				if (_inner_error_ != NULL) {
-					g_propagate_error (error, _inner_error_);
-					_g_object_unref0 (port);
-					return;
-				}
-				port_set_name (port, _tmp3_ = g_strdup_printf ("%s:port%u", self->priv->_name, i));
-				_g_free0 (_tmp3_);
-				self->ports[i] = (_tmp4_ = _g_object_ref0 (port), _g_object_unref0 (self->ports[i]), _tmp4_);
-				_g_object_unref0 (port);
-			}
-		}
-	}
-}
-
-
-void component_free_ports (Component* self, GError** error) {
-	GError * _inner_error_;
-	Port** _tmp0_;
-	g_return_if_fail (self != NULL);
-	_inner_error_ = NULL;
-	{
-		Port** port_collection;
-		int port_collection_length1;
-		int port_it;
-		port_collection = self->ports;
-		port_collection_length1 = self->ports_length1;
-		for (port_it = 0; port_it < self->ports_length1; port_it = port_it + 1) {
-			Port* port;
-			port = _g_object_ref0 (port_collection[port_it]);
-			{
-				port_free_buffers (port, &_inner_error_);
-				if (_inner_error_ != NULL) {
-					g_propagate_error (error, _inner_error_);
-					_g_object_unref0 (port);
-					return;
-				}
-				_g_object_unref0 (port);
-			}
-		}
-	}
-	self->ports = (_tmp0_ = NULL, self->ports = (_vala_array_free (self->ports, self->ports_length1, (GDestroyNotify) g_object_unref), NULL), self->ports_length1 = 0, _tmp0_);
-}
-
-
-void component_wait_for_state_set (Component* self) {
-	g_return_if_fail (self != NULL);
-	tsem_down (&self->priv->wait_for_state_sem);
-}
-
-
-void component_set_state (Component* self, OMX_STATETYPE state, GError** error) {
-	GError * _inner_error_;
-	g_return_if_fail (self != NULL);
-	_inner_error_ = NULL;
-	omx_try_run (OMX_SendCommand (self->handle, OMX_CommandStateSet, (gint) state, NULL), __FILE__, __FUNCTION__, __LINE__, &_inner_error_);
-	if (_inner_error_ != NULL) {
-		g_propagate_error (error, _inner_error_);
-		return;
-	}
-}
-
-
-OMX_STATETYPE component_get_state (Component* self, GError** error) {
-	OMX_STATETYPE result;
-	GError * _inner_error_;
-	OMX_STATETYPE state = 0;
-	g_return_val_if_fail (self != NULL, 0);
-	_inner_error_ = NULL;
-	omx_try_run (OMX_GetState (self->handle, &state), __FILE__, __FUNCTION__, __LINE__, &_inner_error_);
-	if (_inner_error_ != NULL) {
-		g_propagate_error (error, _inner_error_);
-		return 0;
-	}
-	result = state;
-	return result;
-}
-
-
-static OMX_ERRORTYPE component_event_handler (Component* self, OMX_HANDLETYPE component, OMX_EVENTTYPE event, guint32 data1, guint32 data2) {
-	OMX_ERRORTYPE result;
-	g_return_val_if_fail (self != NULL, 0);
-	switch (event) {
-		case OMX_EventCmdComplete:
-		{
-			switch (data1) {
-				case OMX_CommandStateSet:
-				{
-					tsem_up (&self->priv->wait_for_state_sem);
-					break;
-				}
-				default:
-				{
-					break;
-				}
-			}
-			break;
-		}
-		default:
-		{
-			break;
-		}
-	}
-	result = OMX_ErrorNone;
-	return result;
-}
-
-
-static OMX_ERRORTYPE component_buffer_done (Component* self, OMX_HANDLETYPE component, OMX_BUFFERHEADERTYPE* buffer) {
-	OMX_ERRORTYPE result;
-	void* _tmp0_;
-	Port* port;
-	g_return_val_if_fail (self != NULL, 0);
-	g_return_val_if_fail (buffer != NULL, 0);
-	port = _g_object_ref0 ((_tmp0_ = buffer->pAppPrivate, IS_PORT (_tmp0_) ? ((Port*) _tmp0_) : NULL));
-	g_print ("Pushing buffer to %s\n", port_get_name (port));
-	g_async_queue_push (port->queue, buffer);
-	result = OMX_ErrorNone;
-	_g_object_unref0 (port);
-	return result;
-}
-
-
-const char* component_get_name (Component* self) {
-	const char* result;
-	g_return_val_if_fail (self != NULL, NULL);
-	result = self->priv->_name;
-	return result;
-}
-
-
-void component_set_name (Component* self, const char* value) {
-	char* _tmp0_;
-	g_return_if_fail (self != NULL);
-	self->priv->_name = (_tmp0_ = g_strdup (value), _g_free0 (self->priv->_name), _tmp0_);
-	g_object_notify ((GObject *) self, "name");
-}
-
-
-static void component_class_init (ComponentClass * klass) {
-	component_parent_class = g_type_class_peek_parent (klass);
-	g_type_class_add_private (klass, sizeof (ComponentPrivate));
-	G_OBJECT_CLASS (klass)->get_property = component_get_property;
-	G_OBJECT_CLASS (klass)->set_property = component_set_property;
-	G_OBJECT_CLASS (klass)->finalize = component_finalize;
-	g_object_class_install_property (G_OBJECT_CLASS (klass), COMPONENT_NAME, g_param_spec_string ("name", "name", "name", NULL, G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK | G_PARAM_STATIC_BLURB | G_PARAM_READABLE | G_PARAM_WRITABLE));
-}
-
-
-static void component_instance_init (Component * self) {
-	self->priv = COMPONENT_GET_PRIVATE (self);
-}
-
-
-static void component_finalize (GObject* obj) {
-	Component * self;
-	self = COMPONENT (obj);
-	_g_free0 (self->priv->_component_name);
-	self->ports = (_vala_array_free (self->ports, self->ports_length1, (GDestroyNotify) g_object_unref), NULL);
-	_g_free0 (self->priv->_name);
-	G_OBJECT_CLASS (component_parent_class)->finalize (obj);
-}
-
-
-GType component_get_type (void) {
-	static GType component_type_id = 0;
-	if (component_type_id == 0) {
-		static const GTypeInfo g_define_type_info = { sizeof (ComponentClass), (GBaseInitFunc) NULL, (GBaseFinalizeFunc) NULL, (GClassInitFunc) component_class_init, (GClassFinalizeFunc) NULL, NULL, sizeof (Component), 0, (GInstanceInitFunc) component_instance_init, NULL };
-		component_type_id = g_type_register_static (G_TYPE_OBJECT, "Component", &g_define_type_info, 0);
-	}
-	return component_type_id;
-}
-
-
-static void component_get_property (GObject * object, guint property_id, GValue * value, GParamSpec * pspec) {
-	Component * self;
-	self = COMPONENT (object);
-	switch (property_id) {
-		case COMPONENT_NAME:
-		g_value_set_string (value, component_get_name (self));
-		break;
-		default:
-		G_OBJECT_WARN_INVALID_PROPERTY_ID (object, property_id, pspec);
-		break;
-	}
-}
-
-
-static void component_set_property (GObject * object, guint property_id, const GValue * value, GParamSpec * pspec) {
-	Component * self;
-	self = COMPONENT (object);
-	switch (property_id) {
-		case COMPONENT_NAME:
-		component_set_name (self, g_value_get_string (value));
-		break;
-		default:
-		G_OBJECT_WARN_INVALID_PROPERTY_ID (object, property_id, pspec);
-		break;
-	}
-}
-
-
-Port* port_construct (GType object_type, Component* parent_component, guint32 port_index) {
-	Port * self;
-	Component* _tmp0_;
-	GAsyncQueue* _tmp1_;
-	g_return_val_if_fail (parent_component != NULL, NULL);
-	self = (Port*) g_object_new (object_type, NULL);
-	self->component = (_tmp0_ = _g_object_ref0 (parent_component), _g_object_unref0 (self->component), _tmp0_);
-	omx_structure_init (&self->definition);
-	self->definition.nPortIndex = port_index;
-	self->queue = (_tmp1_ = g_async_queue_new (), _g_async_queue_unref0 (self->queue), _tmp1_);
-	return self;
-}
-
-
-Port* port_new (Component* parent_component, guint32 port_index) {
-	return port_construct (TYPE_PORT, parent_component, port_index);
-}
-
-
-void port_init (Port* self, GError** error) {
-	GError * _inner_error_;
-	g_return_if_fail (self != NULL);
-	_inner_error_ = NULL;
-	omx_try_run (OMX_GetParameter (self->component->handle, (gint) OMX_IndexParamPortDefinition, &self->definition), __FILE__, __FUNCTION__, __LINE__, &_inner_error_);
-	if (_inner_error_ != NULL) {
-		g_propagate_error (error, _inner_error_);
-		return;
-	}
-}
-
-
-void port_allocate_buffers (Port* self, GError** error) {
-	GError * _inner_error_;
-	OMX_BUFFERHEADERTYPE** _tmp0_;
-	g_return_if_fail (self != NULL);
-	_inner_error_ = NULL;
-	self->buffers = (_tmp0_ = g_new0 (OMX_BUFFERHEADERTYPE*, self->definition.nBufferCountActual + 1), self->buffers = (g_free (self->buffers), NULL), self->buffers_length1 = self->definition.nBufferCountActual, _tmp0_);
-	{
-		gint i;
-		i = 0;
-		{
-			gboolean _tmp1_;
-			_tmp1_ = TRUE;
-			while (TRUE) {
-				if (!_tmp1_) {
-					i++;
-				}
-				_tmp1_ = FALSE;
-				if (!(i < self->definition.nBufferCountActual)) {
-					break;
-				}
-				omx_try_run (OMX_AllocateBuffer (self->component->handle, &self->buffers[i], (gint) self->definition.eDir, self, (guint) self->definition.nBufferSize), __FILE__, __FUNCTION__, __LINE__, &_inner_error_);
-				if (_inner_error_ != NULL) {
-					g_propagate_error (error, _inner_error_);
-					return;
-				}
-				g_async_queue_push (self->queue, self->buffers[i]);
-			}
-		}
-	}
-}
-
-
-void port_free_buffers (Port* self, GError** error) {
-	GError * _inner_error_;
-	OMX_BUFFERHEADERTYPE** _tmp0_;
-	g_return_if_fail (self != NULL);
-	_inner_error_ = NULL;
-	{
-		OMX_BUFFERHEADERTYPE** buffer_collection;
-		int buffer_collection_length1;
-		int buffer_it;
-		buffer_collection = self->buffers;
-		buffer_collection_length1 = self->buffers_length1;
-		for (buffer_it = 0; buffer_it < self->buffers_length1; buffer_it = buffer_it + 1) {
-			OMX_BUFFERHEADERTYPE* buffer;
-			buffer = buffer_collection[buffer_it];
-			{
-				omx_try_run (OMX_FreeBuffer (self->component->handle, (gint) self->definition.eDir, buffer), __FILE__, __FUNCTION__, __LINE__, &_inner_error_);
-				if (_inner_error_ != NULL) {
-					g_propagate_error (error, _inner_error_);
-					return;
-				}
-			}
-		}
-	}
-	self->buffers = (_tmp0_ = NULL, self->buffers = (g_free (self->buffers), NULL), self->buffers_length1 = 0, _tmp0_);
-}
-
-
-OMX_BUFFERHEADERTYPE* port_pop_buffer (Port* self) {
-	OMX_BUFFERHEADERTYPE* result;
-	g_return_val_if_fail (self != NULL, NULL);
-	result = (OMX_BUFFERHEADERTYPE*) g_async_queue_pop (self->queue);
-	return result;
-}
-
-
-void port_push_buffer (Port* self, OMX_BUFFERHEADERTYPE* buffer, GError** error) {
-	void* _tmp0_;
-	Port* port;
-	g_return_if_fail (self != NULL);
-	g_return_if_fail (buffer != NULL);
-	port = _g_object_ref0 ((_tmp0_ = buffer->pAppPrivate, IS_PORT (_tmp0_) ? ((Port*) _tmp0_) : NULL));
-	switch (port->definition.eDir) {
-		case OMX_DirInput:
-		{
-			g_print ("empty_this_buffer for %s\n", port->priv->_name);
-			OMX_EmptyThisBuffer (port->component->handle, buffer);
-			break;
-		}
-		case OMX_DirOutput:
-		{
-			g_print ("fill_this_buffer for %s\n", port->priv->_name);
-			OMX_FillThisBuffer (port->component->handle, buffer);
-			break;
-		}
-		default:
-		{
-			break;
-		}
-	}
-	_g_object_unref0 (port);
-}
-
-
-const char* port_get_name (Port* self) {
-	const char* result;
-	g_return_val_if_fail (self != NULL, NULL);
-	result = self->priv->_name;
-	return result;
-}
-
-
-void port_set_name (Port* self, const char* value) {
-	char* _tmp0_;
-	g_return_if_fail (self != NULL);
-	self->priv->_name = (_tmp0_ = g_strdup (value), _g_free0 (self->priv->_name), _tmp0_);
-	g_object_notify ((GObject *) self, "name");
-}
-
-
-static void port_class_init (PortClass * klass) {
-	port_parent_class = g_type_class_peek_parent (klass);
-	g_type_class_add_private (klass, sizeof (PortPrivate));
-	G_OBJECT_CLASS (klass)->get_property = port_get_property;
-	G_OBJECT_CLASS (klass)->set_property = port_set_property;
-	G_OBJECT_CLASS (klass)->finalize = port_finalize;
-	g_object_class_install_property (G_OBJECT_CLASS (klass), PORT_NAME, g_param_spec_string ("name", "name", "name", NULL, G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK | G_PARAM_STATIC_BLURB | G_PARAM_READABLE | G_PARAM_WRITABLE));
-}
-
-
-static void port_instance_init (Port * self) {
-	self->priv = PORT_GET_PRIVATE (self);
-}
-
-
-static void port_finalize (GObject* obj) {
-	Port * self;
-	self = PORT (obj);
-	self->buffers = (g_free (self->buffers), NULL);
-	_g_async_queue_unref0 (self->queue);
-	_g_object_unref0 (self->component);
-	_g_free0 (self->priv->_name);
-	G_OBJECT_CLASS (port_parent_class)->finalize (obj);
-}
-
-
-GType port_get_type (void) {
-	static GType port_type_id = 0;
-	if (port_type_id == 0) {
-		static const GTypeInfo g_define_type_info = { sizeof (PortClass), (GBaseInitFunc) NULL, (GBaseFinalizeFunc) NULL, (GClassInitFunc) port_class_init, (GClassFinalizeFunc) NULL, NULL, sizeof (Port), 0, (GInstanceInitFunc) port_instance_init, NULL };
-		port_type_id = g_type_register_static (G_TYPE_OBJECT, "Port", &g_define_type_info, 0);
-	}
-	return port_type_id;
-}
-
-
-static void port_get_property (GObject * object, guint property_id, GValue * value, GParamSpec * pspec) {
-	Port * self;
-	self = PORT (object);
-	switch (property_id) {
-		case PORT_NAME:
-		g_value_set_string (value, port_get_name (self));
-		break;
-		default:
-		G_OBJECT_WARN_INVALID_PROPERTY_ID (object, property_id, pspec);
-		break;
-	}
-}
-
-
-static void port_set_property (GObject * object, guint property_id, const GValue * value, GParamSpec * pspec) {
-	Port * self;
-	self = PORT (object);
-	switch (property_id) {
-		case PORT_NAME:
-		port_set_name (self, g_value_get_string (value));
-		break;
-		default:
-		G_OBJECT_WARN_INVALID_PROPERTY_ID (object, property_id, pspec);
-		break;
-	}
-}
-
-
-static void _vala_array_destroy (gpointer array, gint array_length, GDestroyNotify destroy_func) {
-	if ((array != NULL) && (destroy_func != NULL)) {
-		int i;
-		for (i = 0; i < array_length; i = i + 1) {
-			if (((gpointer*) array)[i] != NULL) {
-				destroy_func (((gpointer*) array)[i]);
-			}
-		}
-	}
-}
-
-
-static void _vala_array_free (gpointer array, gint array_length, GDestroyNotify destroy_func) {
-	_vala_array_destroy (array, array_length, destroy_func);
-	g_free (array);
 }
 
 
