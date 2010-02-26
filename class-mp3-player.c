@@ -385,6 +385,14 @@ static void omx_try_run (OMX_ERRORTYPE err, const char* file, const char* functi
 }
 
 
+static gboolean omx_buffer_header_eos (OMX_BUFFERHEADERTYPE* self) {
+	gboolean result;
+	g_return_val_if_fail (self != NULL, FALSE);
+	result = (self->nFlags & OMX_BUFFERFLAG_EOS) != 0;
+	return result;
+}
+
+
 void mp3_player_play (Mp3Player* self, const char* filename, GError** error) {
 	GError * _inner_error_;
 	FILE* fd;
@@ -477,7 +485,7 @@ void mp3_player_play (Mp3Player* self, const char* filename, GError** error) {
 			case OMX_DirOutput:
 			{
 				g_print ("Got %d bytes\n", (gint) buffer->nFilledLen);
-				if ((buffer->nFlags & OMX_BUFFERFLAG_EOS) != 0) {
+				if (omx_buffer_header_eos (buffer)) {
 					g_print ("Got eos\n");
 					eos_found = TRUE;
 				}

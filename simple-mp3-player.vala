@@ -207,7 +207,6 @@ Omx.Error audiodec_event_handler(
         default:
             break;
     }
-
     return Omx.Error.None;
 }
 
@@ -229,7 +228,7 @@ Omx.Error audiodec_empty_buffer_done(
 Omx.Error audiodec_fill_buffer_done(
         Omx.Handle component,
         Omx.BufferHeader buffer) {
-    if((buffer.flags & Omx.BufferFlag.EOS) != 0) {
+    if(buffer.eos()) {
     	print("Got eos flag\n");
     	eos_sem.up();
     	return Omx.Error.None;

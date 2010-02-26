@@ -28,8 +28,7 @@ public class Mp3Player: Object {
         var audiodec =
             new Omx.Component(AUDIODEC_COMPONENT_NAME, Omx.Index.ParamAudioInit);
 
-        Omx.try_run(
-            Omx.init());
+        Omx.try_run(Omx.init());
 
         audiodec.name = "audiodec";        
         audiodec.init();
@@ -57,7 +56,7 @@ public class Mp3Player: Object {
                     break;
                 case Omx.Dir.Output:
                     print("Got %d bytes\n", (int)buffer.filled_len);
-                    if((buffer.flags & Omx.BufferFlag.EOS) != 0) {
+                    if(buffer.eos()) {
                         print("Got eos\n");
                         eos_found = true;
                     }
@@ -78,8 +77,7 @@ public class Mp3Player: Object {
         
         audiodec.free();
 
-        Omx.try_run(
-            Omx.deinit());
+        Omx.try_run(Omx.deinit());
     }    
 }
 
