@@ -203,7 +203,7 @@ namespace Omx {
         [CCode (cname="nVersion")]
         public Version version;
         
-        [CCode (cheader_filename="omx-util.h")]
+        [CCode (cheader_filename="omx-utils.h")]
         public void init();
     }
 

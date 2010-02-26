@@ -9,7 +9,7 @@
 #include <stdio.h>
 #include <OMX_Core.h>
 #include <OMX_Component.h>
-#include <omx-util.h>
+#include <omx-utils.h>
 #include <bellagio/tsemaphore.h>
 
 #define _g_error_free0(var) ((var == NULL) ? NULL : (var = (g_error_free (var), NULL)))

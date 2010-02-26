@@ -9,7 +9,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <bellagio/tsemaphore.h>
-#include <omx-util.h>
+#include <omx-utils.h>
 
 
 #define OMX_TYPE_COMPONENT (omx_component_get_type ())
