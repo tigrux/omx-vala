@@ -65,8 +65,8 @@ OMX_ERRORTYPE audiosink_event_handler (OMX_HANDLETYPE component, OMX_EVENTTYPE e
 static OMX_ERRORTYPE _audiosink_event_handler_omx_event_handler_func (OMX_HANDLETYPE component, gpointer self, OMX_EVENTTYPE event, guint32 data1, guint32 data2, void* event_data);
 OMX_ERRORTYPE audiosink_empty_buffer_done (OMX_HANDLETYPE component, OMX_BUFFERHEADERTYPE* buffer);
 static OMX_ERRORTYPE _audiosink_empty_buffer_done_omx_empty_buffer_done_func (OMX_HANDLETYPE component, gpointer self, OMX_BUFFERHEADERTYPE* buffer);
-#define AUDIODEC_COMPONENT_NAME "OMX.st.audio_decoder.mp3.mad"
-#define AUDIOSINK_COMPONENT_NAME "OMX.st.alsa.alsasink"
+#define AUDIODEC_COMPONENT "OMX.st.audio_decoder.mp3.mad"
+#define AUDIOSINK_COMPONENT "OMX.st.alsa.alsasink"
 #define N_BUFFERS 2
 #define BUFFER_OUT_SIZE 32768
 #define BUFFER_IN_SIZE 4096
@@ -468,12 +468,12 @@ static OMX_ERRORTYPE _audiosink_empty_buffer_done_omx_empty_buffer_done_func (OM
 void get_handles (GError** error) {
 	GError * _inner_error_;
 	_inner_error_ = NULL;
-	omx_try_run (OMX_GetHandle (&audiodec_handle, AUDIODEC_COMPONENT_NAME, NULL, &audiodec_callbacks), __FILE__, __FUNCTION__, __LINE__, &_inner_error_);
+	omx_try_run (OMX_GetHandle (&audiodec_handle, AUDIODEC_COMPONENT, NULL, &audiodec_callbacks), __FILE__, __FUNCTION__, __LINE__, &_inner_error_);
 	if (_inner_error_ != NULL) {
 		g_propagate_error (error, _inner_error_);
 		return;
 	}
-	omx_try_run (OMX_GetHandle (&audiosink_handle, AUDIOSINK_COMPONENT_NAME, NULL, &audiosink_callbacks), __FILE__, __FUNCTION__, __LINE__, &_inner_error_);
+	omx_try_run (OMX_GetHandle (&audiosink_handle, AUDIOSINK_COMPONENT, NULL, &audiosink_callbacks), __FILE__, __FUNCTION__, __LINE__, &_inner_error_);
 	if (_inner_error_ != NULL) {
 		g_propagate_error (error, _inner_error_);
 		return;
@@ -746,18 +746,10 @@ OMX_ERRORTYPE audiodec_empty_buffer_done (OMX_HANDLETYPE component, OMX_BUFFERHE
 }
 
 
-static gboolean omx_buffer_header_eos (OMX_BUFFERHEADERTYPE* self) {
-	gboolean result;
-	g_return_val_if_fail (self != NULL, FALSE);
-	result = (self->nFlags & OMX_BUFFERFLAG_EOS) != 0;
-	return result;
-}
-
-
 OMX_ERRORTYPE audiodec_fill_buffer_done (OMX_HANDLETYPE component, OMX_BUFFERHEADERTYPE* buffer) {
 	OMX_ERRORTYPE result;
 	g_return_val_if_fail (buffer != NULL, 0);
-	if (omx_buffer_header_eos (buffer)) {
+	if ((buffer->nFlags & OMX_BUFFERFLAG_EOS) != 0) {
 		g_print ("Got eos flag\n");
 		tsem_up (&eos_sem);
 		result = OMX_ErrorNone;

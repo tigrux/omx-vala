@@ -1,10 +1,79 @@
 namespace Omx {
+    public delegate Error InitFunc();
+
+    public delegate Error DeinitFunc();
+
+    public delegate Error GetHandleFunc(
+        out Handle component, string component_name,
+        void *app_data, Callback callbacks);
+
+    public delegate Error FreeHandleFunc(Handle handle);
+
+    public delegate Error SetupTunnelFunc(
+        Handle output, uint32 port_output,
+        Handle input, uint32 port_input);
+
+    public class Core: GLib.Object {
+        public GLib.Module module;
+
+        public InitFunc init;
+        public DeinitFunc deinit;
+        public GetHandleFunc get_handle;
+        public FreeHandleFunc free_handle;
+        public SetupTunnelFunc setup_tunnel;
+
+        public Component get_component(
+                string component_name,
+                Omx.Index param_init_index) {
+            return new Component(this, component_name, param_init_index);
+        }
+
+        public static Core? open(string soname) {
+            var core = new Core();
+        
+            var module = GLib.Module.open(soname, GLib.ModuleFlags.BIND_LAZY);
+            if(module == null)
+                return null;
+
+            void *symbol;
+
+            module.symbol ("OMX_Init", out symbol);
+            if(symbol == null)
+                return null;
+            core.init = (InitFunc)symbol;
+
+            module.symbol ("OMX_Deinit", out symbol);
+            if(symbol == null)
+                return null;
+            core.deinit = (DeinitFunc)symbol;
+
+            module.symbol ("OMX_GetHandle", out symbol);
+            if(symbol == null)
+                return null;
+            core.get_handle = (GetHandleFunc)symbol;            
+
+            module.symbol ("OMX_FreeHandle", out symbol);
+            if(symbol == null)
+                return null;
+            core.free_handle = (FreeHandleFunc)symbol;            
+
+            module.symbol ("OMX_SetupTunnel", out symbol);
+            if(symbol == null)
+                return null;
+            core.setup_tunnel = (SetupTunnelFunc)symbol;
+
+            core.module = (owned)module;
+            return core;
+        }
+    }
+
     public class Component: GLib.Object {
         public Omx.PortParam port_param;
         public Omx.Handle handle;
         string _component_name;
         Omx.Index _param_init_index;
-        AsyncQueue<Omx.BufferHeader> buffer_queue;
+        AsyncQueue<Omx.BufferHeader> _buffer_queue;
+        Core _core;
 
         public Port[] ports;
 
@@ -12,15 +81,23 @@ namespace Omx {
             get; set;
         }
 
-        public Component(string component_name, Omx.Index param_init_index) {
+        Semaphore wait_for_state_sem;
+
+        public Component(
+                Core core,
+                string component_name,
+                Omx.Index param_init_index) {
+            _core = core;
             _component_name = component_name;
             _param_init_index = param_init_index;
-            buffer_queue = new AsyncQueue<Omx.BufferHeader>();
+            _buffer_queue = new AsyncQueue<Omx.BufferHeader>();
+            wait_for_state_sem = new Semaphore();
+
         }
 
         public void init() throws GLib.Error {
             Omx.try_run(
-                Omx.get_handle(
+                _core.get_handle(
                     out handle, _component_name,
                     this, callbacks));
 
@@ -32,7 +109,7 @@ namespace Omx {
 
         public void free() throws GLib.Error {
             Omx.try_run(
-                handle.free_handle());
+                _core.free_handle(handle));
             handle = null;
         }
 
@@ -66,12 +143,12 @@ namespace Omx {
             foreach(var port in ports) {
                 if(port.definition.dir == Omx.Dir.Input)
                     foreach(var buffer in port.buffers)
-                        buffer_queue.push(buffer);
+                        _buffer_queue.push(buffer);
             }
         }
 
         public Port pop_port() {
-            var buffer = buffer_queue.pop();
+            var buffer = _buffer_queue.pop();
             var port = buffer.app_private as Omx.Port;
             return port;
         }
@@ -81,8 +158,6 @@ namespace Omx {
             buffer_done,
             buffer_done
         };
-
-        Bellagio.Semaphore wait_for_state_sem;
 
         public void wait_for_state_set() {
             wait_for_state_sem.down();
@@ -126,7 +201,7 @@ namespace Omx {
                 Omx.BufferHeader buffer) {
             var port = buffer.app_private as Port;
             port.buffer_queue.push(buffer);
-            buffer_queue.push(buffer);
+            _buffer_queue.push(buffer);
             return Omx.Error.None;
         }
     }
@@ -192,6 +267,26 @@ namespace Omx {
                 default:
                     break;
             }
+        }
+    }
+
+    public class Semaphore {
+        GLib.Cond _cond;
+        GLib.Mutex _mutex;
+
+        public Semaphore() {
+            _cond = new GLib.Cond();
+            _mutex = new GLib.Mutex();
+        }
+
+        public void up() {
+            _cond.signal();
+        }
+
+        public void down() {
+            _mutex.lock();
+            _cond.wait(_mutex);
+            _mutex.unlock();
         }
     }
 }

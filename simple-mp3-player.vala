@@ -62,17 +62,17 @@ const Omx.Callback audiosink_callbacks = {
 Omx.Handle audiodec_handle;
 Omx.Handle audiosink_handle;
 
-const string AUDIODEC_COMPONENT_NAME = "OMX.st.audio_decoder.mp3.mad";
-const string AUDIOSINK_COMPONENT_NAME = "OMX.st.alsa.alsasink";
+const string AUDIODEC_COMPONENT = "OMX.st.audio_decoder.mp3.mad";
+const string AUDIOSINK_COMPONENT = "OMX.st.alsa.alsasink";
 
 void get_handles() throws Error {
     Omx.try_run(
         Omx.get_handle(
-            out audiodec_handle, AUDIODEC_COMPONENT_NAME,
+            out audiodec_handle, AUDIODEC_COMPONENT,
             null, audiodec_callbacks));
     Omx.try_run(
         Omx.get_handle(
-            out audiosink_handle, AUDIOSINK_COMPONENT_NAME,
+            out audiosink_handle, AUDIOSINK_COMPONENT,
             null, audiosink_callbacks));
 }
 
@@ -171,9 +171,9 @@ void free_buffers() throws Error {
 
 void free_handles() throws Error {
     Omx.try_run(
-        audiodec_handle.free_handle());
+        Omx.free_handle(audiodec_handle));
     Omx.try_run(
-        audiosink_handle.free_handle());
+        Omx.free_handle(audiosink_handle));
 }
 
 Bellagio.Semaphore audiodec_sem;
@@ -207,6 +207,7 @@ Omx.Error audiodec_event_handler(
         default:
             break;
     }
+
     return Omx.Error.None;
 }
 
@@ -228,7 +229,7 @@ Omx.Error audiodec_empty_buffer_done(
 Omx.Error audiodec_fill_buffer_done(
         Omx.Handle component,
         Omx.BufferHeader buffer) {
-    if(buffer.eos()) {
+    if((buffer.flags & Omx.BufferFlag.EOS) != 0) {
     	print("Got eos flag\n");
     	eos_sem.up();
     	return Omx.Error.None;

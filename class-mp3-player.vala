@@ -18,17 +18,19 @@ int main(string[] args) {
 
 
 public class Mp3Player: Object {
-    const string AUDIODEC_COMPONENT_NAME = "OMX.st.audio_decoder.mp3.mad";
+    const string AUDIODEC_COMPONENT = "OMX.st.audio_decoder.mp3.mad";
 
     public void play(string filename) throws Error {
         var fd = FileStream.open(filename, "rb");
         if(fd == null)
             throw new FileError.FAILED("Error opening %s", filename);
 
-        var audiodec =
-            new Omx.Component(AUDIODEC_COMPONENT_NAME, Omx.Index.ParamAudioInit);
+        var core = Omx.Core.open("libomxil-bellagio.so.0");
 
-        Omx.try_run(Omx.init());
+        var audiodec =
+            core.get_component(AUDIODEC_COMPONENT, Omx.Index.ParamAudioInit);
+
+        Omx.try_run(core.init());
 
         audiodec.name = "audiodec";        
         audiodec.init();
@@ -77,7 +79,7 @@ public class Mp3Player: Object {
         
         audiodec.free();
 
-        Omx.try_run(Omx.deinit());
+        Omx.try_run(core.deinit());
     }    
 }
 

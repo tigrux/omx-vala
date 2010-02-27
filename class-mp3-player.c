@@ -8,6 +8,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <OMX_Core.h>
+#include <gmodule.h>
 #include <OMX_Component.h>
 
 
@@ -25,6 +26,16 @@ typedef struct _Mp3PlayerClass Mp3PlayerClass;
 typedef struct _Mp3PlayerPrivate Mp3PlayerPrivate;
 #define _fclose0(var) ((var == NULL) ? NULL : (var = (fclose (var), NULL)))
 
+#define OMX_TYPE_CORE (omx_core_get_type ())
+#define OMX_CORE(obj) (G_TYPE_CHECK_INSTANCE_CAST ((obj), OMX_TYPE_CORE, OmxCore))
+#define OMX_CORE_CLASS(klass) (G_TYPE_CHECK_CLASS_CAST ((klass), OMX_TYPE_CORE, OmxCoreClass))
+#define OMX_IS_CORE(obj) (G_TYPE_CHECK_INSTANCE_TYPE ((obj), OMX_TYPE_CORE))
+#define OMX_IS_CORE_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((klass), OMX_TYPE_CORE))
+#define OMX_CORE_GET_CLASS(obj) (G_TYPE_INSTANCE_GET_CLASS ((obj), OMX_TYPE_CORE, OmxCoreClass))
+
+typedef struct _OmxCore OmxCore;
+typedef struct _OmxCoreClass OmxCoreClass;
+
 #define OMX_TYPE_COMPONENT (omx_component_get_type ())
 #define OMX_COMPONENT(obj) (G_TYPE_CHECK_INSTANCE_CAST ((obj), OMX_TYPE_COMPONENT, OmxComponent))
 #define OMX_COMPONENT_CLASS(klass) (G_TYPE_CHECK_CLASS_CAST ((klass), OMX_TYPE_COMPONENT, OmxComponentClass))
@@ -34,6 +45,7 @@ typedef struct _Mp3PlayerPrivate Mp3PlayerPrivate;
 
 typedef struct _OmxComponent OmxComponent;
 typedef struct _OmxComponentClass OmxComponentClass;
+typedef struct _OmxCorePrivate OmxCorePrivate;
 
 #define OMX_TYPE_PORT (omx_port_get_type ())
 #define OMX_PORT(obj) (G_TYPE_CHECK_INSTANCE_CAST ((obj), OMX_TYPE_PORT, OmxPort))
@@ -52,6 +64,36 @@ struct _Mp3Player {
 };
 
 struct _Mp3PlayerClass {
+	GObjectClass parent_class;
+};
+
+typedef OMX_ERRORTYPE (*OmxInitFunc) (void* user_data);
+typedef OMX_ERRORTYPE (*OmxDeinitFunc) (void* user_data);
+typedef OMX_ERRORTYPE (*OmxGetHandleFunc) (OMX_HANDLETYPE* component, const char* component_name, void* app_data, OMX_CALLBACKTYPE* callbacks, void* user_data);
+typedef OMX_ERRORTYPE (*OmxFreeHandleFunc) (OMX_HANDLETYPE handle, void* user_data);
+typedef OMX_ERRORTYPE (*OmxSetupTunnelFunc) (OMX_HANDLETYPE output, guint32 port_output, OMX_HANDLETYPE input, guint32 port_input, void* user_data);
+struct _OmxCore {
+	GObject parent_instance;
+	OmxCorePrivate * priv;
+	GModule* module;
+	OmxInitFunc init;
+	gpointer init_target;
+	GDestroyNotify init_target_destroy_notify;
+	OmxDeinitFunc deinit;
+	gpointer deinit_target;
+	GDestroyNotify deinit_target_destroy_notify;
+	OmxGetHandleFunc get_handle;
+	gpointer get_handle_target;
+	GDestroyNotify get_handle_target_destroy_notify;
+	OmxFreeHandleFunc free_handle;
+	gpointer free_handle_target;
+	GDestroyNotify free_handle_target_destroy_notify;
+	OmxSetupTunnelFunc setup_tunnel;
+	gpointer setup_tunnel_target;
+	GDestroyNotify setup_tunnel_target_destroy_notify;
+};
+
+struct _OmxCoreClass {
 	GObjectClass parent_class;
 };
 
@@ -80,10 +122,11 @@ gint _main (char** args, int args_length1);
 enum  {
 	MP3_PLAYER_DUMMY_PROPERTY
 };
-#define MP3_PLAYER_AUDIODEC_COMPONENT_NAME "OMX.st.audio_decoder.mp3.mad"
-OmxComponent* omx_component_new (const char* component_name, OMX_INDEXTYPE param_init_index);
-OmxComponent* omx_component_construct (GType object_type, const char* component_name, OMX_INDEXTYPE param_init_index);
+#define MP3_PLAYER_AUDIODEC_COMPONENT "OMX.st.audio_decoder.mp3.mad"
+GType omx_core_get_type (void);
+OmxCore* omx_core_open (const char* soname);
 GType omx_component_get_type (void);
+OmxComponent* omx_core_get_component (OmxCore* self, const char* component_name, OMX_INDEXTYPE param_init_index);
 void omx_component_set_name (OmxComponent* self, const char* value);
 void omx_component_init (OmxComponent* self, GError** error);
 void omx_component_set_state (OmxComponent* self, OMX_STATETYPE state, GError** error);
@@ -396,6 +439,7 @@ static gboolean omx_buffer_header_eos (OMX_BUFFERHEADERTYPE* self) {
 void mp3_player_play (Mp3Player* self, const char* filename, GError** error) {
 	GError * _inner_error_;
 	FILE* fd;
+	OmxCore* core;
 	OmxComponent* audiodec;
 	gboolean eos_found;
 	g_return_if_fail (self != NULL);
@@ -410,11 +454,13 @@ void mp3_player_play (Mp3Player* self, const char* filename, GError** error) {
 			return;
 		}
 	}
-	audiodec = omx_component_new (MP3_PLAYER_AUDIODEC_COMPONENT_NAME, OMX_IndexParamAudioInit);
-	omx_try_run (OMX_Init (), __FILE__, __FUNCTION__, __LINE__, &_inner_error_);
+	core = omx_core_open ("libomxil-bellagio.so.0");
+	audiodec = omx_core_get_component (core, MP3_PLAYER_AUDIODEC_COMPONENT, OMX_IndexParamAudioInit);
+	omx_try_run (core->init (core->init_target), __FILE__, __FUNCTION__, __LINE__, &_inner_error_);
 	if (_inner_error_ != NULL) {
 		g_propagate_error (error, _inner_error_);
 		_fclose0 (fd);
+		_g_object_unref0 (core);
 		_g_object_unref0 (audiodec);
 		return;
 	}
@@ -423,6 +469,7 @@ void mp3_player_play (Mp3Player* self, const char* filename, GError** error) {
 	if (_inner_error_ != NULL) {
 		g_propagate_error (error, _inner_error_);
 		_fclose0 (fd);
+		_g_object_unref0 (core);
 		_g_object_unref0 (audiodec);
 		return;
 	}
@@ -430,6 +477,7 @@ void mp3_player_play (Mp3Player* self, const char* filename, GError** error) {
 	if (_inner_error_ != NULL) {
 		g_propagate_error (error, _inner_error_);
 		_fclose0 (fd);
+		_g_object_unref0 (core);
 		_g_object_unref0 (audiodec);
 		return;
 	}
@@ -437,6 +485,7 @@ void mp3_player_play (Mp3Player* self, const char* filename, GError** error) {
 	if (_inner_error_ != NULL) {
 		g_propagate_error (error, _inner_error_);
 		_fclose0 (fd);
+		_g_object_unref0 (core);
 		_g_object_unref0 (audiodec);
 		return;
 	}
@@ -445,6 +494,7 @@ void mp3_player_play (Mp3Player* self, const char* filename, GError** error) {
 	if (_inner_error_ != NULL) {
 		g_propagate_error (error, _inner_error_);
 		_fclose0 (fd);
+		_g_object_unref0 (core);
 		_g_object_unref0 (audiodec);
 		return;
 	}
@@ -452,6 +502,7 @@ void mp3_player_play (Mp3Player* self, const char* filename, GError** error) {
 	if (_inner_error_ != NULL) {
 		g_propagate_error (error, _inner_error_);
 		_fclose0 (fd);
+		_g_object_unref0 (core);
 		_g_object_unref0 (audiodec);
 		return;
 	}
@@ -459,6 +510,7 @@ void mp3_player_play (Mp3Player* self, const char* filename, GError** error) {
 	if (_inner_error_ != NULL) {
 		g_propagate_error (error, _inner_error_);
 		_fclose0 (fd);
+		_g_object_unref0 (core);
 		_g_object_unref0 (audiodec);
 		return;
 	}
@@ -501,6 +553,7 @@ void mp3_player_play (Mp3Player* self, const char* filename, GError** error) {
 			g_propagate_error (error, _inner_error_);
 			_g_object_unref0 (port);
 			_fclose0 (fd);
+			_g_object_unref0 (core);
 			_g_object_unref0 (audiodec);
 			return;
 		}
@@ -510,6 +563,7 @@ void mp3_player_play (Mp3Player* self, const char* filename, GError** error) {
 	if (_inner_error_ != NULL) {
 		g_propagate_error (error, _inner_error_);
 		_fclose0 (fd);
+		_g_object_unref0 (core);
 		_g_object_unref0 (audiodec);
 		return;
 	}
@@ -518,6 +572,7 @@ void mp3_player_play (Mp3Player* self, const char* filename, GError** error) {
 	if (_inner_error_ != NULL) {
 		g_propagate_error (error, _inner_error_);
 		_fclose0 (fd);
+		_g_object_unref0 (core);
 		_g_object_unref0 (audiodec);
 		return;
 	}
@@ -525,6 +580,7 @@ void mp3_player_play (Mp3Player* self, const char* filename, GError** error) {
 	if (_inner_error_ != NULL) {
 		g_propagate_error (error, _inner_error_);
 		_fclose0 (fd);
+		_g_object_unref0 (core);
 		_g_object_unref0 (audiodec);
 		return;
 	}
@@ -533,17 +589,20 @@ void mp3_player_play (Mp3Player* self, const char* filename, GError** error) {
 	if (_inner_error_ != NULL) {
 		g_propagate_error (error, _inner_error_);
 		_fclose0 (fd);
+		_g_object_unref0 (core);
 		_g_object_unref0 (audiodec);
 		return;
 	}
-	omx_try_run (OMX_Deinit (), __FILE__, __FUNCTION__, __LINE__, &_inner_error_);
+	omx_try_run (core->deinit (core->deinit_target), __FILE__, __FUNCTION__, __LINE__, &_inner_error_);
 	if (_inner_error_ != NULL) {
 		g_propagate_error (error, _inner_error_);
 		_fclose0 (fd);
+		_g_object_unref0 (core);
 		_g_object_unref0 (audiodec);
 		return;
 	}
 	_fclose0 (fd);
+	_g_object_unref0 (core);
 	_g_object_unref0 (audiodec);
 }
 
