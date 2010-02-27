@@ -18,7 +18,7 @@ class-mp3-player: class-mp3-player.o omx-glib.o
 	$(CC) `pkg-config $(MODULES) --libs` $^ -o $@
 
 class-mp3-player.c omx-glib.c: class-mp3-player.vala omx-glib.vala
-	valac --thread $^ -C --pkg omx --pkg gmodule-2.0 --vapidir .
+	valac --thread $^ -C --pkg libomxil-bellagio --pkg gmodule-2.0 --vapidir .
 	touch $@
 
 

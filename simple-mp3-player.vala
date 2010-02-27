@@ -134,9 +134,9 @@ void allocate_buffers() throws Error {
                 out out_buffer_audiodec[i], 1,
                 null, BUFFER_OUT_SIZE));
         Omx.try_run(
-            audiosink_handle.use_buffer(
+            audiosink_handle.allocate_buffer(
                 out in_buffer_audiosink[i], 0,
-                null, BUFFER_OUT_SIZE, null));
+                null, BUFFER_OUT_SIZE));
     }
 }
 
@@ -146,13 +146,15 @@ void read_buffer_from_fd(Omx.BufferHeader buffer) {
 }
 
 void move_buffers() throws Error {
-    read_buffer_from_fd(in_buffer_audiodec[0]);
-    Omx.try_run(
-    	audiodec_handle.empty_this_buffer(
-    		in_buffer_audiodec[0]));
-    Omx.try_run(
-    	audiodec_handle.fill_this_buffer(
-    		out_buffer_audiodec[0]));
+    for(int i=0; i<N_BUFFERS; i++) {
+        read_buffer_from_fd(in_buffer_audiodec[i]);
+        Omx.try_run(
+        	audiodec_handle.empty_this_buffer(
+        		in_buffer_audiodec[i]));
+        Omx.try_run(
+        	audiodec_handle.fill_this_buffer(
+        		out_buffer_audiodec[i]));
+	}
 }
 
 void free_buffers() throws Error {
@@ -229,7 +231,7 @@ Omx.Error audiodec_empty_buffer_done(
 Omx.Error audiodec_fill_buffer_done(
         Omx.Handle component,
         Omx.BufferHeader buffer) {
-    if((buffer.flags & Omx.BufferFlag.EOS) != 0) {
+    if(buffer.eos()) {
     	print("Got eos flag\n");
     	eos_sem.up();
     	return Omx.Error.None;

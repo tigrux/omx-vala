@@ -1,4 +1,4 @@
-[CCode (cheader_filename="OMX_Core.h")]
+[CCode (cheader_filename="OMX_Core.h,OMX_Component.h")]
 namespace Omx {	
 	[CCode (cname="OMX_ALL")]
 	const uint ALL;
@@ -377,10 +377,9 @@ namespace Omx {
         READONLY
     }
 
-    [SimpleType]
-    [CCode (cname="OMX_HANDLETYPE", cheader_filename="OMX_Component.h", default_value="NULL")]
-    [PointerType]
-    public struct Handle {
+    [Compact]
+    [CCode (cname="void", type_id="G_TYPE_POINTER", set_value_function="g_value_set_pointer", param_spec_function="g_param_spec_pointer", ref_function="", unref_function="")]
+    public class Handle {
         [CCode (cname="OMX_SendCommand")]
         public Error send_command(Command cmd, uint param, void *cmd_data);
 
@@ -424,10 +423,10 @@ namespace Omx {
     [CCode (cname="OMX_Deinit")]
     public Error deinit();
 
-    [CCode (cname="OMX_GetHandle", cheader_filename="OMX_Component.h")]
+    [CCode (cname="OMX_GetHandle")]
     public Error get_handle(out Handle component, string component_name, void *app_data, Callback callbacks);
 
-    [CCode (cname="OMX_FreeHandle", cheader_filename="OMX_Component.h")]
+    [CCode (cname="OMX_FreeHandle")]
     public Error free_handle(Handle component);
 
     [CCode (cname="OMX_SetupTunnel")]
@@ -686,7 +685,7 @@ namespace Omx {
             public Other.PortDefinition other;
         }
 
-        [CCode (cname="OMX_PARAM_PORTDEFINITIONTYPE", cheader_filename="OMX_Component.h")]
+        [CCode (cname="OMX_PARAM_PORTDEFINITIONTYPE")]
         public struct PortDefinition : PortStructure {
             [CCode (cname="eDir")]
             public Dir dir;
@@ -873,7 +872,6 @@ namespace Omx {
         public uint32 height;
     }
 
-    [CCode (cheader_filename="OMX_Component.h")]
     namespace Audio {
         [CCode (cname="OMX_AUDIO_CODINGTYPE", cprefix="OMX_AUDIO_Coding")]
         public enum Coding {
@@ -1307,7 +1305,6 @@ namespace Omx {
         } //ns Config
     } //ns Audio
 
-    [CCode (cheader_filename="OMX_Component.h")]
     namespace Video {
         [CCode (cname="OMX_VIDEO_CODINGTYPE", cprefix="OMX_VIDEO_Coding")]
         public enum Coding {
@@ -1639,7 +1636,6 @@ namespace Omx {
         } //ns Param
     } //ns Video
 
-    [CCode (cheader_filename="OMX_Component.h")]
     namespace Image {
         [CCode (cname="OMX_IMAGE_CODINGTYPE", cprefix="OMX_IMAGE_Coding")]
         public enum Coding {
@@ -1697,7 +1693,6 @@ namespace Omx {
         } //ns Param
     } //ns Image
 
-    [CCode (cheader_filename="OMX_Component.h")]
     namespace Color {
         [CCode (cname="OMX_COLOR_FORMATTYPE", cprefix="OMX_COLOR_Format")]
         public enum Format {
@@ -1748,7 +1743,6 @@ namespace Omx {
         }
     }
 
-    [CCode (cheader_filename="OMX_Component.h")]
     namespace Other {
         [CCode (cname="OMX_OTHER_FORMATTYPE", cprefix="OMX_OTHER_Format")]
        public  enum Format {

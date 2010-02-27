@@ -18,10 +18,10 @@
 
 extern FILE* fd;
 FILE* fd = NULL;
-extern OMX_HANDLETYPE audiodec_handle;
-extern OMX_HANDLETYPE audiosink_handle;
-OMX_HANDLETYPE audiodec_handle = NULL;
-OMX_HANDLETYPE audiosink_handle = NULL;
+extern void* audiodec_handle;
+extern void* audiosink_handle;
+void* audiodec_handle = NULL;
+void* audiosink_handle = NULL;
 extern OMX_BUFFERHEADERTYPE** in_buffer_audiosink;
 extern gint in_buffer_audiosink_length1;
 OMX_BUFFERHEADERTYPE** in_buffer_audiosink = NULL;
@@ -47,7 +47,7 @@ tsem_t eos_sem = {0};
 void play (const char* filename, GError** error);
 gint _main (char** args, int args_length1);
 void get_handles (GError** error);
-void handle_print_info (const char* name, OMX_HANDLETYPE handle, GError** error);
+void handle_print_info (const char* name, void* handle, GError** error);
 void set_state (OMX_STATETYPE state, GError** error);
 void allocate_buffers (GError** error);
 void wait_for_state_set (void);
@@ -55,16 +55,16 @@ void move_buffers (GError** error);
 void wait_for_eos (void);
 void free_buffers (GError** error);
 void free_handles (GError** error);
-OMX_ERRORTYPE audiodec_event_handler (OMX_HANDLETYPE component, OMX_EVENTTYPE event, guint32 data1, guint32 data2);
-static OMX_ERRORTYPE _audiodec_event_handler_omx_event_handler_func (OMX_HANDLETYPE component, gpointer self, OMX_EVENTTYPE event, guint32 data1, guint32 data2, void* event_data);
-OMX_ERRORTYPE audiodec_empty_buffer_done (OMX_HANDLETYPE component, OMX_BUFFERHEADERTYPE* buffer);
-static OMX_ERRORTYPE _audiodec_empty_buffer_done_omx_empty_buffer_done_func (OMX_HANDLETYPE component, gpointer self, OMX_BUFFERHEADERTYPE* buffer);
-OMX_ERRORTYPE audiodec_fill_buffer_done (OMX_HANDLETYPE component, OMX_BUFFERHEADERTYPE* buffer);
-static OMX_ERRORTYPE _audiodec_fill_buffer_done_omx_fill_buffer_done_func (OMX_HANDLETYPE component, gpointer self, OMX_BUFFERHEADERTYPE* buffer);
-OMX_ERRORTYPE audiosink_event_handler (OMX_HANDLETYPE component, OMX_EVENTTYPE event, guint32 data1, guint32 data2);
-static OMX_ERRORTYPE _audiosink_event_handler_omx_event_handler_func (OMX_HANDLETYPE component, gpointer self, OMX_EVENTTYPE event, guint32 data1, guint32 data2, void* event_data);
-OMX_ERRORTYPE audiosink_empty_buffer_done (OMX_HANDLETYPE component, OMX_BUFFERHEADERTYPE* buffer);
-static OMX_ERRORTYPE _audiosink_empty_buffer_done_omx_empty_buffer_done_func (OMX_HANDLETYPE component, gpointer self, OMX_BUFFERHEADERTYPE* buffer);
+OMX_ERRORTYPE audiodec_event_handler (void* component, OMX_EVENTTYPE event, guint32 data1, guint32 data2);
+static OMX_ERRORTYPE _audiodec_event_handler_omx_event_handler_func (void* component, gpointer self, OMX_EVENTTYPE event, guint32 data1, guint32 data2, void* event_data);
+OMX_ERRORTYPE audiodec_empty_buffer_done (void* component, OMX_BUFFERHEADERTYPE* buffer);
+static OMX_ERRORTYPE _audiodec_empty_buffer_done_omx_empty_buffer_done_func (void* component, gpointer self, OMX_BUFFERHEADERTYPE* buffer);
+OMX_ERRORTYPE audiodec_fill_buffer_done (void* component, OMX_BUFFERHEADERTYPE* buffer);
+static OMX_ERRORTYPE _audiodec_fill_buffer_done_omx_fill_buffer_done_func (void* component, gpointer self, OMX_BUFFERHEADERTYPE* buffer);
+OMX_ERRORTYPE audiosink_event_handler (void* component, OMX_EVENTTYPE event, guint32 data1, guint32 data2);
+static OMX_ERRORTYPE _audiosink_event_handler_omx_event_handler_func (void* component, gpointer self, OMX_EVENTTYPE event, guint32 data1, guint32 data2, void* event_data);
+OMX_ERRORTYPE audiosink_empty_buffer_done (void* component, OMX_BUFFERHEADERTYPE* buffer);
+static OMX_ERRORTYPE _audiosink_empty_buffer_done_omx_empty_buffer_done_func (void* component, gpointer self, OMX_BUFFERHEADERTYPE* buffer);
 #define AUDIODEC_COMPONENT "OMX.st.audio_decoder.mp3.mad"
 #define AUDIOSINK_COMPONENT "OMX.st.alsa.alsasink"
 #define N_BUFFERS 2
@@ -440,27 +440,27 @@ void play (const char* filename, GError** error) {
 }
 
 
-static OMX_ERRORTYPE _audiodec_event_handler_omx_event_handler_func (OMX_HANDLETYPE component, gpointer self, OMX_EVENTTYPE event, guint32 data1, guint32 data2, void* event_data) {
+static OMX_ERRORTYPE _audiodec_event_handler_omx_event_handler_func (void* component, gpointer self, OMX_EVENTTYPE event, guint32 data1, guint32 data2, void* event_data) {
 	return audiodec_event_handler (component, event, data1, data2);
 }
 
 
-static OMX_ERRORTYPE _audiodec_empty_buffer_done_omx_empty_buffer_done_func (OMX_HANDLETYPE component, gpointer self, OMX_BUFFERHEADERTYPE* buffer) {
+static OMX_ERRORTYPE _audiodec_empty_buffer_done_omx_empty_buffer_done_func (void* component, gpointer self, OMX_BUFFERHEADERTYPE* buffer) {
 	return audiodec_empty_buffer_done (component, buffer);
 }
 
 
-static OMX_ERRORTYPE _audiodec_fill_buffer_done_omx_fill_buffer_done_func (OMX_HANDLETYPE component, gpointer self, OMX_BUFFERHEADERTYPE* buffer) {
+static OMX_ERRORTYPE _audiodec_fill_buffer_done_omx_fill_buffer_done_func (void* component, gpointer self, OMX_BUFFERHEADERTYPE* buffer) {
 	return audiodec_fill_buffer_done (component, buffer);
 }
 
 
-static OMX_ERRORTYPE _audiosink_event_handler_omx_event_handler_func (OMX_HANDLETYPE component, gpointer self, OMX_EVENTTYPE event, guint32 data1, guint32 data2, void* event_data) {
+static OMX_ERRORTYPE _audiosink_event_handler_omx_event_handler_func (void* component, gpointer self, OMX_EVENTTYPE event, guint32 data1, guint32 data2, void* event_data) {
 	return audiosink_event_handler (component, event, data1, data2);
 }
 
 
-static OMX_ERRORTYPE _audiosink_empty_buffer_done_omx_empty_buffer_done_func (OMX_HANDLETYPE component, gpointer self, OMX_BUFFERHEADERTYPE* buffer) {
+static OMX_ERRORTYPE _audiosink_empty_buffer_done_omx_empty_buffer_done_func (void* component, gpointer self, OMX_BUFFERHEADERTYPE* buffer) {
 	return audiosink_empty_buffer_done (component, buffer);
 }
 
@@ -503,13 +503,14 @@ static const char* omx_dir_to_string (OMX_DIRTYPE self) {
 }
 
 
-void handle_print_info (const char* name, OMX_HANDLETYPE handle, GError** error) {
+void handle_print_info (const char* name, void* handle, GError** error) {
 	GError * _inner_error_;
 	OMX_PORT_PARAM_TYPE _tmp0_ = {0};
 	OMX_PORT_PARAM_TYPE param;
 	OMX_PARAM_PORTDEFINITIONTYPE _tmp1_ = {0};
 	OMX_PARAM_PORTDEFINITIONTYPE port_definition;
 	g_return_if_fail (name != NULL);
+	g_return_if_fail (handle != NULL);
 	_inner_error_ = NULL;
 	param = (memset (&_tmp0_, 0, sizeof (OMX_PORT_PARAM_TYPE)), _tmp0_);
 	omx_structure_init (&param);
@@ -600,7 +601,7 @@ void allocate_buffers (GError** error) {
 					g_propagate_error (error, _inner_error_);
 					return;
 				}
-				omx_try_run (OMX_UseBuffer (audiosink_handle, &in_buffer_audiosink[i], (guint) 0, NULL, (guint) BUFFER_OUT_SIZE, NULL), __FILE__, __FUNCTION__, __LINE__, &_inner_error_);
+				omx_try_run (OMX_AllocateBuffer (audiosink_handle, &in_buffer_audiosink[i], (guint) 0, NULL, (guint) BUFFER_OUT_SIZE), __FILE__, __FUNCTION__, __LINE__, &_inner_error_);
 				if (_inner_error_ != NULL) {
 					g_propagate_error (error, _inner_error_);
 					return;
@@ -621,16 +622,33 @@ void read_buffer_from_fd (OMX_BUFFERHEADERTYPE* buffer) {
 void move_buffers (GError** error) {
 	GError * _inner_error_;
 	_inner_error_ = NULL;
-	read_buffer_from_fd (in_buffer_audiodec[0]);
-	omx_try_run (OMX_EmptyThisBuffer (audiodec_handle, in_buffer_audiodec[0]), __FILE__, __FUNCTION__, __LINE__, &_inner_error_);
-	if (_inner_error_ != NULL) {
-		g_propagate_error (error, _inner_error_);
-		return;
-	}
-	omx_try_run (OMX_FillThisBuffer (audiodec_handle, out_buffer_audiodec[0]), __FILE__, __FUNCTION__, __LINE__, &_inner_error_);
-	if (_inner_error_ != NULL) {
-		g_propagate_error (error, _inner_error_);
-		return;
+	{
+		gint i;
+		i = 0;
+		{
+			gboolean _tmp0_;
+			_tmp0_ = TRUE;
+			while (TRUE) {
+				if (!_tmp0_) {
+					i++;
+				}
+				_tmp0_ = FALSE;
+				if (!(i < N_BUFFERS)) {
+					break;
+				}
+				read_buffer_from_fd (in_buffer_audiodec[i]);
+				omx_try_run (OMX_EmptyThisBuffer (audiodec_handle, in_buffer_audiodec[i]), __FILE__, __FUNCTION__, __LINE__, &_inner_error_);
+				if (_inner_error_ != NULL) {
+					g_propagate_error (error, _inner_error_);
+					return;
+				}
+				omx_try_run (OMX_FillThisBuffer (audiodec_handle, out_buffer_audiodec[i]), __FILE__, __FUNCTION__, __LINE__, &_inner_error_);
+				if (_inner_error_ != NULL) {
+					g_propagate_error (error, _inner_error_);
+					return;
+				}
+			}
+		}
 	}
 }
 
@@ -701,8 +719,9 @@ void wait_for_eos (void) {
 }
 
 
-OMX_ERRORTYPE audiodec_event_handler (OMX_HANDLETYPE component, OMX_EVENTTYPE event, guint32 data1, guint32 data2) {
+OMX_ERRORTYPE audiodec_event_handler (void* component, OMX_EVENTTYPE event, guint32 data1, guint32 data2) {
 	OMX_ERRORTYPE result;
+	g_return_val_if_fail (component != NULL, 0);
 	switch (event) {
 		case OMX_EventCmdComplete:
 		{
@@ -729,8 +748,9 @@ OMX_ERRORTYPE audiodec_event_handler (OMX_HANDLETYPE component, OMX_EVENTTYPE ev
 }
 
 
-OMX_ERRORTYPE audiodec_empty_buffer_done (OMX_HANDLETYPE component, OMX_BUFFERHEADERTYPE* buffer) {
+OMX_ERRORTYPE audiodec_empty_buffer_done (void* component, OMX_BUFFERHEADERTYPE* buffer) {
 	OMX_ERRORTYPE result;
+	g_return_val_if_fail (component != NULL, 0);
 	g_return_val_if_fail (buffer != NULL, 0);
 	if (feof (fd)) {
 		result = OMX_ErrorNone;
@@ -746,10 +766,19 @@ OMX_ERRORTYPE audiodec_empty_buffer_done (OMX_HANDLETYPE component, OMX_BUFFERHE
 }
 
 
-OMX_ERRORTYPE audiodec_fill_buffer_done (OMX_HANDLETYPE component, OMX_BUFFERHEADERTYPE* buffer) {
+static gboolean omx_buffer_header_eos (OMX_BUFFERHEADERTYPE* self) {
+	gboolean result;
+	g_return_val_if_fail (self != NULL, FALSE);
+	result = (self->nFlags & OMX_BUFFERFLAG_EOS) != 0;
+	return result;
+}
+
+
+OMX_ERRORTYPE audiodec_fill_buffer_done (void* component, OMX_BUFFERHEADERTYPE* buffer) {
 	OMX_ERRORTYPE result;
+	g_return_val_if_fail (component != NULL, 0);
 	g_return_val_if_fail (buffer != NULL, 0);
-	if ((buffer->nFlags & OMX_BUFFERFLAG_EOS) != 0) {
+	if (omx_buffer_header_eos (buffer)) {
 		g_print ("Got eos flag\n");
 		tsem_up (&eos_sem);
 		result = OMX_ErrorNone;
@@ -760,8 +789,9 @@ OMX_ERRORTYPE audiodec_fill_buffer_done (OMX_HANDLETYPE component, OMX_BUFFERHEA
 }
 
 
-OMX_ERRORTYPE audiosink_event_handler (OMX_HANDLETYPE component, OMX_EVENTTYPE event, guint32 data1, guint32 data2) {
+OMX_ERRORTYPE audiosink_event_handler (void* component, OMX_EVENTTYPE event, guint32 data1, guint32 data2) {
 	OMX_ERRORTYPE result;
+	g_return_val_if_fail (component != NULL, 0);
 	switch (event) {
 		case OMX_EventCmdComplete:
 		{
@@ -788,8 +818,9 @@ OMX_ERRORTYPE audiosink_event_handler (OMX_HANDLETYPE component, OMX_EVENTTYPE e
 }
 
 
-OMX_ERRORTYPE audiosink_empty_buffer_done (OMX_HANDLETYPE component, OMX_BUFFERHEADERTYPE* buffer) {
+OMX_ERRORTYPE audiosink_empty_buffer_done (void* component, OMX_BUFFERHEADERTYPE* buffer) {
 	OMX_ERRORTYPE result;
+	g_return_val_if_fail (component != NULL, 0);
 	g_return_val_if_fail (buffer != NULL, 0);
 	result = OMX_FillThisBuffer (audiodec_handle, buffer);
 	return result;

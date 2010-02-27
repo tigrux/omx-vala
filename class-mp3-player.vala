@@ -16,9 +16,12 @@ int main(string[] args) {
     }
 }
 
-
 public class Mp3Player: Object {
     const string AUDIODEC_COMPONENT = "OMX.st.audio_decoder.mp3.mad";
+    const int AUDIODEC_ID = 0;
+
+    const string AUDIOSINK_COMPONENT = "OMX.st.alsa.alsasink";
+    const int AUDIOSINK_ID = 1;
 
     public void play(string filename) throws Error {
         var fd = FileStream.open(filename, "rb");
@@ -26,60 +29,82 @@ public class Mp3Player: Object {
             throw new FileError.FAILED("Error opening %s", filename);
 
         var core = Omx.Core.open("libomxil-bellagio.so.0");
+        core.init();
+        var engine = new Omx.Engine();
 
         var audiodec =
             core.get_component(AUDIODEC_COMPONENT, Omx.Index.ParamAudioInit);
+        audiodec.name = "audiodec";
+        audiodec.id = AUDIODEC_ID;
 
-        Omx.try_run(core.init());
+        var audiosink =
+            core.get_component(AUDIOSINK_COMPONENT, Omx.Index.ParamAudioInit);
+        audiosink.name = "audiosink";
+        audiosink.id = AUDIOSINK_ID;
+        
+        engine.add_component(audiodec);
+        engine.add_component(audiosink);
+        
+        engine.set_state(Omx.State.Idle);
+        engine.allocate_ports();
+        engine.wait_for_state_set();
+        
+        engine.set_state(Omx.State.Executing);
+        engine.wait_for_state_set();
 
-        audiodec.name = "audiodec";        
-        audiodec.init();
+        audiodec.prepare_ports();
+        
+        foreach(var port in engine) {
+            Omx.BufferHeader buffer;
 
-        audiodec.set_state(Omx.State.Idle);
-        audiodec.allocate_ports();
-        audiodec.wait_for_state_set();
-
-        audiodec.set_state(Omx.State.Executing);
-        audiodec.fill_output_buffers();
-        audiodec.empty_input_buffers();
-        audiodec.wait_for_state_set();
-
-        bool eos_found = false;
-        while(!eos_found) {
-            var port = audiodec.pop_port();
-            var buffer = port.pop_buffer();
-
-            switch(port.definition.dir) {
-                case Omx.Dir.Input:
-                    buffer.offset = 0;
-                    buffer.filled_len = fd.read(buffer.buffer);
-                    if(fd.eof())
-                        buffer.flags |= Omx.BufferFlag.EOS;
-                    break;
-                case Omx.Dir.Output:
-                    print("Got %d bytes\n", (int)buffer.filled_len);
-                    if(buffer.eos()) {
-                        print("Got eos\n");
-                        eos_found = true;
+            switch(port.component.id) {
+                case AUDIODEC_ID:
+                    switch(port.definition.dir) {
+                        case Omx.Dir.Input:
+                            print("Got buffer from audiodec inport\n");
+                            buffer = port.pop_buffer();
+                            buffer.offset = 0;
+                            buffer.filled_len = fd.read(buffer.buffer);
+                            if(fd.eof())
+                                buffer.flags |= Omx.BufferFlag.EOS;
+                            port.push_buffer(buffer);
+                            break;
+                        case Omx.Dir.Output:
+                            print("Got buffer from audiodec outport\n");
+                            buffer = port.pop_buffer();
+                            //audiosink.get_port(0).push_buffer(buffer);
+                            port.push_buffer(buffer);
+                            break;
+                        default:
+                            break;
                     }
                     break;
-                default:
+                    
+                case AUDIOSINK_ID:
+                    switch(port.definition.dir) {
+                        case Omx.Dir.Input:
+                            print("Got buffer from audiosink inport\n");
+                            buffer = port.pop_buffer();
+                            audiodec.get_port(1).push_buffer(buffer);
+                            
+                            break;
+                        default:
+                            break;
+                    }
                     break;
             }
-
-            port.push_buffer(buffer);
         }
 
-        audiodec.set_state(Omx.State.Idle);
-        audiodec.wait_for_state_set();
+        engine.set_state(Omx.State.Idle);
+        engine.wait_for_state_set();
 
-        audiodec.set_state(Omx.State.Loaded);
-        audiodec.free_ports();
-        audiodec.wait_for_state_set();
+        engine.set_state(Omx.State.Loaded);
+        engine.free_ports();
+        engine.wait_for_state_set();
         
-        audiodec.free();
+        engine.free_handles();
 
-        Omx.try_run(core.deinit());
+        core.deinit();
     }    
 }
 

@@ -8,7 +8,6 @@
 #include <string.h>
 #include <stdio.h>
 #include <OMX_Core.h>
-#include <gmodule.h>
 #include <OMX_Component.h>
 
 
@@ -36,6 +35,16 @@ typedef struct _Mp3PlayerPrivate Mp3PlayerPrivate;
 typedef struct _OmxCore OmxCore;
 typedef struct _OmxCoreClass OmxCoreClass;
 
+#define OMX_TYPE_ENGINE (omx_engine_get_type ())
+#define OMX_ENGINE(obj) (G_TYPE_CHECK_INSTANCE_CAST ((obj), OMX_TYPE_ENGINE, OmxEngine))
+#define OMX_ENGINE_CLASS(klass) (G_TYPE_CHECK_CLASS_CAST ((klass), OMX_TYPE_ENGINE, OmxEngineClass))
+#define OMX_IS_ENGINE(obj) (G_TYPE_CHECK_INSTANCE_TYPE ((obj), OMX_TYPE_ENGINE))
+#define OMX_IS_ENGINE_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((klass), OMX_TYPE_ENGINE))
+#define OMX_ENGINE_GET_CLASS(obj) (G_TYPE_INSTANCE_GET_CLASS ((obj), OMX_TYPE_ENGINE, OmxEngineClass))
+
+typedef struct _OmxEngine OmxEngine;
+typedef struct _OmxEngineClass OmxEngineClass;
+
 #define OMX_TYPE_COMPONENT (omx_component_get_type ())
 #define OMX_COMPONENT(obj) (G_TYPE_CHECK_INSTANCE_CAST ((obj), OMX_TYPE_COMPONENT, OmxComponent))
 #define OMX_COMPONENT_CLASS(klass) (G_TYPE_CHECK_CLASS_CAST ((klass), OMX_TYPE_COMPONENT, OmxComponentClass))
@@ -45,7 +54,17 @@ typedef struct _OmxCoreClass OmxCoreClass;
 
 typedef struct _OmxComponent OmxComponent;
 typedef struct _OmxComponentClass OmxComponentClass;
-typedef struct _OmxCorePrivate OmxCorePrivate;
+typedef struct _OmxComponentPrivate OmxComponentPrivate;
+
+#define OMX_ENGINE_TYPE_ITERATOR (omx_engine_iterator_get_type ())
+#define OMX_ENGINE_ITERATOR(obj) (G_TYPE_CHECK_INSTANCE_CAST ((obj), OMX_ENGINE_TYPE_ITERATOR, OmxEngineIterator))
+#define OMX_ENGINE_ITERATOR_CLASS(klass) (G_TYPE_CHECK_CLASS_CAST ((klass), OMX_ENGINE_TYPE_ITERATOR, OmxEngineIteratorClass))
+#define OMX_ENGINE_IS_ITERATOR(obj) (G_TYPE_CHECK_INSTANCE_TYPE ((obj), OMX_ENGINE_TYPE_ITERATOR))
+#define OMX_ENGINE_IS_ITERATOR_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((klass), OMX_ENGINE_TYPE_ITERATOR))
+#define OMX_ENGINE_ITERATOR_GET_CLASS(obj) (G_TYPE_INSTANCE_GET_CLASS ((obj), OMX_ENGINE_TYPE_ITERATOR, OmxEngineIteratorClass))
+
+typedef struct _OmxEngineIterator OmxEngineIterator;
+typedef struct _OmxEngineIteratorClass OmxEngineIteratorClass;
 
 #define OMX_TYPE_PORT (omx_port_get_type ())
 #define OMX_PORT(obj) (G_TYPE_CHECK_INSTANCE_CAST ((obj), OMX_TYPE_PORT, OmxPort))
@@ -57,6 +76,7 @@ typedef struct _OmxCorePrivate OmxCorePrivate;
 typedef struct _OmxPort OmxPort;
 typedef struct _OmxPortClass OmxPortClass;
 typedef struct _OmxPortPrivate OmxPortPrivate;
+#define _omx_engine_iterator_unref0(var) ((var == NULL) ? NULL : (var = (omx_engine_iterator_unref (var), NULL)))
 
 struct _Mp3Player {
 	GObject parent_instance;
@@ -67,33 +87,14 @@ struct _Mp3PlayerClass {
 	GObjectClass parent_class;
 };
 
-typedef OMX_ERRORTYPE (*OmxInitFunc) (void* user_data);
-typedef OMX_ERRORTYPE (*OmxDeinitFunc) (void* user_data);
-typedef OMX_ERRORTYPE (*OmxGetHandleFunc) (OMX_HANDLETYPE* component, const char* component_name, void* app_data, OMX_CALLBACKTYPE* callbacks, void* user_data);
-typedef OMX_ERRORTYPE (*OmxFreeHandleFunc) (OMX_HANDLETYPE handle, void* user_data);
-typedef OMX_ERRORTYPE (*OmxSetupTunnelFunc) (OMX_HANDLETYPE output, guint32 port_output, OMX_HANDLETYPE input, guint32 port_input, void* user_data);
-struct _OmxCore {
+struct _OmxComponent {
 	GObject parent_instance;
-	OmxCorePrivate * priv;
-	GModule* module;
-	OmxInitFunc init;
-	gpointer init_target;
-	GDestroyNotify init_target_destroy_notify;
-	OmxDeinitFunc deinit;
-	gpointer deinit_target;
-	GDestroyNotify deinit_target_destroy_notify;
-	OmxGetHandleFunc get_handle;
-	gpointer get_handle_target;
-	GDestroyNotify get_handle_target_destroy_notify;
-	OmxFreeHandleFunc free_handle;
-	gpointer free_handle_target;
-	GDestroyNotify free_handle_target_destroy_notify;
-	OmxSetupTunnelFunc setup_tunnel;
-	gpointer setup_tunnel_target;
-	GDestroyNotify setup_tunnel_target_destroy_notify;
+	OmxComponentPrivate * priv;
+	OMX_PORT_PARAM_TYPE port_param;
+	gint id;
 };
 
-struct _OmxCoreClass {
+struct _OmxComponentClass {
 	GObjectClass parent_class;
 };
 
@@ -101,10 +102,6 @@ struct _OmxPort {
 	GObject parent_instance;
 	OmxPortPrivate * priv;
 	OMX_PARAM_PORTDEFINITIONTYPE definition;
-	OMX_BUFFERHEADERTYPE** buffers;
-	gint buffers_length1;
-	GAsyncQueue* buffer_queue;
-	OmxComponent* component;
 };
 
 struct _OmxPortClass {
@@ -123,23 +120,40 @@ enum  {
 	MP3_PLAYER_DUMMY_PROPERTY
 };
 #define MP3_PLAYER_AUDIODEC_COMPONENT "OMX.st.audio_decoder.mp3.mad"
+#define MP3_PLAYER_AUDIODEC_ID 0
+#define MP3_PLAYER_AUDIOSINK_COMPONENT "OMX.st.alsa.alsasink"
+#define MP3_PLAYER_AUDIOSINK_ID 1
 GType omx_core_get_type (void);
 OmxCore* omx_core_open (const char* soname);
+void omx_core_init (OmxCore* self, GError** error);
+OmxEngine* omx_engine_new (void);
+OmxEngine* omx_engine_construct (GType object_type);
+GType omx_engine_get_type (void);
 GType omx_component_get_type (void);
-OmxComponent* omx_core_get_component (OmxCore* self, const char* component_name, OMX_INDEXTYPE param_init_index);
+OmxComponent* omx_core_get_component (OmxCore* self, const char* component_name, OMX_INDEXTYPE param_init_index, GError** error);
 void omx_component_set_name (OmxComponent* self, const char* value);
-void omx_component_init (OmxComponent* self, GError** error);
-void omx_component_set_state (OmxComponent* self, OMX_STATETYPE state, GError** error);
-void omx_component_allocate_ports (OmxComponent* self, GError** error);
-void omx_component_wait_for_state_set (OmxComponent* self);
-void omx_component_fill_output_buffers (OmxComponent* self, GError** error);
-void omx_component_empty_input_buffers (OmxComponent* self, GError** error);
+void omx_engine_add_component (OmxEngine* self, OmxComponent* component);
+void omx_engine_set_state (OmxEngine* self, OMX_STATETYPE state, GError** error);
+void omx_engine_allocate_ports (OmxEngine* self, GError** error);
+void omx_engine_wait_for_state_set (OmxEngine* self);
+void omx_component_prepare_ports (OmxComponent* self, GError** error);
+gpointer omx_engine_iterator_ref (gpointer instance);
+void omx_engine_iterator_unref (gpointer instance);
+GParamSpec* omx_engine_param_spec_iterator (const gchar* name, const gchar* nick, const gchar* blurb, GType object_type, GParamFlags flags);
+void omx_engine_value_set_iterator (GValue* value, gpointer v_object);
+gpointer omx_engine_value_get_iterator (const GValue* value);
+GType omx_engine_iterator_get_type (void);
+OmxEngineIterator* omx_engine_iterator (OmxEngine* self);
+gboolean omx_engine_iterator_next (OmxEngineIterator* self);
 GType omx_port_get_type (void);
-OmxPort* omx_component_pop_port (OmxComponent* self);
+OmxPort* omx_engine_iterator_get (OmxEngineIterator* self);
+OmxComponent* omx_port_get_component (OmxPort* self);
 OMX_BUFFERHEADERTYPE* omx_port_pop_buffer (OmxPort* self);
 void omx_port_push_buffer (OmxPort* self, OMX_BUFFERHEADERTYPE* buffer, GError** error);
-void omx_component_free_ports (OmxComponent* self, GError** error);
-void omx_component_free (OmxComponent* self, GError** error);
+OmxPort* omx_component_get_port (OmxComponent* self, gint i);
+void omx_engine_free_ports (OmxEngine* self, GError** error);
+void omx_engine_free_handles (OmxEngine* self, GError** error);
+void omx_core_deinit (OmxCore* self, GError** error);
 
 
 
@@ -195,253 +209,13 @@ int main (int argc, char ** argv) {
 }
 
 
-static GQuark omx_error_domain (void) {
-	GQuark result;
-	result = g_quark_from_string ("Omx.Error");
-	return result;
-}
-
-
-static const char* omx_error_to_string (OMX_ERRORTYPE self) {
-	const char* result;
-	switch (self) {
-		case OMX_ErrorNone:
-		{
-			result = "Omx.Error.None";
-			return result;
-		}
-		case OMX_ErrorInsufficientResources:
-		{
-			result = "Omx.Error.InsufficientResources";
-			return result;
-		}
-		case OMX_ErrorUndefined:
-		{
-			result = "Omx.Error.Undefined";
-			return result;
-		}
-		case OMX_ErrorInvalidComponentName:
-		{
-			result = "Omx.Error.InvalidComponentName";
-			return result;
-		}
-		case OMX_ErrorComponentNotFound:
-		{
-			result = "Omx.Error.ComponentNotFound";
-			return result;
-		}
-		case OMX_ErrorInvalidComponent:
-		{
-			result = "Omx.Error.InvalidComponent";
-			return result;
-		}
-		case OMX_ErrorBadParameter:
-		{
-			result = "Omx.Error.BadParameter";
-			return result;
-		}
-		case OMX_ErrorNotImplemented:
-		{
-			result = "Omx.Error.NotImplemented";
-			return result;
-		}
-		case OMX_ErrorUnderflow:
-		{
-			result = "Omx.Error.Underflow";
-			return result;
-		}
-		case OMX_ErrorOverflow:
-		{
-			result = "Omx.Error.Overflow";
-			return result;
-		}
-		case OMX_ErrorHardware:
-		{
-			result = "Omx.Error.Hardware";
-			return result;
-		}
-		case OMX_ErrorInvalidState:
-		{
-			result = "Omx.Error.InvalidState";
-			return result;
-		}
-		case OMX_ErrorStreamCorrupt:
-		{
-			result = "Omx.Error.StreamCorrupt";
-			return result;
-		}
-		case OMX_ErrorPortsNotCompatible:
-		{
-			result = "Omx.Error.PortsNotCompatible";
-			return result;
-		}
-		case OMX_ErrorResourcesLost:
-		{
-			result = "Omx.Error.ResourcesLost";
-			return result;
-		}
-		case OMX_ErrorNoMore:
-		{
-			result = "Omx.Error.NoMore";
-			return result;
-		}
-		case OMX_ErrorVersionMismatch:
-		{
-			result = "Omx.Error.VersionMismatch";
-			return result;
-		}
-		case OMX_ErrorNotReady:
-		{
-			result = "Omx.Error.NotReady";
-			return result;
-		}
-		case OMX_ErrorTimeout:
-		{
-			result = "Omx.Error.Timeout";
-			return result;
-		}
-		case OMX_ErrorSameState:
-		{
-			result = "Omx.Error.SameState";
-			return result;
-		}
-		case OMX_ErrorResourcesPreempted:
-		{
-			result = "Omx.Error.ResourcesPreempted";
-			return result;
-		}
-		case OMX_ErrorPortUnresponsiveDuringAllocation:
-		{
-			result = "Omx.Error.PortUnresponsiveDuringAllocation";
-			return result;
-		}
-		case OMX_ErrorPortUnresponsiveDuringDeallocation:
-		{
-			result = "Omx.Error.PortUnresponsiveDuringDeallocation";
-			return result;
-		}
-		case OMX_ErrorPortUnresponsiveDuringStop:
-		{
-			result = "Omx.Error.PortUnresponsiveDuringStop";
-			return result;
-		}
-		case OMX_ErrorIncorrectStateTransition:
-		{
-			result = "Omx.Error.IncorrectStateTransition";
-			return result;
-		}
-		case OMX_ErrorIncorrectStateOperation:
-		{
-			result = "Omx.Error.IncorrectStateOperation";
-			return result;
-		}
-		case OMX_ErrorUnsupportedSetting:
-		{
-			result = "Omx.Error.UnsupportedSetting";
-			return result;
-		}
-		case OMX_ErrorUnsupportedIndex:
-		{
-			result = "Omx.Error.UnsupportedIndex";
-			return result;
-		}
-		case OMX_ErrorBadPortIndex:
-		{
-			result = "Omx.Error.BadPortIndex";
-			return result;
-		}
-		case OMX_ErrorPortUnpopulated:
-		{
-			result = "Omx.Error.PortUnpopulated";
-			return result;
-		}
-		case OMX_ErrorComponentSuspended:
-		{
-			result = "Omx.Error.ComponentSuspended";
-			return result;
-		}
-		case OMX_ErrorDynamicResourcesUnavailable:
-		{
-			result = "Omx.Error.DynamicResourcesUnavailable";
-			return result;
-		}
-		case OMX_ErrorMbErrorsInFrame:
-		{
-			result = "Omx.Error.MbErrorsInFrame";
-			return result;
-		}
-		case OMX_ErrorFormatNotDetected:
-		{
-			result = "Omx.Error.FormatNotDetected";
-			return result;
-		}
-		case OMX_ErrorContentPipeOpenFailed:
-		{
-			result = "Omx.Error.ContentPipeOpenFailed";
-			return result;
-		}
-		case OMX_ErrorContentPipeCreationFailed:
-		{
-			result = "Omx.Error.ContentPipeCreationFailed";
-			return result;
-		}
-		case OMX_ErrorSeperateTablesUsed:
-		{
-			result = "Omx.Error.SeperateTablesUsed";
-			return result;
-		}
-		case OMX_ErrorTunnelingUnsupported:
-		{
-			result = "Omx.Error.TunnelingUnsupported";
-			return result;
-		}
-		default:
-		{
-			result = "(unknown)";
-			return result;
-		}
-	}
-}
-
-
-static gpointer _g_error_copy0 (gpointer self) {
-	return self ? g_error_copy (self) : NULL;
-}
-
-
-static void omx_try_run (OMX_ERRORTYPE err, const char* file, const char* function, gint line, GError** error) {
-	GError * _inner_error_;
-	g_return_if_fail (file != NULL);
-	g_return_if_fail (function != NULL);
-	_inner_error_ = NULL;
-	if (err != OMX_ErrorNone) {
-		GError* e;
-		e = g_error_new (omx_error_domain (), (gint) err, "%s (0x%x) in function %s at %s:%d", omx_error_to_string (err), err, function, file, line, NULL);
-		_inner_error_ = _g_error_copy0 ((GError*) e);
-		{
-			g_propagate_error (error, _inner_error_);
-			_g_error_free0 (e);
-			return;
-		}
-		_g_error_free0 (e);
-	}
-}
-
-
-static gboolean omx_buffer_header_eos (OMX_BUFFERHEADERTYPE* self) {
-	gboolean result;
-	g_return_val_if_fail (self != NULL, FALSE);
-	result = (self->nFlags & OMX_BUFFERFLAG_EOS) != 0;
-	return result;
-}
-
-
 void mp3_player_play (Mp3Player* self, const char* filename, GError** error) {
 	GError * _inner_error_;
 	FILE* fd;
 	OmxCore* core;
+	OmxEngine* engine;
 	OmxComponent* audiodec;
-	gboolean eos_found;
+	OmxComponent* audiosink;
 	g_return_if_fail (self != NULL);
 	g_return_if_fail (filename != NULL);
 	_inner_error_ = NULL;
@@ -455,155 +229,234 @@ void mp3_player_play (Mp3Player* self, const char* filename, GError** error) {
 		}
 	}
 	core = omx_core_open ("libomxil-bellagio.so.0");
-	audiodec = omx_core_get_component (core, MP3_PLAYER_AUDIODEC_COMPONENT, OMX_IndexParamAudioInit);
-	omx_try_run (core->init (core->init_target), __FILE__, __FUNCTION__, __LINE__, &_inner_error_);
+	omx_core_init (core, &_inner_error_);
 	if (_inner_error_ != NULL) {
 		g_propagate_error (error, _inner_error_);
 		_fclose0 (fd);
 		_g_object_unref0 (core);
-		_g_object_unref0 (audiodec);
+		return;
+	}
+	engine = omx_engine_new ();
+	audiodec = omx_core_get_component (core, MP3_PLAYER_AUDIODEC_COMPONENT, OMX_IndexParamAudioInit, &_inner_error_);
+	if (_inner_error_ != NULL) {
+		g_propagate_error (error, _inner_error_);
+		_fclose0 (fd);
+		_g_object_unref0 (core);
+		_g_object_unref0 (engine);
 		return;
 	}
 	omx_component_set_name (audiodec, "audiodec");
-	omx_component_init (audiodec, &_inner_error_);
+	audiodec->id = MP3_PLAYER_AUDIODEC_ID;
+	audiosink = omx_core_get_component (core, MP3_PLAYER_AUDIOSINK_COMPONENT, OMX_IndexParamAudioInit, &_inner_error_);
 	if (_inner_error_ != NULL) {
 		g_propagate_error (error, _inner_error_);
 		_fclose0 (fd);
 		_g_object_unref0 (core);
+		_g_object_unref0 (engine);
 		_g_object_unref0 (audiodec);
 		return;
 	}
-	omx_component_set_state (audiodec, OMX_StateIdle, &_inner_error_);
+	omx_component_set_name (audiosink, "audiosink");
+	audiosink->id = MP3_PLAYER_AUDIOSINK_ID;
+	omx_engine_add_component (engine, audiodec);
+	omx_engine_add_component (engine, audiosink);
+	omx_engine_set_state (engine, OMX_StateIdle, &_inner_error_);
 	if (_inner_error_ != NULL) {
 		g_propagate_error (error, _inner_error_);
 		_fclose0 (fd);
 		_g_object_unref0 (core);
+		_g_object_unref0 (engine);
 		_g_object_unref0 (audiodec);
+		_g_object_unref0 (audiosink);
 		return;
 	}
-	omx_component_allocate_ports (audiodec, &_inner_error_);
+	omx_engine_allocate_ports (engine, &_inner_error_);
 	if (_inner_error_ != NULL) {
 		g_propagate_error (error, _inner_error_);
 		_fclose0 (fd);
 		_g_object_unref0 (core);
+		_g_object_unref0 (engine);
 		_g_object_unref0 (audiodec);
+		_g_object_unref0 (audiosink);
 		return;
 	}
-	omx_component_wait_for_state_set (audiodec);
-	omx_component_set_state (audiodec, OMX_StateExecuting, &_inner_error_);
+	omx_engine_wait_for_state_set (engine);
+	omx_engine_set_state (engine, OMX_StateExecuting, &_inner_error_);
 	if (_inner_error_ != NULL) {
 		g_propagate_error (error, _inner_error_);
 		_fclose0 (fd);
 		_g_object_unref0 (core);
+		_g_object_unref0 (engine);
 		_g_object_unref0 (audiodec);
+		_g_object_unref0 (audiosink);
 		return;
 	}
-	omx_component_fill_output_buffers (audiodec, &_inner_error_);
+	omx_engine_wait_for_state_set (engine);
+	omx_component_prepare_ports (audiodec, &_inner_error_);
 	if (_inner_error_ != NULL) {
 		g_propagate_error (error, _inner_error_);
 		_fclose0 (fd);
 		_g_object_unref0 (core);
+		_g_object_unref0 (engine);
 		_g_object_unref0 (audiodec);
+		_g_object_unref0 (audiosink);
 		return;
 	}
-	omx_component_empty_input_buffers (audiodec, &_inner_error_);
-	if (_inner_error_ != NULL) {
-		g_propagate_error (error, _inner_error_);
-		_fclose0 (fd);
-		_g_object_unref0 (core);
-		_g_object_unref0 (audiodec);
-		return;
-	}
-	omx_component_wait_for_state_set (audiodec);
-	eos_found = FALSE;
-	while (TRUE) {
-		OmxPort* port;
-		OMX_BUFFERHEADERTYPE* buffer;
-		if (!(!eos_found)) {
-			break;
-		}
-		port = omx_component_pop_port (audiodec);
-		buffer = omx_port_pop_buffer (port);
-		switch (port->definition.eDir) {
-			case OMX_DirInput:
-			{
-				buffer->nOffset = (gsize) 0;
-				buffer->nFilledLen = fread (buffer->pBuffer, 1, buffer->nAllocLen, fd);
-				if (feof (fd)) {
-					buffer->nFlags = buffer->nFlags | ((guint32) OMX_BUFFERFLAG_EOS);
+	{
+		OmxEngineIterator* _port_it;
+		_port_it = omx_engine_iterator (engine);
+		while (TRUE) {
+			OmxPort* port;
+			OMX_BUFFERHEADERTYPE* buffer;
+			if (!omx_engine_iterator_next (_port_it)) {
+				break;
+			}
+			port = omx_engine_iterator_get (_port_it);
+			buffer = NULL;
+			switch (omx_port_get_component (port)->id) {
+				case MP3_PLAYER_AUDIODEC_ID:
+				{
+					switch (port->definition.eDir) {
+						case OMX_DirInput:
+						{
+							g_print ("Got buffer from audiodec inport\n");
+							buffer = omx_port_pop_buffer (port);
+							buffer->nOffset = (gsize) 0;
+							buffer->nFilledLen = fread (buffer->pBuffer, 1, buffer->nAllocLen, fd);
+							if (feof (fd)) {
+								buffer->nFlags = buffer->nFlags | ((guint32) OMX_BUFFERFLAG_EOS);
+							}
+							omx_port_push_buffer (port, buffer, &_inner_error_);
+							if (_inner_error_ != NULL) {
+								g_propagate_error (error, _inner_error_);
+								_g_object_unref0 (port);
+								_omx_engine_iterator_unref0 (_port_it);
+								_fclose0 (fd);
+								_g_object_unref0 (core);
+								_g_object_unref0 (engine);
+								_g_object_unref0 (audiodec);
+								_g_object_unref0 (audiosink);
+								return;
+							}
+							break;
+						}
+						case OMX_DirOutput:
+						{
+							g_print ("Got buffer from audiodec outport\n");
+							buffer = omx_port_pop_buffer (port);
+							omx_port_push_buffer (port, buffer, &_inner_error_);
+							if (_inner_error_ != NULL) {
+								g_propagate_error (error, _inner_error_);
+								_g_object_unref0 (port);
+								_omx_engine_iterator_unref0 (_port_it);
+								_fclose0 (fd);
+								_g_object_unref0 (core);
+								_g_object_unref0 (engine);
+								_g_object_unref0 (audiodec);
+								_g_object_unref0 (audiosink);
+								return;
+							}
+							break;
+						}
+						default:
+						{
+							break;
+						}
+					}
+					break;
 				}
-				break;
-			}
-			case OMX_DirOutput:
-			{
-				g_print ("Got %d bytes\n", (gint) buffer->nFilledLen);
-				if (omx_buffer_header_eos (buffer)) {
-					g_print ("Got eos\n");
-					eos_found = TRUE;
+				case MP3_PLAYER_AUDIOSINK_ID:
+				{
+					switch (port->definition.eDir) {
+						case OMX_DirInput:
+						{
+							OmxPort* _tmp0_;
+							g_print ("Got buffer from audiosink inport\n");
+							buffer = omx_port_pop_buffer (port);
+							omx_port_push_buffer (_tmp0_ = omx_component_get_port (audiodec, 1), buffer, &_inner_error_);
+							if (_inner_error_ != NULL) {
+								g_propagate_error (error, _inner_error_);
+								_g_object_unref0 (port);
+								_omx_engine_iterator_unref0 (_port_it);
+								_fclose0 (fd);
+								_g_object_unref0 (core);
+								_g_object_unref0 (engine);
+								_g_object_unref0 (audiodec);
+								_g_object_unref0 (audiosink);
+								return;
+							}
+							_g_object_unref0 (_tmp0_);
+							break;
+						}
+						default:
+						{
+							break;
+						}
+					}
+					break;
 				}
-				break;
 			}
-			default:
-			{
-				break;
-			}
-		}
-		omx_port_push_buffer (port, buffer, &_inner_error_);
-		if (_inner_error_ != NULL) {
-			g_propagate_error (error, _inner_error_);
 			_g_object_unref0 (port);
-			_fclose0 (fd);
-			_g_object_unref0 (core);
-			_g_object_unref0 (audiodec);
-			return;
 		}
-		_g_object_unref0 (port);
+		_omx_engine_iterator_unref0 (_port_it);
 	}
-	omx_component_set_state (audiodec, OMX_StateIdle, &_inner_error_);
+	omx_engine_set_state (engine, OMX_StateIdle, &_inner_error_);
 	if (_inner_error_ != NULL) {
 		g_propagate_error (error, _inner_error_);
 		_fclose0 (fd);
 		_g_object_unref0 (core);
+		_g_object_unref0 (engine);
 		_g_object_unref0 (audiodec);
+		_g_object_unref0 (audiosink);
 		return;
 	}
-	omx_component_wait_for_state_set (audiodec);
-	omx_component_set_state (audiodec, OMX_StateLoaded, &_inner_error_);
+	omx_engine_wait_for_state_set (engine);
+	omx_engine_set_state (engine, OMX_StateLoaded, &_inner_error_);
 	if (_inner_error_ != NULL) {
 		g_propagate_error (error, _inner_error_);
 		_fclose0 (fd);
 		_g_object_unref0 (core);
+		_g_object_unref0 (engine);
 		_g_object_unref0 (audiodec);
+		_g_object_unref0 (audiosink);
 		return;
 	}
-	omx_component_free_ports (audiodec, &_inner_error_);
+	omx_engine_free_ports (engine, &_inner_error_);
 	if (_inner_error_ != NULL) {
 		g_propagate_error (error, _inner_error_);
 		_fclose0 (fd);
 		_g_object_unref0 (core);
+		_g_object_unref0 (engine);
 		_g_object_unref0 (audiodec);
+		_g_object_unref0 (audiosink);
 		return;
 	}
-	omx_component_wait_for_state_set (audiodec);
-	omx_component_free (audiodec, &_inner_error_);
+	omx_engine_wait_for_state_set (engine);
+	omx_engine_free_handles (engine, &_inner_error_);
 	if (_inner_error_ != NULL) {
 		g_propagate_error (error, _inner_error_);
 		_fclose0 (fd);
 		_g_object_unref0 (core);
+		_g_object_unref0 (engine);
 		_g_object_unref0 (audiodec);
+		_g_object_unref0 (audiosink);
 		return;
 	}
-	omx_try_run (core->deinit (core->deinit_target), __FILE__, __FUNCTION__, __LINE__, &_inner_error_);
+	omx_core_deinit (core, &_inner_error_);
 	if (_inner_error_ != NULL) {
 		g_propagate_error (error, _inner_error_);
 		_fclose0 (fd);
 		_g_object_unref0 (core);
+		_g_object_unref0 (engine);
 		_g_object_unref0 (audiodec);
+		_g_object_unref0 (audiosink);
 		return;
 	}
 	_fclose0 (fd);
 	_g_object_unref0 (core);
+	_g_object_unref0 (engine);
 	_g_object_unref0 (audiodec);
+	_g_object_unref0 (audiosink);
 }
 
 
