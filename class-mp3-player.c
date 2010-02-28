@@ -179,6 +179,12 @@ int main (int argc, char ** argv) {
 }
 
 
+static void omx_buffer_header_set_eos (OMX_BUFFERHEADERTYPE* self) {
+	g_return_if_fail (self != NULL);
+	self->nFlags = self->nFlags | ((guint32) OMX_BUFFERFLAG_EOS);
+}
+
+
 void play (const char* filename, GError** error) {
 	GError * _inner_error_;
 	FILE* fd;
@@ -296,61 +302,66 @@ void play (const char* filename, GError** error) {
 					switch (port->definition.eDir) {
 						case OMX_DirInput:
 						{
-							buffer = omx_port_pop_buffer (port);
-							buffer->nOffset = (gsize) 0;
-							buffer->nFilledLen = fread (buffer->pBuffer, 1, buffer->nAllocLen, fd);
-							if (feof (fd)) {
-								buffer->nFlags = buffer->nFlags | ((guint32) OMX_BUFFERFLAG_EOS);
+							{
+								buffer = omx_port_pop_buffer (port);
+								buffer->nOffset = (gsize) 0;
+								buffer->nFilledLen = fread (buffer->pBuffer, 1, buffer->nAllocLen, fd);
+								if (feof (fd)) {
+									omx_buffer_header_set_eos (buffer);
+								}
+								omx_port_push_buffer (port, buffer, &_inner_error_);
+								if (_inner_error_ != NULL) {
+									g_propagate_error (error, _inner_error_);
+									_g_object_unref0 (port);
+									_omx_engine_iterator_unref0 (_port_it);
+									_fclose0 (fd);
+									_g_object_unref0 (core);
+									_g_object_unref0 (audiodec);
+									_g_object_unref0 (audiosink);
+									_g_object_unref0 (engine);
+									return;
+								}
+								break;
 							}
-							omx_port_push_buffer (port, buffer, &_inner_error_);
-							if (_inner_error_ != NULL) {
-								g_propagate_error (error, _inner_error_);
-								_g_object_unref0 (port);
-								_omx_engine_iterator_unref0 (_port_it);
-								_fclose0 (fd);
-								_g_object_unref0 (core);
-								_g_object_unref0 (audiodec);
-								_g_object_unref0 (audiosink);
-								_g_object_unref0 (engine);
-								return;
-							}
-							break;
 						}
 						case OMX_DirOutput:
 						{
-							OmxPort* _tmp0_;
-							OMX_BUFFERHEADERTYPE* _tmp1_;
-							OMX_BUFFERHEADERTYPE* sink_buffer;
-							OmxPort* _tmp2_;
-							buffer = omx_port_pop_buffer (port);
-							sink_buffer = (_tmp1_ = omx_port_pop_buffer (_tmp0_ = omx_component_get_port (audiosink, (guint) 0)), _g_object_unref0 (_tmp0_), _tmp1_);
-							omx_buffer_copy (sink_buffer, buffer);
-							omx_port_push_buffer (_tmp2_ = omx_component_get_port (audiosink, (guint) 0), sink_buffer, &_inner_error_);
-							if (_inner_error_ != NULL) {
-								g_propagate_error (error, _inner_error_);
-								_g_object_unref0 (port);
-								_omx_engine_iterator_unref0 (_port_it);
-								_fclose0 (fd);
-								_g_object_unref0 (core);
-								_g_object_unref0 (audiodec);
-								_g_object_unref0 (audiosink);
-								_g_object_unref0 (engine);
-								return;
+							{
+								OmxPort* audiosink_inport;
+								OMX_BUFFERHEADERTYPE* sink_buffer;
+								buffer = omx_port_pop_buffer (port);
+								audiosink_inport = omx_component_get_port (audiosink, (guint) 0);
+								sink_buffer = omx_port_pop_buffer (audiosink_inport);
+								omx_buffer_copy (sink_buffer, buffer);
+								omx_port_push_buffer (audiosink_inport, sink_buffer, &_inner_error_);
+								if (_inner_error_ != NULL) {
+									g_propagate_error (error, _inner_error_);
+									_g_object_unref0 (audiosink_inport);
+									_g_object_unref0 (port);
+									_omx_engine_iterator_unref0 (_port_it);
+									_fclose0 (fd);
+									_g_object_unref0 (core);
+									_g_object_unref0 (audiodec);
+									_g_object_unref0 (audiosink);
+									_g_object_unref0 (engine);
+									return;
+								}
+								omx_port_push_buffer (port, buffer, &_inner_error_);
+								if (_inner_error_ != NULL) {
+									g_propagate_error (error, _inner_error_);
+									_g_object_unref0 (audiosink_inport);
+									_g_object_unref0 (port);
+									_omx_engine_iterator_unref0 (_port_it);
+									_fclose0 (fd);
+									_g_object_unref0 (core);
+									_g_object_unref0 (audiodec);
+									_g_object_unref0 (audiosink);
+									_g_object_unref0 (engine);
+									return;
+								}
+								_g_object_unref0 (audiosink_inport);
+								break;
 							}
-							_g_object_unref0 (_tmp2_);
-							omx_port_push_buffer (port, buffer, &_inner_error_);
-							if (_inner_error_ != NULL) {
-								g_propagate_error (error, _inner_error_);
-								_g_object_unref0 (port);
-								_omx_engine_iterator_unref0 (_port_it);
-								_fclose0 (fd);
-								_g_object_unref0 (core);
-								_g_object_unref0 (audiodec);
-								_g_object_unref0 (audiosink);
-								_g_object_unref0 (engine);
-								return;
-							}
-							break;
 						}
 						default:
 						{

@@ -270,6 +270,10 @@ namespace Omx {
                 return (flags & BufferFlag.EOS) != 0;
             }
         }
+        
+        public void set_eos() {
+            flags |= Omx.BufferFlag.EOS;        
+        }
     }
 
     [CCode (cname="OMX_PORT_PARAM_TYPE")]

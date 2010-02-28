@@ -223,7 +223,7 @@ Omx.Error audiodec_empty_buffer_done(
     
     if(fd.eof()) {
         print("Setting eos flag\n");
-        buffer.flags |= Omx.BufferFlag.EOS;
+        buffer.set_eos();
     }
     return audiodec_handle.empty_this_buffer(buffer);
 }

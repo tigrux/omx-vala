@@ -748,6 +748,12 @@ OMX_ERRORTYPE audiodec_event_handler (void* component, OMX_EVENTTYPE event, guin
 }
 
 
+static void omx_buffer_header_set_eos (OMX_BUFFERHEADERTYPE* self) {
+	g_return_if_fail (self != NULL);
+	self->nFlags = self->nFlags | ((guint32) OMX_BUFFERFLAG_EOS);
+}
+
+
 OMX_ERRORTYPE audiodec_empty_buffer_done (void* component, OMX_BUFFERHEADERTYPE* buffer) {
 	OMX_ERRORTYPE result;
 	g_return_val_if_fail (component != NULL, 0);
@@ -759,7 +765,7 @@ OMX_ERRORTYPE audiodec_empty_buffer_done (void* component, OMX_BUFFERHEADERTYPE*
 	read_buffer_from_fd (buffer);
 	if (feof (fd)) {
 		g_print ("Setting eos flag\n");
-		buffer->nFlags = buffer->nFlags | ((guint32) OMX_BUFFERFLAG_EOS);
+		omx_buffer_header_set_eos (buffer);
 	}
 	result = OMX_EmptyThisBuffer (audiodec_handle, buffer);
 	return result;

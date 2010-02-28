@@ -435,6 +435,7 @@ namespace Omx {
             }
         }
 
+
         public bool eos {
             get {
                 return _eos;

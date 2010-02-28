@@ -60,22 +60,24 @@ public void play(string filename) throws Error {
         switch(port.component.id) {
             case AUDIODEC_ID:
                 switch(port.definition.dir) {
-                    case Omx.Dir.Input:
+                    case Omx.Dir.Input: {
                         buffer = port.pop_buffer();
                         buffer.offset = 0;
                         buffer.filled_len = fd.read(buffer.buffer);
                         if(fd.eof())
-                            buffer.flags |= Omx.BufferFlag.EOS;
+                            buffer.set_eos();
                         port.push_buffer(buffer);
                         break;
-                    case Omx.Dir.Output:
+                    }
+                    case Omx.Dir.Output: {
                         buffer = port.pop_buffer();
-                        var sink_buffer =
-                            audiosink.get_port(0).pop_buffer();
+                        var audiosink_inport = audiosink.get_port(0);
+                        var sink_buffer = audiosink_inport.pop_buffer();
                         Omx.buffer_copy(sink_buffer, buffer);
-                        audiosink.get_port(0).push_buffer(sink_buffer);
+                        audiosink_inport.push_buffer(sink_buffer);
                         port.push_buffer(buffer);
                         break;
+                    }
                     default:
                         break;
                 }
