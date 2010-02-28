@@ -318,8 +318,6 @@ static OMX_ERRORTYPE _omx_component_fill_buffer_done_omx_fill_buffer_done_func (
 OmxSemaphore* omx_semaphore_new (void);
 OmxSemaphore* omx_semaphore_construct (GType object_type);
 guint omx_component_get_n_ports (OmxComponent* self);
-static OmxPort** _vala_array_dup1 (OmxPort** self, int length);
-OmxPort** omx_component_get_ports (OmxComponent* self, int* result_length1);
 OmxPort* omx_component_get_port (OmxComponent* self, guint i);
 OmxPort* omx_port_new (OmxComponent* parent_component, guint32 port_index);
 OmxPort* omx_port_construct (GType object_type, OmxComponent* parent_component, guint32 port_index);
@@ -355,7 +353,6 @@ enum  {
 };
 OMX_BUFFERHEADERTYPE* omx_port_get_buffer (OmxPort* self, guint i);
 void omx_port_use_buffers_of_port (OmxPort* self, OmxPort* port, GError** error);
-OMX_BUFFERHEADERTYPE** omx_port_get_buffers (OmxPort* self, int* result_length1);
 OmxComponent* omx_port_get_component (OmxPort* self);
 const char* omx_port_get_name (OmxPort* self);
 static void omx_port_finalize (GObject* obj);
@@ -1322,27 +1319,6 @@ guint omx_component_get_n_ports (OmxComponent* self) {
 }
 
 
-static OmxPort** _vala_array_dup1 (OmxPort** self, int length) {
-	OmxPort** result;
-	int i;
-	result = g_new0 (OmxPort*, length + 1);
-	for (i = 0; i < length; i++) {
-		result[i] = _g_object_ref0 (self[i]);
-	}
-	return result;
-}
-
-
-OmxPort** omx_component_get_ports (OmxComponent* self, int* result_length1) {
-	OmxPort** result;
-	OmxPort** _tmp0_;
-	OmxPort** _tmp1_;
-	g_return_val_if_fail (self != NULL, NULL);
-	result = (_tmp1_ = (_tmp0_ = self->priv->_ports, (_tmp0_ == NULL) ? ((gpointer) _tmp0_) : _vala_array_dup1 (_tmp0_, self->priv->_ports_length1)), *result_length1 = self->priv->_ports_length1, _tmp1_);
-	return result;
-}
-
-
 OmxPort* omx_component_get_port (OmxComponent* self, guint i) {
 	OmxPort* result;
 	g_return_val_if_fail (self != NULL, NULL);
@@ -1894,15 +1870,6 @@ OMX_BUFFERHEADERTYPE* omx_port_get_buffer (OmxPort* self, guint i) {
 	OMX_BUFFERHEADERTYPE* result;
 	g_return_val_if_fail (self != NULL, NULL);
 	result = self->priv->_buffers[i];
-	return result;
-}
-
-
-OMX_BUFFERHEADERTYPE** omx_port_get_buffers (OmxPort* self, int* result_length1) {
-	OMX_BUFFERHEADERTYPE** result;
-	OMX_BUFFERHEADERTYPE** _tmp0_;
-	g_return_val_if_fail (self != NULL, NULL);
-	result = (_tmp0_ = self->priv->_buffers, *result_length1 = self->priv->_buffers_length1, _tmp0_);
 	return result;
 }
 

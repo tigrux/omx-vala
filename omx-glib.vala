@@ -279,11 +279,6 @@ namespace Omx {
         }
 
 
-        public Port[] get_ports() {
-            return _ports;
-        }
-
-
         public Port get_port(uint i) {
             return _ports[i];
         }
@@ -496,11 +491,6 @@ namespace Omx {
         }
 
 
-        public weak Omx.BufferHeader[] get_buffers() {
-            return _buffers;
-        }
-
-
         public uint get_n_buffers() {
             return definition.buffer_count_actual;
         }
@@ -572,7 +562,7 @@ namespace Omx {
 
 
 
-    void buffer_copy(Omx.BufferHeader dest, Omx.BufferHeader source) {
+    public void buffer_copy(Omx.BufferHeader dest, Omx.BufferHeader source) {
         Memory.copy(dest.buffer, source.buffer, source.filled_len);
         dest.filled_len = source.filled_len;
         dest.offset = source.offset;
