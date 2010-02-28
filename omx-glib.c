@@ -262,10 +262,12 @@ void omx_engine_add_component (OmxEngine* self, OmxComponent* component);
 GList* omx_engine_get_components (OmxEngine* self);
 void omx_component_set_state (OmxComponent* self, OMX_STATETYPE state, GError** error);
 void omx_engine_set_state (OmxEngine* self, OMX_STATETYPE state, GError** error);
-void omx_component_allocate_ports (OmxComponent* self, GError** error);
-void omx_engine_allocate_ports (OmxEngine* self, GError** error);
 void omx_component_wait_for_state_set (OmxComponent* self);
 void omx_engine_wait_for_state_set (OmxEngine* self);
+void omx_component_allocate_ports (OmxComponent* self, GError** error);
+void omx_engine_allocate_ports (OmxEngine* self, GError** error);
+void omx_component_allocate_buffers (OmxComponent* self, GError** error);
+void omx_engine_allocate_buffers (OmxEngine* self, GError** error);
 void omx_component_free_ports (OmxComponent* self, GError** error);
 void omx_engine_free_ports (OmxEngine* self, GError** error);
 void omx_component_free_handle (OmxComponent* self, GError** error);
@@ -309,21 +311,21 @@ static OMX_ERRORTYPE _omx_component_buffer_done_omx_empty_buffer_done_func (void
 static OMX_ERRORTYPE _omx_component_buffer_done_omx_fill_buffer_done_func (void* component, gpointer self, OMX_BUFFERHEADERTYPE* buffer);
 OmxSemaphore* omx_semaphore_new (void);
 OmxSemaphore* omx_semaphore_construct (GType object_type);
-gint omx_component_get_num_ports (OmxComponent* self);
+guint omx_component_get_n_ports (OmxComponent* self);
 static OmxPort** _vala_array_dup1 (OmxPort** self, int length);
 OmxPort** omx_component_get_ports (OmxComponent* self, int* result_length1);
-OmxPort* omx_component_get_port (OmxComponent* self, gint i);
+OmxPort* omx_component_get_port (OmxComponent* self, guint i);
 OmxPort* omx_port_new (OmxComponent* parent_component, guint32 port_index);
 OmxPort* omx_port_construct (GType object_type, OmxComponent* parent_component, guint32 port_index);
 void omx_port_init (OmxPort* self, GError** error);
-void omx_port_allocate_buffers (OmxPort* self, GError** error);
 const char* omx_component_get_name (OmxComponent* self);
 void omx_port_set_name (OmxPort* self, const char* value);
+void omx_port_allocate_buffers (OmxPort* self, GError** error);
 void omx_port_free_buffers (OmxPort* self, GError** error);
 void omx_component_empty_input_buffers (OmxComponent* self, GError** error);
 void omx_component_fill_output_buffers (OmxComponent* self, GError** error);
 void omx_component_prepare_ports (OmxComponent* self, GError** error);
-gint omx_port_get_num_buffers (OmxPort* self);
+guint omx_port_get_n_buffers (OmxPort* self);
 void omx_port_push_buffer (OmxPort* self, OMX_BUFFERHEADERTYPE* buffer, GError** error);
 OMX_BUFFERHEADERTYPE* omx_port_pop_buffer (OmxPort* self);
 OMX_BUFFERHEADERTYPE** omx_port_get_buffers (OmxPort* self, int* result_length1);
@@ -344,6 +346,8 @@ enum  {
 	OMX_PORT_COMPONENT,
 	OMX_PORT_QUEUE
 };
+OMX_BUFFERHEADERTYPE* omx_port_get_buffer (OmxPort* self, guint i);
+void omx_port_use_buffers_of_port (OmxPort* self, OmxPort* port, GError** error);
 OmxComponent* omx_port_get_component (OmxPort* self);
 const char* omx_port_get_name (OmxPort* self);
 static void omx_port_finalize (GObject* obj);
@@ -354,6 +358,7 @@ enum  {
 	OMX_SEMAPHORE_DUMMY_PROPERTY
 };
 static void omx_semaphore_finalize (OmxSemaphore* obj);
+void omx_buffer_copy (OMX_BUFFERHEADERTYPE* dest, OMX_BUFFERHEADERTYPE* source);
 static void _vala_array_destroy (gpointer array, gint array_length, GDestroyNotify destroy_func);
 static void _vala_array_free (gpointer array, gint array_length, GDestroyNotify destroy_func);
 
@@ -876,6 +881,23 @@ void omx_engine_set_state (OmxEngine* self, OMX_STATETYPE state, GError** error)
 }
 
 
+void omx_engine_wait_for_state_set (OmxEngine* self) {
+	g_return_if_fail (self != NULL);
+	{
+		GList* component_collection;
+		GList* component_it;
+		component_collection = omx_engine_get_components (self);
+		for (component_it = component_collection; component_it != NULL; component_it = component_it->next) {
+			OmxComponent* component;
+			component = (OmxComponent*) component_it->data;
+			{
+				omx_component_wait_for_state_set (component);
+			}
+		}
+	}
+}
+
+
 void omx_engine_allocate_ports (OmxEngine* self, GError** error) {
 	GError * _inner_error_;
 	g_return_if_fail (self != NULL);
@@ -899,8 +921,10 @@ void omx_engine_allocate_ports (OmxEngine* self, GError** error) {
 }
 
 
-void omx_engine_wait_for_state_set (OmxEngine* self) {
+void omx_engine_allocate_buffers (OmxEngine* self, GError** error) {
+	GError * _inner_error_;
 	g_return_if_fail (self != NULL);
+	_inner_error_ = NULL;
 	{
 		GList* component_collection;
 		GList* component_it;
@@ -909,7 +933,11 @@ void omx_engine_wait_for_state_set (OmxEngine* self) {
 			OmxComponent* component;
 			component = (OmxComponent*) component_it->data;
 			{
-				omx_component_wait_for_state_set (component);
+				omx_component_allocate_buffers (component, &_inner_error_);
+				if (_inner_error_ != NULL) {
+					g_propagate_error (error, _inner_error_);
+					return;
+				}
 			}
 		}
 	}
@@ -1271,10 +1299,10 @@ void omx_component_free_handle (OmxComponent* self, GError** error) {
 }
 
 
-gint omx_component_get_num_ports (OmxComponent* self) {
-	gint result;
-	g_return_val_if_fail (self != NULL, 0);
-	result = self->priv->_ports_length1;
+guint omx_component_get_n_ports (OmxComponent* self) {
+	guint result;
+	g_return_val_if_fail (self != NULL, 0U);
+	result = (guint) (self->port_param.nPorts - self->port_param.nStartPortNumber);
 	return result;
 }
 
@@ -1300,7 +1328,7 @@ OmxPort** omx_component_get_ports (OmxComponent* self, int* result_length1) {
 }
 
 
-OmxPort* omx_component_get_port (OmxComponent* self, gint i) {
+OmxPort* omx_component_get_port (OmxComponent* self, guint i) {
 	OmxPort* result;
 	g_return_val_if_fail (self != NULL, NULL);
 	result = _g_object_ref0 (self->priv->_ports[i]);
@@ -1314,7 +1342,7 @@ void omx_component_allocate_ports (OmxComponent* self, GError** error) {
 	OmxPort** _tmp0_;
 	g_return_if_fail (self != NULL);
 	_inner_error_ = NULL;
-	n_ports = (guint) (self->port_param.nPorts - self->port_param.nStartPortNumber);
+	n_ports = omx_component_get_n_ports (self);
 	self->priv->_ports = (_tmp0_ = g_new0 (OmxPort*, n_ports + 1), self->priv->_ports = (_vala_array_free (self->priv->_ports, self->priv->_ports_length1, (GDestroyNotify) g_object_unref), NULL), self->priv->_ports_length1 = n_ports, self->priv->_ports_size = self->priv->_ports_length1, _tmp0_);
 	{
 		guint i;
@@ -1340,15 +1368,36 @@ void omx_component_allocate_ports (OmxComponent* self, GError** error) {
 					_g_object_unref0 (port);
 					return;
 				}
+				omx_port_set_name (port, _tmp2_ = g_strdup_printf ("%s.port%u", self->priv->_name, i));
+				_g_free0 (_tmp2_);
+				self->priv->_ports[i] = (_tmp3_ = _g_object_ref0 (port), _g_object_unref0 (self->priv->_ports[i]), _tmp3_);
+				_g_object_unref0 (port);
+			}
+		}
+	}
+}
+
+
+void omx_component_allocate_buffers (OmxComponent* self, GError** error) {
+	GError * _inner_error_;
+	g_return_if_fail (self != NULL);
+	_inner_error_ = NULL;
+	{
+		OmxPort** port_collection;
+		int port_collection_length1;
+		int port_it;
+		port_collection = self->priv->_ports;
+		port_collection_length1 = self->priv->_ports_length1;
+		for (port_it = 0; port_it < self->priv->_ports_length1; port_it = port_it + 1) {
+			OmxPort* port;
+			port = _g_object_ref0 (port_collection[port_it]);
+			{
 				omx_port_allocate_buffers (port, &_inner_error_);
 				if (_inner_error_ != NULL) {
 					g_propagate_error (error, _inner_error_);
 					_g_object_unref0 (port);
 					return;
 				}
-				omx_port_set_name (port, _tmp2_ = g_strdup_printf ("%s.port%u", self->priv->_name, i));
-				_g_free0 (_tmp2_);
-				self->priv->_ports[i] = (_tmp3_ = _g_object_ref0 (port), _g_object_unref0 (self->priv->_ports[i]), _tmp3_);
 				_g_object_unref0 (port);
 			}
 		}
@@ -1417,8 +1466,8 @@ void omx_component_fill_output_buffers (OmxComponent* self, GError** error) {
 			port = _g_object_ref0 (port_collection[port_it]);
 			{
 				if (port->definition.eDir == OMX_DirOutput) {
-					gint n_buffers;
-					n_buffers = omx_port_get_num_buffers (port);
+					guint n_buffers;
+					n_buffers = omx_port_get_n_buffers (port);
 					{
 						gint i;
 						i = 0;
@@ -1717,10 +1766,12 @@ void omx_port_init (OmxPort* self, GError** error) {
 
 void omx_port_allocate_buffers (OmxPort* self, GError** error) {
 	GError * _inner_error_;
+	guint n_buffers;
 	OMX_BUFFERHEADERTYPE** _tmp0_;
 	g_return_if_fail (self != NULL);
 	_inner_error_ = NULL;
-	self->priv->_buffers = (_tmp0_ = g_new0 (OMX_BUFFERHEADERTYPE*, self->definition.nBufferCountActual + 1), self->priv->_buffers = (g_free (self->priv->_buffers), NULL), self->priv->_buffers_length1 = self->definition.nBufferCountActual, self->priv->_buffers_size = self->priv->_buffers_length1, _tmp0_);
+	n_buffers = omx_port_get_n_buffers (self);
+	self->priv->_buffers = (_tmp0_ = g_new0 (OMX_BUFFERHEADERTYPE*, n_buffers + 1), self->priv->_buffers = (g_free (self->priv->_buffers), NULL), self->priv->_buffers_length1 = n_buffers, self->priv->_buffers_size = self->priv->_buffers_length1, _tmp0_);
 	{
 		guint i;
 		i = (guint) 0;
@@ -1732,7 +1783,7 @@ void omx_port_allocate_buffers (OmxPort* self, GError** error) {
 					i++;
 				}
 				_tmp1_ = FALSE;
-				if (!(i < self->definition.nBufferCountActual)) {
+				if (!(i < n_buffers)) {
 					break;
 				}
 				omx_try_run (OMX_AllocateBuffer (omx_component_get_handle (self->priv->_component), &self->priv->_buffers[i], (guint) self->definition.nPortIndex, self, (guint) self->definition.nBufferSize), __FILE__, __FUNCTION__, __LINE__, &_inner_error_);
@@ -1747,6 +1798,50 @@ void omx_port_allocate_buffers (OmxPort* self, GError** error) {
 }
 
 
+void omx_port_use_buffers_of_port (OmxPort* self, OmxPort* port, GError** error) {
+	GError * _inner_error_;
+	guint n_buffers;
+	OMX_BUFFERHEADERTYPE** _tmp0_;
+	g_return_if_fail (self != NULL);
+	g_return_if_fail (port != NULL);
+	_inner_error_ = NULL;
+	n_buffers = omx_port_get_n_buffers (self);
+	self->priv->_buffers = (_tmp0_ = g_new0 (OMX_BUFFERHEADERTYPE*, n_buffers + 1), self->priv->_buffers = (g_free (self->priv->_buffers), NULL), self->priv->_buffers_length1 = n_buffers, self->priv->_buffers_size = self->priv->_buffers_length1, _tmp0_);
+	{
+		guint i;
+		i = (guint) 0;
+		{
+			gboolean _tmp1_;
+			_tmp1_ = TRUE;
+			while (TRUE) {
+				if (!_tmp1_) {
+					i++;
+				}
+				_tmp1_ = FALSE;
+				if (!(i < n_buffers)) {
+					break;
+				}
+				omx_try_run (OMX_UseBuffer (omx_component_get_handle (self->priv->_component), &self->priv->_buffers[i], (guint) self->definition.nPortIndex, self->priv->_component, (guint) self->definition.nBufferSize, omx_port_get_buffer (port, i)->pBuffer), __FILE__, __FUNCTION__, __LINE__, &_inner_error_);
+				if (_inner_error_ != NULL) {
+					g_propagate_error (error, _inner_error_);
+					return;
+				}
+				g_async_queue_push (self->priv->_queue, self->priv->_buffers[i]);
+				self->priv->_buffers[i]->pAppPrivate = self;
+			}
+		}
+	}
+}
+
+
+OMX_BUFFERHEADERTYPE* omx_port_get_buffer (OmxPort* self, guint i) {
+	OMX_BUFFERHEADERTYPE* result;
+	g_return_val_if_fail (self != NULL, NULL);
+	result = self->priv->_buffers[i];
+	return result;
+}
+
+
 OMX_BUFFERHEADERTYPE** omx_port_get_buffers (OmxPort* self, int* result_length1) {
 	OMX_BUFFERHEADERTYPE** result;
 	OMX_BUFFERHEADERTYPE** _tmp0_;
@@ -1756,10 +1851,10 @@ OMX_BUFFERHEADERTYPE** omx_port_get_buffers (OmxPort* self, int* result_length1)
 }
 
 
-gint omx_port_get_num_buffers (OmxPort* self) {
-	gint result;
-	g_return_val_if_fail (self != NULL, 0);
-	result = self->priv->_buffers_length1;
+guint omx_port_get_n_buffers (OmxPort* self) {
+	guint result;
+	g_return_val_if_fail (self != NULL, 0U);
+	result = (guint) self->definition.nBufferCountActual;
 	return result;
 }
 
@@ -2108,6 +2203,15 @@ void omx_semaphore_unref (gpointer instance) {
 		OMX_SEMAPHORE_GET_CLASS (self)->finalize (self);
 		g_type_free_instance ((GTypeInstance *) self);
 	}
+}
+
+
+void omx_buffer_copy (OMX_BUFFERHEADERTYPE* dest, OMX_BUFFERHEADERTYPE* source) {
+	g_return_if_fail (dest != NULL);
+	g_return_if_fail (source != NULL);
+	memcpy (dest->pBuffer, source->pBuffer, source->nFilledLen);
+	dest->nFilledLen = source->nFilledLen;
+	dest->nOffset = source->nOffset;
 }
 
 
