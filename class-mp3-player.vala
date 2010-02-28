@@ -29,7 +29,6 @@ public void play(string filename) throws Error {
 
     var core = Omx.Core.open("libomxil-bellagio.so.0");
     core.init();
-    var engine = new Omx.Engine();
 
     var audiodec =
         core.get_component(AUDIODEC_COMPONENT, Omx.Index.ParamAudioInit);
@@ -40,7 +39,8 @@ public void play(string filename) throws Error {
         core.get_component(AUDIOSINK_COMPONENT, Omx.Index.ParamAudioInit);
     audiosink.name = "audiosink";
     audiosink.id = AUDIOSINK_ID;
-    
+
+    var engine = new Omx.Engine();
     engine.add_component(audiodec);
     engine.add_component(audiosink);
     
@@ -52,7 +52,7 @@ public void play(string filename) throws Error {
     engine.set_state(Omx.State.Executing);
     engine.wait_for_state_set();
 
-    audiodec.prepare_ports();
+    engine.start();
     
     foreach(var port in engine) {
         Omx.BufferHeader buffer;

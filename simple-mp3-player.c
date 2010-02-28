@@ -766,7 +766,7 @@ OMX_ERRORTYPE audiodec_empty_buffer_done (void* component, OMX_BUFFERHEADERTYPE*
 }
 
 
-static gboolean omx_buffer_header_eos (OMX_BUFFERHEADERTYPE* self) {
+static gboolean omx_buffer_header_get_eos (OMX_BUFFERHEADERTYPE* self) {
 	gboolean result;
 	g_return_val_if_fail (self != NULL, FALSE);
 	result = (self->nFlags & OMX_BUFFERFLAG_EOS) != 0;
@@ -778,7 +778,7 @@ OMX_ERRORTYPE audiodec_fill_buffer_done (void* component, OMX_BUFFERHEADERTYPE* 
 	OMX_ERRORTYPE result;
 	g_return_val_if_fail (component != NULL, 0);
 	g_return_val_if_fail (buffer != NULL, 0);
-	if (omx_buffer_header_eos (buffer)) {
+	if (omx_buffer_header_get_eos (buffer)) {
 		g_print ("Got eos flag\n");
 		tsem_up (&eos_sem);
 		result = OMX_ErrorNone;

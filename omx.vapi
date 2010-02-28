@@ -265,8 +265,10 @@ namespace Omx {
         [CCode (cname="nInputPortIndex")]
         public uint32 input_port_index;
 
-        public bool eos() {
-            return (flags & BufferFlag.EOS) != 0;
+        public bool eos {
+            get {
+                return (flags & BufferFlag.EOS) != 0;
+            }
         }
     }
 

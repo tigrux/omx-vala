@@ -24,16 +24,6 @@ typedef struct _OmxCore OmxCore;
 typedef struct _OmxCoreClass OmxCoreClass;
 #define _g_object_unref0(var) ((var == NULL) ? NULL : (var = (g_object_unref (var), NULL)))
 
-#define OMX_TYPE_ENGINE (omx_engine_get_type ())
-#define OMX_ENGINE(obj) (G_TYPE_CHECK_INSTANCE_CAST ((obj), OMX_TYPE_ENGINE, OmxEngine))
-#define OMX_ENGINE_CLASS(klass) (G_TYPE_CHECK_CLASS_CAST ((klass), OMX_TYPE_ENGINE, OmxEngineClass))
-#define OMX_IS_ENGINE(obj) (G_TYPE_CHECK_INSTANCE_TYPE ((obj), OMX_TYPE_ENGINE))
-#define OMX_IS_ENGINE_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((klass), OMX_TYPE_ENGINE))
-#define OMX_ENGINE_GET_CLASS(obj) (G_TYPE_INSTANCE_GET_CLASS ((obj), OMX_TYPE_ENGINE, OmxEngineClass))
-
-typedef struct _OmxEngine OmxEngine;
-typedef struct _OmxEngineClass OmxEngineClass;
-
 #define OMX_TYPE_COMPONENT (omx_component_get_type ())
 #define OMX_COMPONENT(obj) (G_TYPE_CHECK_INSTANCE_CAST ((obj), OMX_TYPE_COMPONENT, OmxComponent))
 #define OMX_COMPONENT_CLASS(klass) (G_TYPE_CHECK_CLASS_CAST ((klass), OMX_TYPE_COMPONENT, OmxComponentClass))
@@ -45,16 +35,6 @@ typedef struct _OmxComponent OmxComponent;
 typedef struct _OmxComponentClass OmxComponentClass;
 typedef struct _OmxComponentPrivate OmxComponentPrivate;
 
-#define OMX_ENGINE_TYPE_ITERATOR (omx_engine_iterator_get_type ())
-#define OMX_ENGINE_ITERATOR(obj) (G_TYPE_CHECK_INSTANCE_CAST ((obj), OMX_ENGINE_TYPE_ITERATOR, OmxEngineIterator))
-#define OMX_ENGINE_ITERATOR_CLASS(klass) (G_TYPE_CHECK_CLASS_CAST ((klass), OMX_ENGINE_TYPE_ITERATOR, OmxEngineIteratorClass))
-#define OMX_ENGINE_IS_ITERATOR(obj) (G_TYPE_CHECK_INSTANCE_TYPE ((obj), OMX_ENGINE_TYPE_ITERATOR))
-#define OMX_ENGINE_IS_ITERATOR_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((klass), OMX_ENGINE_TYPE_ITERATOR))
-#define OMX_ENGINE_ITERATOR_GET_CLASS(obj) (G_TYPE_INSTANCE_GET_CLASS ((obj), OMX_ENGINE_TYPE_ITERATOR, OmxEngineIteratorClass))
-
-typedef struct _OmxEngineIterator OmxEngineIterator;
-typedef struct _OmxEngineIteratorClass OmxEngineIteratorClass;
-
 #define OMX_TYPE_PORT (omx_port_get_type ())
 #define OMX_PORT(obj) (G_TYPE_CHECK_INSTANCE_CAST ((obj), OMX_TYPE_PORT, OmxPort))
 #define OMX_PORT_CLASS(klass) (G_TYPE_CHECK_CLASS_CAST ((klass), OMX_TYPE_PORT, OmxPortClass))
@@ -64,6 +44,26 @@ typedef struct _OmxEngineIteratorClass OmxEngineIteratorClass;
 
 typedef struct _OmxPort OmxPort;
 typedef struct _OmxPortClass OmxPortClass;
+
+#define OMX_TYPE_ENGINE (omx_engine_get_type ())
+#define OMX_ENGINE(obj) (G_TYPE_CHECK_INSTANCE_CAST ((obj), OMX_TYPE_ENGINE, OmxEngine))
+#define OMX_ENGINE_CLASS(klass) (G_TYPE_CHECK_CLASS_CAST ((klass), OMX_TYPE_ENGINE, OmxEngineClass))
+#define OMX_IS_ENGINE(obj) (G_TYPE_CHECK_INSTANCE_TYPE ((obj), OMX_TYPE_ENGINE))
+#define OMX_IS_ENGINE_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((klass), OMX_TYPE_ENGINE))
+#define OMX_ENGINE_GET_CLASS(obj) (G_TYPE_INSTANCE_GET_CLASS ((obj), OMX_TYPE_ENGINE, OmxEngineClass))
+
+typedef struct _OmxEngine OmxEngine;
+typedef struct _OmxEngineClass OmxEngineClass;
+
+#define OMX_ENGINE_TYPE_ITERATOR (omx_engine_iterator_get_type ())
+#define OMX_ENGINE_ITERATOR(obj) (G_TYPE_CHECK_INSTANCE_CAST ((obj), OMX_ENGINE_TYPE_ITERATOR, OmxEngineIterator))
+#define OMX_ENGINE_ITERATOR_CLASS(klass) (G_TYPE_CHECK_CLASS_CAST ((klass), OMX_ENGINE_TYPE_ITERATOR, OmxEngineIteratorClass))
+#define OMX_ENGINE_IS_ITERATOR(obj) (G_TYPE_CHECK_INSTANCE_TYPE ((obj), OMX_ENGINE_TYPE_ITERATOR))
+#define OMX_ENGINE_IS_ITERATOR_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((klass), OMX_ENGINE_TYPE_ITERATOR))
+#define OMX_ENGINE_ITERATOR_GET_CLASS(obj) (G_TYPE_INSTANCE_GET_CLASS ((obj), OMX_ENGINE_TYPE_ITERATOR, OmxEngineIteratorClass))
+
+typedef struct _OmxEngineIterator OmxEngineIterator;
+typedef struct _OmxEngineIteratorClass OmxEngineIteratorClass;
 typedef struct _OmxPortPrivate OmxPortPrivate;
 #define _omx_engine_iterator_unref0(var) ((var == NULL) ? NULL : (var = (omx_engine_iterator_unref (var), NULL)))
 
@@ -76,6 +76,7 @@ struct _OmxComponent {
 
 struct _OmxComponentClass {
 	GObjectClass parent_class;
+	OMX_ERRORTYPE (*buffer_done) (OmxComponent* self, OmxPort* port, OMX_BUFFERHEADERTYPE* buffer);
 };
 
 struct _OmxPort {
@@ -99,18 +100,19 @@ gint _main (char** args, int args_length1);
 GType omx_core_get_type (void);
 OmxCore* omx_core_open (const char* soname);
 void omx_core_init (OmxCore* self, GError** error);
-OmxEngine* omx_engine_new (void);
-OmxEngine* omx_engine_construct (GType object_type);
-GType omx_engine_get_type (void);
 GType omx_component_get_type (void);
 OmxComponent* omx_core_get_component (OmxCore* self, const char* component_name, OMX_INDEXTYPE param_init_index, GError** error);
 void omx_component_set_name (OmxComponent* self, const char* value);
+GType omx_port_get_type (void);
+OmxEngine* omx_engine_new (void);
+OmxEngine* omx_engine_construct (GType object_type);
+GType omx_engine_get_type (void);
 void omx_engine_add_component (OmxEngine* self, OmxComponent* component);
 void omx_engine_set_state (OmxEngine* self, OMX_STATETYPE state, GError** error);
 void omx_engine_allocate_ports (OmxEngine* self, GError** error);
 void omx_engine_allocate_buffers (OmxEngine* self, GError** error);
 void omx_engine_wait_for_state_set (OmxEngine* self);
-void omx_component_prepare_ports (OmxComponent* self, GError** error);
+void omx_engine_start (OmxEngine* self, GError** error);
 gpointer omx_engine_iterator_ref (gpointer instance);
 void omx_engine_iterator_unref (gpointer instance);
 GParamSpec* omx_engine_param_spec_iterator (const gchar* name, const gchar* nick, const gchar* blurb, GType object_type, GParamFlags flags);
@@ -119,7 +121,6 @@ gpointer omx_engine_value_get_iterator (const GValue* value);
 GType omx_engine_iterator_get_type (void);
 OmxEngineIterator* omx_engine_iterator (OmxEngine* self);
 gboolean omx_engine_iterator_next (OmxEngineIterator* self);
-GType omx_port_get_type (void);
 OmxPort* omx_engine_iterator_get (OmxEngineIterator* self);
 OmxComponent* omx_port_get_component (OmxPort* self);
 OMX_BUFFERHEADERTYPE* omx_port_pop_buffer (OmxPort* self);
@@ -182,9 +183,9 @@ void play (const char* filename, GError** error) {
 	GError * _inner_error_;
 	FILE* fd;
 	OmxCore* core;
-	OmxEngine* engine;
 	OmxComponent* audiodec;
 	OmxComponent* audiosink;
+	OmxEngine* engine;
 	g_return_if_fail (filename != NULL);
 	_inner_error_ = NULL;
 	fd = fopen (filename, "rb");
@@ -204,13 +205,11 @@ void play (const char* filename, GError** error) {
 		_g_object_unref0 (core);
 		return;
 	}
-	engine = omx_engine_new ();
 	audiodec = omx_core_get_component (core, AUDIODEC_COMPONENT, OMX_IndexParamAudioInit, &_inner_error_);
 	if (_inner_error_ != NULL) {
 		g_propagate_error (error, _inner_error_);
 		_fclose0 (fd);
 		_g_object_unref0 (core);
-		_g_object_unref0 (engine);
 		return;
 	}
 	omx_component_set_name (audiodec, "audiodec");
@@ -220,12 +219,12 @@ void play (const char* filename, GError** error) {
 		g_propagate_error (error, _inner_error_);
 		_fclose0 (fd);
 		_g_object_unref0 (core);
-		_g_object_unref0 (engine);
 		_g_object_unref0 (audiodec);
 		return;
 	}
 	omx_component_set_name (audiosink, "audiosink");
 	audiosink->id = AUDIOSINK_ID;
+	engine = omx_engine_new ();
 	omx_engine_add_component (engine, audiodec);
 	omx_engine_add_component (engine, audiosink);
 	omx_engine_set_state (engine, OMX_StateIdle, &_inner_error_);
@@ -233,9 +232,9 @@ void play (const char* filename, GError** error) {
 		g_propagate_error (error, _inner_error_);
 		_fclose0 (fd);
 		_g_object_unref0 (core);
-		_g_object_unref0 (engine);
 		_g_object_unref0 (audiodec);
 		_g_object_unref0 (audiosink);
+		_g_object_unref0 (engine);
 		return;
 	}
 	omx_engine_allocate_ports (engine, &_inner_error_);
@@ -243,9 +242,9 @@ void play (const char* filename, GError** error) {
 		g_propagate_error (error, _inner_error_);
 		_fclose0 (fd);
 		_g_object_unref0 (core);
-		_g_object_unref0 (engine);
 		_g_object_unref0 (audiodec);
 		_g_object_unref0 (audiosink);
+		_g_object_unref0 (engine);
 		return;
 	}
 	omx_engine_allocate_buffers (engine, &_inner_error_);
@@ -253,9 +252,9 @@ void play (const char* filename, GError** error) {
 		g_propagate_error (error, _inner_error_);
 		_fclose0 (fd);
 		_g_object_unref0 (core);
-		_g_object_unref0 (engine);
 		_g_object_unref0 (audiodec);
 		_g_object_unref0 (audiosink);
+		_g_object_unref0 (engine);
 		return;
 	}
 	omx_engine_wait_for_state_set (engine);
@@ -264,20 +263,20 @@ void play (const char* filename, GError** error) {
 		g_propagate_error (error, _inner_error_);
 		_fclose0 (fd);
 		_g_object_unref0 (core);
-		_g_object_unref0 (engine);
 		_g_object_unref0 (audiodec);
 		_g_object_unref0 (audiosink);
+		_g_object_unref0 (engine);
 		return;
 	}
 	omx_engine_wait_for_state_set (engine);
-	omx_component_prepare_ports (audiodec, &_inner_error_);
+	omx_engine_start (engine, &_inner_error_);
 	if (_inner_error_ != NULL) {
 		g_propagate_error (error, _inner_error_);
 		_fclose0 (fd);
 		_g_object_unref0 (core);
-		_g_object_unref0 (engine);
 		_g_object_unref0 (audiodec);
 		_g_object_unref0 (audiosink);
+		_g_object_unref0 (engine);
 		return;
 	}
 	{
@@ -310,9 +309,9 @@ void play (const char* filename, GError** error) {
 								_omx_engine_iterator_unref0 (_port_it);
 								_fclose0 (fd);
 								_g_object_unref0 (core);
-								_g_object_unref0 (engine);
 								_g_object_unref0 (audiodec);
 								_g_object_unref0 (audiosink);
+								_g_object_unref0 (engine);
 								return;
 							}
 							break;
@@ -333,9 +332,9 @@ void play (const char* filename, GError** error) {
 								_omx_engine_iterator_unref0 (_port_it);
 								_fclose0 (fd);
 								_g_object_unref0 (core);
-								_g_object_unref0 (engine);
 								_g_object_unref0 (audiodec);
 								_g_object_unref0 (audiosink);
+								_g_object_unref0 (engine);
 								return;
 							}
 							_g_object_unref0 (_tmp2_);
@@ -346,9 +345,9 @@ void play (const char* filename, GError** error) {
 								_omx_engine_iterator_unref0 (_port_it);
 								_fclose0 (fd);
 								_g_object_unref0 (core);
-								_g_object_unref0 (engine);
 								_g_object_unref0 (audiodec);
 								_g_object_unref0 (audiosink);
+								_g_object_unref0 (engine);
 								return;
 							}
 							break;
@@ -384,9 +383,9 @@ void play (const char* filename, GError** error) {
 		g_propagate_error (error, _inner_error_);
 		_fclose0 (fd);
 		_g_object_unref0 (core);
-		_g_object_unref0 (engine);
 		_g_object_unref0 (audiodec);
 		_g_object_unref0 (audiosink);
+		_g_object_unref0 (engine);
 		return;
 	}
 	omx_engine_wait_for_state_set (engine);
@@ -395,9 +394,9 @@ void play (const char* filename, GError** error) {
 		g_propagate_error (error, _inner_error_);
 		_fclose0 (fd);
 		_g_object_unref0 (core);
-		_g_object_unref0 (engine);
 		_g_object_unref0 (audiodec);
 		_g_object_unref0 (audiosink);
+		_g_object_unref0 (engine);
 		return;
 	}
 	omx_engine_free_ports (engine, &_inner_error_);
@@ -405,9 +404,9 @@ void play (const char* filename, GError** error) {
 		g_propagate_error (error, _inner_error_);
 		_fclose0 (fd);
 		_g_object_unref0 (core);
-		_g_object_unref0 (engine);
 		_g_object_unref0 (audiodec);
 		_g_object_unref0 (audiosink);
+		_g_object_unref0 (engine);
 		return;
 	}
 	omx_engine_wait_for_state_set (engine);
@@ -416,9 +415,9 @@ void play (const char* filename, GError** error) {
 		g_propagate_error (error, _inner_error_);
 		_fclose0 (fd);
 		_g_object_unref0 (core);
-		_g_object_unref0 (engine);
 		_g_object_unref0 (audiodec);
 		_g_object_unref0 (audiosink);
+		_g_object_unref0 (engine);
 		return;
 	}
 	omx_core_deinit (core, &_inner_error_);
@@ -426,16 +425,16 @@ void play (const char* filename, GError** error) {
 		g_propagate_error (error, _inner_error_);
 		_fclose0 (fd);
 		_g_object_unref0 (core);
-		_g_object_unref0 (engine);
 		_g_object_unref0 (audiodec);
 		_g_object_unref0 (audiosink);
+		_g_object_unref0 (engine);
 		return;
 	}
 	_fclose0 (fd);
 	_g_object_unref0 (core);
-	_g_object_unref0 (engine);
 	_g_object_unref0 (audiodec);
 	_g_object_unref0 (audiosink);
+	_g_object_unref0 (engine);
 }
 
 

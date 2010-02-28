@@ -110,18 +110,18 @@ namespace Omx {
 
 
     public class Engine: Object {
-        GLib.AsyncQueue<Omx.BufferHeader> _queue;
+        GLib.AsyncQueue<Omx.Port> _queue;
         GLib.List<Omx.Component> _components_list;
 
 
         public Engine() {
-            _queue = new GLib.AsyncQueue<Omx.BufferHeader>();
+            _queue = new GLib.AsyncQueue<Omx.Port>();
             _components_list = new GLib.List<Omx.Component>();
         }
 
 
         public void add_component(Omx.Component component) {
-            component.set_queue(_queue);
+            component.queue = _queue;
             _components_list.append(component);
         }
 
@@ -130,7 +130,13 @@ namespace Omx {
             return _components_list;
         }
 
-        
+        public void start() throws GLib.Error {
+            foreach(var component in get_components()) {
+                component.prepare_ports();
+                break;
+            }
+        }
+
         public void set_state(Omx.State state) throws GLib.Error {
             foreach(var component in get_components())
                 component.set_state(state);
@@ -173,7 +179,7 @@ namespace Omx {
 
         
         public class Iterator {
-            GLib.AsyncQueue<Omx.BufferHeader> _queue;
+            GLib.AsyncQueue<Omx.Port> _queue;
             bool _eos_found;
 
             public Iterator(Engine engine) {
@@ -185,10 +191,10 @@ namespace Omx {
             }
             
             public Omx.Port get() {
-                var buffer = _queue.pop();
-                if(buffer.eos())
+                var port = _queue.pop();
+                if(port.eos)
                     _eos_found = true;
-                return buffer.app_private as Omx.Port;
+                return port;
             }
         }    
     }
@@ -202,7 +208,7 @@ namespace Omx {
 
         string _component_name;
         Omx.Index _param_init_index;
-        AsyncQueue<Omx.BufferHeader> _queue;
+        AsyncQueue<Omx.Port> _queue;
         Semaphore _wait_for_state_sem;
         Core _core;
         Port[] _ports;
@@ -220,9 +226,12 @@ namespace Omx {
         }
 
 
-        public AsyncQueue<Omx.BufferHeader> queue {
+        public AsyncQueue<Omx.Port> queue {
             get {
                 return _queue;
+            }
+            set {
+                _queue = value;
             }
         }
 
@@ -241,7 +250,7 @@ namespace Omx {
             _core = core;
             _component_name = component_name;
             _param_init_index = param_init_index;
-            _queue = new AsyncQueue<Omx.BufferHeader>();
+            _queue = new AsyncQueue<Omx.Port>();
             _wait_for_state_sem = new Semaphore();
         }
 
@@ -257,10 +266,6 @@ namespace Omx {
                     _param_init_index, port_param));
         }
 
-
-        public void set_queue(AsyncQueue<Omx.BufferHeader> queue) {
-            _queue = queue;
-        }
 
 
         public void free_handle() throws GLib.Error {
@@ -310,8 +315,8 @@ namespace Omx {
 
 
         public void prepare_ports() throws GLib.Error {
-            empty_input_buffers();
             fill_output_buffers();
+            empty_input_buffers();
         }
 
 
@@ -328,9 +333,11 @@ namespace Omx {
 
         public void empty_input_buffers() throws GLib.Error {
             foreach(var port in _ports) {
-                if(port.definition.dir == Omx.Dir.Input)
-                    foreach(var buffer in port.get_buffers())
-                        _queue.push(buffer);
+                if(port.definition.dir == Omx.Dir.Input) {
+                    uint n_buffers = port.get_n_buffers();
+                    for(uint i=0; i<n_buffers; i++)
+                        _queue.push(port);
+                }
             }
         }
 
@@ -358,8 +365,8 @@ namespace Omx {
 
         const Omx.Callback callbacks = {
             event_handler,
-            buffer_done,
-            buffer_done
+            empty_buffer_done,
+            fill_buffer_done
         };
 
 
@@ -383,14 +390,27 @@ namespace Omx {
         }
 
 
-        Omx.Error buffer_done(
+        Omx.Error empty_buffer_done(
                 Omx.Handle component,
                 Omx.BufferHeader buffer) {
-            var port = buffer.app_private as Port;
+            return buffer_done(get_port(buffer.input_port_index), buffer);
+        }
+
+
+        Omx.Error fill_buffer_done(
+                Omx.Handle component,
+                Omx.BufferHeader buffer) {
+            return buffer_done(get_port(buffer.output_port_index), buffer);
+        }
+
+
+        protected virtual Omx.Error buffer_done(
+                Omx.Port port,
+                Omx.BufferHeader buffer) {
             port.queue.push(buffer);
-            _queue.push(buffer);
+            _queue.push(port);
             return Omx.Error.None;
-        }        
+        }
     }
 
 
@@ -401,6 +421,7 @@ namespace Omx {
         Omx.BufferHeader[] _buffers;
         AsyncQueue<Omx.BufferHeader> _queue;
         Component _component;
+        bool _eos;
 
 
         public string name {
@@ -414,6 +435,11 @@ namespace Omx {
             }
         }
 
+        public bool eos {
+            get {
+                return _eos;
+            }
+        }
 
         public AsyncQueue<Omx.BufferHeader> queue {
             get {
@@ -460,7 +486,6 @@ namespace Omx {
                         _component, definition.buffer_size,
                         port.get_buffer(i).buffer));
                 _queue.push(_buffers[i]);
-                _buffers[i].app_private = this;
             }
         }
 
@@ -490,7 +515,10 @@ namespace Omx {
 
 
         public Omx.BufferHeader pop_buffer() {
-            return _queue.pop();
+            var buffer = _queue.pop();
+            if(buffer.eos)
+                _eos = true;
+            return buffer;
         }
 
 
@@ -549,3 +577,4 @@ namespace Omx {
         dest.offset = source.offset;
     }
 }
+

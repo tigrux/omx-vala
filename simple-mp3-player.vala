@@ -231,7 +231,7 @@ Omx.Error audiodec_empty_buffer_done(
 Omx.Error audiodec_fill_buffer_done(
         Omx.Handle component,
         Omx.BufferHeader buffer) {
-    if(buffer.eos()) {
+    if(buffer.eos) {
     	print("Got eos flag\n");
     	eos_sem.up();
     	return Omx.Error.None;
