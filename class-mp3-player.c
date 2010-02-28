@@ -65,7 +65,6 @@ typedef struct _OmxEngineClass OmxEngineClass;
 typedef struct _OmxEngineIterator OmxEngineIterator;
 typedef struct _OmxEngineIteratorClass OmxEngineIteratorClass;
 typedef struct _OmxPortPrivate OmxPortPrivate;
-#define _omx_engine_iterator_unref0(var) ((var == NULL) ? NULL : (var = (omx_engine_iterator_unref (var), NULL)))
 
 struct _OmxComponent {
 	GObject parent_instance;
@@ -113,11 +112,6 @@ void omx_engine_allocate_ports (OmxEngine* self, GError** error);
 void omx_engine_allocate_buffers (OmxEngine* self, GError** error);
 void omx_engine_wait_for_state_set (OmxEngine* self);
 void omx_engine_start (OmxEngine* self, GError** error);
-gpointer omx_engine_iterator_ref (gpointer instance);
-void omx_engine_iterator_unref (gpointer instance);
-GParamSpec* omx_engine_param_spec_iterator (const gchar* name, const gchar* nick, const gchar* blurb, GType object_type, GParamFlags flags);
-void omx_engine_value_set_iterator (GValue* value, gpointer v_object);
-gpointer omx_engine_value_get_iterator (const GValue* value);
 GType omx_engine_iterator_get_type (void);
 OmxEngineIterator* omx_engine_iterator (OmxEngine* self);
 gboolean omx_engine_iterator_next (OmxEngineIterator* self);
@@ -313,7 +307,7 @@ void play (const char* filename, GError** error) {
 								if (_inner_error_ != NULL) {
 									g_propagate_error (error, _inner_error_);
 									_g_object_unref0 (port);
-									_omx_engine_iterator_unref0 (_port_it);
+									_g_object_unref0 (_port_it);
 									_fclose0 (fd);
 									_g_object_unref0 (core);
 									_g_object_unref0 (audiodec);
@@ -338,7 +332,7 @@ void play (const char* filename, GError** error) {
 									g_propagate_error (error, _inner_error_);
 									_g_object_unref0 (audiosink_inport);
 									_g_object_unref0 (port);
-									_omx_engine_iterator_unref0 (_port_it);
+									_g_object_unref0 (_port_it);
 									_fclose0 (fd);
 									_g_object_unref0 (core);
 									_g_object_unref0 (audiodec);
@@ -351,7 +345,7 @@ void play (const char* filename, GError** error) {
 									g_propagate_error (error, _inner_error_);
 									_g_object_unref0 (audiosink_inport);
 									_g_object_unref0 (port);
-									_omx_engine_iterator_unref0 (_port_it);
+									_g_object_unref0 (_port_it);
 									_fclose0 (fd);
 									_g_object_unref0 (core);
 									_g_object_unref0 (audiodec);
@@ -387,7 +381,7 @@ void play (const char* filename, GError** error) {
 			}
 			_g_object_unref0 (port);
 		}
-		_omx_engine_iterator_unref0 (_port_it);
+		_g_object_unref0 (_port_it);
 	}
 	omx_engine_set_state (engine, OMX_StateIdle, &_inner_error_);
 	if (_inner_error_ != NULL) {

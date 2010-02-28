@@ -70,7 +70,6 @@ typedef struct _OmxPortClass OmxPortClass;
 typedef struct _OmxEngineIterator OmxEngineIterator;
 typedef struct _OmxEngineIteratorClass OmxEngineIteratorClass;
 typedef struct _OmxEngineIteratorPrivate OmxEngineIteratorPrivate;
-typedef struct _OmxEngineParamSpecIterator OmxEngineParamSpecIterator;
 typedef struct _OmxComponentPrivate OmxComponentPrivate;
 
 #define OMX_TYPE_SEMAPHORE (omx_semaphore_get_type ())
@@ -138,23 +137,17 @@ struct _OmxEnginePrivate {
 };
 
 struct _OmxEngineIterator {
-	GTypeInstance parent_instance;
-	volatile int ref_count;
+	GObject parent_instance;
 	OmxEngineIteratorPrivate * priv;
 };
 
 struct _OmxEngineIteratorClass {
-	GTypeClass parent_class;
-	void (*finalize) (OmxEngineIterator *self);
+	GObjectClass parent_class;
 };
 
 struct _OmxEngineIteratorPrivate {
 	GAsyncQueue* _queue;
 	gboolean _eos_found;
-};
-
-struct _OmxEngineParamSpecIterator {
-	GParamSpec parent_instance;
 };
 
 struct _OmxComponent {
@@ -279,11 +272,6 @@ void omx_component_free_handle (OmxComponent* self, GError** error);
 void omx_engine_free_handles (OmxEngine* self, GError** error);
 OmxEngineIterator* omx_engine_iterator_new (OmxEngine* engine);
 OmxEngineIterator* omx_engine_iterator_construct (GType object_type, OmxEngine* engine);
-gpointer omx_engine_iterator_ref (gpointer instance);
-void omx_engine_iterator_unref (gpointer instance);
-GParamSpec* omx_engine_param_spec_iterator (const gchar* name, const gchar* nick, const gchar* blurb, GType object_type, GParamFlags flags);
-void omx_engine_value_set_iterator (GValue* value, gpointer v_object);
-gpointer omx_engine_value_get_iterator (const GValue* value);
 GType omx_engine_iterator_get_type (void);
 OmxEngineIterator* omx_engine_iterator (OmxEngine* self);
 #define OMX_ENGINE_ITERATOR_GET_PRIVATE(o) (G_TYPE_INSTANCE_GET_PRIVATE ((o), OMX_ENGINE_TYPE_ITERATOR, OmxEngineIteratorPrivate))
@@ -293,7 +281,7 @@ enum  {
 gboolean omx_engine_iterator_next (OmxEngineIterator* self);
 gboolean omx_port_get_eos (OmxPort* self);
 OmxPort* omx_engine_iterator_get (OmxEngineIterator* self);
-static void omx_engine_iterator_finalize (OmxEngineIterator* obj);
+static void omx_engine_iterator_finalize (GObject* obj);
 static void omx_engine_finalize (GObject* obj);
 gpointer omx_semaphore_ref (gpointer instance);
 void omx_semaphore_unref (gpointer instance);
@@ -1033,10 +1021,10 @@ static gpointer _g_async_queue_ref0 (gpointer self) {
 
 
 OmxEngineIterator* omx_engine_iterator_construct (GType object_type, OmxEngine* engine) {
-	OmxEngineIterator* self;
+	OmxEngineIterator * self;
 	GAsyncQueue* _tmp0_;
 	g_return_val_if_fail (engine != NULL, NULL);
-	self = (OmxEngineIterator*) g_type_create_instance (object_type);
+	self = (OmxEngineIterator*) g_object_new (object_type, NULL);
 	self->priv->_queue = (_tmp0_ = _g_async_queue_ref0 (engine->priv->_queue), _g_async_queue_unref0 (self->priv->_queue), _tmp0_);
 	return self;
 }
@@ -1068,146 +1056,33 @@ OmxPort* omx_engine_iterator_get (OmxEngineIterator* self) {
 }
 
 
-static void omx_engine_value_iterator_init (GValue* value) {
-	value->data[0].v_pointer = NULL;
-}
-
-
-static void omx_engine_value_iterator_free_value (GValue* value) {
-	if (value->data[0].v_pointer) {
-		omx_engine_iterator_unref (value->data[0].v_pointer);
-	}
-}
-
-
-static void omx_engine_value_iterator_copy_value (const GValue* src_value, GValue* dest_value) {
-	if (src_value->data[0].v_pointer) {
-		dest_value->data[0].v_pointer = omx_engine_iterator_ref (src_value->data[0].v_pointer);
-	} else {
-		dest_value->data[0].v_pointer = NULL;
-	}
-}
-
-
-static gpointer omx_engine_value_iterator_peek_pointer (const GValue* value) {
-	return value->data[0].v_pointer;
-}
-
-
-static gchar* omx_engine_value_iterator_collect_value (GValue* value, guint n_collect_values, GTypeCValue* collect_values, guint collect_flags) {
-	if (collect_values[0].v_pointer) {
-		OmxEngineIterator* object;
-		object = collect_values[0].v_pointer;
-		if (object->parent_instance.g_class == NULL) {
-			return g_strconcat ("invalid unclassed object pointer for value type `", G_VALUE_TYPE_NAME (value), "'", NULL);
-		} else if (!g_value_type_compatible (G_TYPE_FROM_INSTANCE (object), G_VALUE_TYPE (value))) {
-			return g_strconcat ("invalid object type `", g_type_name (G_TYPE_FROM_INSTANCE (object)), "' for value type `", G_VALUE_TYPE_NAME (value), "'", NULL);
-		}
-		value->data[0].v_pointer = omx_engine_iterator_ref (object);
-	} else {
-		value->data[0].v_pointer = NULL;
-	}
-	return NULL;
-}
-
-
-static gchar* omx_engine_value_iterator_lcopy_value (const GValue* value, guint n_collect_values, GTypeCValue* collect_values, guint collect_flags) {
-	OmxEngineIterator** object_p;
-	object_p = collect_values[0].v_pointer;
-	if (!object_p) {
-		return g_strdup_printf ("value location for `%s' passed as NULL", G_VALUE_TYPE_NAME (value));
-	}
-	if (!value->data[0].v_pointer) {
-		*object_p = NULL;
-	} else if (collect_flags && G_VALUE_NOCOPY_CONTENTS) {
-		*object_p = value->data[0].v_pointer;
-	} else {
-		*object_p = omx_engine_iterator_ref (value->data[0].v_pointer);
-	}
-	return NULL;
-}
-
-
-GParamSpec* omx_engine_param_spec_iterator (const gchar* name, const gchar* nick, const gchar* blurb, GType object_type, GParamFlags flags) {
-	OmxEngineParamSpecIterator* spec;
-	g_return_val_if_fail (g_type_is_a (object_type, OMX_ENGINE_TYPE_ITERATOR), NULL);
-	spec = g_param_spec_internal (G_TYPE_PARAM_OBJECT, name, nick, blurb, flags);
-	G_PARAM_SPEC (spec)->value_type = object_type;
-	return G_PARAM_SPEC (spec);
-}
-
-
-gpointer omx_engine_value_get_iterator (const GValue* value) {
-	g_return_val_if_fail (G_TYPE_CHECK_VALUE_TYPE (value, OMX_ENGINE_TYPE_ITERATOR), NULL);
-	return value->data[0].v_pointer;
-}
-
-
-void omx_engine_value_set_iterator (GValue* value, gpointer v_object) {
-	OmxEngineIterator* old;
-	g_return_if_fail (G_TYPE_CHECK_VALUE_TYPE (value, OMX_ENGINE_TYPE_ITERATOR));
-	old = value->data[0].v_pointer;
-	if (v_object) {
-		g_return_if_fail (G_TYPE_CHECK_INSTANCE_TYPE (v_object, OMX_ENGINE_TYPE_ITERATOR));
-		g_return_if_fail (g_value_type_compatible (G_TYPE_FROM_INSTANCE (v_object), G_VALUE_TYPE (value)));
-		value->data[0].v_pointer = v_object;
-		omx_engine_iterator_ref (value->data[0].v_pointer);
-	} else {
-		value->data[0].v_pointer = NULL;
-	}
-	if (old) {
-		omx_engine_iterator_unref (old);
-	}
-}
-
-
 static void omx_engine_iterator_class_init (OmxEngineIteratorClass * klass) {
 	omx_engine_iterator_parent_class = g_type_class_peek_parent (klass);
-	OMX_ENGINE_ITERATOR_CLASS (klass)->finalize = omx_engine_iterator_finalize;
 	g_type_class_add_private (klass, sizeof (OmxEngineIteratorPrivate));
+	G_OBJECT_CLASS (klass)->finalize = omx_engine_iterator_finalize;
 }
 
 
 static void omx_engine_iterator_instance_init (OmxEngineIterator * self) {
 	self->priv = OMX_ENGINE_ITERATOR_GET_PRIVATE (self);
-	self->ref_count = 1;
 }
 
 
-static void omx_engine_iterator_finalize (OmxEngineIterator* obj) {
+static void omx_engine_iterator_finalize (GObject* obj) {
 	OmxEngineIterator * self;
 	self = OMX_ENGINE_ITERATOR (obj);
 	_g_async_queue_unref0 (self->priv->_queue);
+	G_OBJECT_CLASS (omx_engine_iterator_parent_class)->finalize (obj);
 }
 
 
 GType omx_engine_iterator_get_type (void) {
 	static GType omx_engine_iterator_type_id = 0;
 	if (omx_engine_iterator_type_id == 0) {
-		static const GTypeValueTable g_define_type_value_table = { omx_engine_value_iterator_init, omx_engine_value_iterator_free_value, omx_engine_value_iterator_copy_value, omx_engine_value_iterator_peek_pointer, "p", omx_engine_value_iterator_collect_value, "p", omx_engine_value_iterator_lcopy_value };
-		static const GTypeInfo g_define_type_info = { sizeof (OmxEngineIteratorClass), (GBaseInitFunc) NULL, (GBaseFinalizeFunc) NULL, (GClassInitFunc) omx_engine_iterator_class_init, (GClassFinalizeFunc) NULL, NULL, sizeof (OmxEngineIterator), 0, (GInstanceInitFunc) omx_engine_iterator_instance_init, &g_define_type_value_table };
-		static const GTypeFundamentalInfo g_define_type_fundamental_info = { (G_TYPE_FLAG_CLASSED | G_TYPE_FLAG_INSTANTIATABLE | G_TYPE_FLAG_DERIVABLE | G_TYPE_FLAG_DEEP_DERIVABLE) };
-		omx_engine_iterator_type_id = g_type_register_fundamental (g_type_fundamental_next (), "OmxEngineIterator", &g_define_type_info, &g_define_type_fundamental_info, 0);
+		static const GTypeInfo g_define_type_info = { sizeof (OmxEngineIteratorClass), (GBaseInitFunc) NULL, (GBaseFinalizeFunc) NULL, (GClassInitFunc) omx_engine_iterator_class_init, (GClassFinalizeFunc) NULL, NULL, sizeof (OmxEngineIterator), 0, (GInstanceInitFunc) omx_engine_iterator_instance_init, NULL };
+		omx_engine_iterator_type_id = g_type_register_static (G_TYPE_OBJECT, "OmxEngineIterator", &g_define_type_info, 0);
 	}
 	return omx_engine_iterator_type_id;
-}
-
-
-gpointer omx_engine_iterator_ref (gpointer instance) {
-	OmxEngineIterator* self;
-	self = instance;
-	g_atomic_int_inc (&self->ref_count);
-	return instance;
-}
-
-
-void omx_engine_iterator_unref (gpointer instance) {
-	OmxEngineIterator* self;
-	self = instance;
-	if (g_atomic_int_dec_and_test (&self->ref_count)) {
-		OMX_ENGINE_ITERATOR_GET_CLASS (self)->finalize (self);
-		g_type_free_instance ((GTypeInstance *) self);
-	}
 }
 
 

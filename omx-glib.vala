@@ -177,8 +177,7 @@ namespace Omx {
             return new Iterator(this);
         }
 
-        
-        public class Iterator {
+        public class Iterator: Object {
             GLib.AsyncQueue<Omx.Port> _queue;
             bool _eos_found;
 
@@ -190,7 +189,7 @@ namespace Omx {
                 return !_eos_found;
             }
             
-            public Omx.Port get() {
+            public new Omx.Port get() {
                 var port = _queue.pop();
                 if(port.eos)
                     _eos_found = true;
