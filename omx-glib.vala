@@ -310,6 +310,10 @@ namespace Omx {
         public int id;
         Handle _handle;
 
+        State _current_state;
+        State _previous_state;
+        State _pending_state;
+
         string _component_name;
         Index _param_init_index;
         AsyncQueue<Port> _buffers_queue;
@@ -355,10 +359,34 @@ namespace Omx {
         }
 
 
+        public uint state {
+            get {
+                return _current_state;
+            }
+        }
+
+
+        public uint pending_state {
+            get {
+                return _pending_state;
+            }
+        }
+
+
+        public uint previous_state {
+            get {
+                return _previous_state;
+            }
+        }
+
+
         construct {
             _buffers_queue = new AsyncQueue<Port>();
             _wait_for_state_sem = new Semaphore();
             _port_list = new PortList(this);
+            _current_state = State.Invalid;
+            _previous_state = State.Invalid;
+            _pending_state = State.Invalid;
         }
 
 
@@ -381,6 +409,8 @@ namespace Omx {
             try_run(
                 _handle.get_parameter(
                     _param_init_index, port_param));
+            _pending_state = State.Loaded;
+            _current_state = State.Loaded;
         }
 
 
@@ -459,13 +489,14 @@ namespace Omx {
 
 
         public void set_state(State state) throws GLib.Error {
+            _pending_state = state;
             try_run(
                 _handle.send_command(
                     Command.StateSet, state, null));
         }
 
 
-        public State get_state() throws GLib.Error {
+        public State do_get_state() throws GLib.Error {
             State state;
             try_run(
                 _handle.get_state(
@@ -487,9 +518,12 @@ namespace Omx {
             switch(event) {
                 case Event.CmdComplete:
                     switch(data1) {
-                        case Command.StateSet:
+                        case Command.StateSet: {
+                            _previous_state = _current_state;
+                            _current_state = _pending_state = (State)data2;
                             _wait_for_state_sem.up();
                             break;
+                        }
                         default:
                             break;
                     }
