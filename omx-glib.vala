@@ -544,7 +544,7 @@ namespace GOmx {
         };
 
 
-        public void set_event_function(
+        public void event_set_function(
                 Omx.Event event,
                 EventFunc event_function) {
             switch(event) {

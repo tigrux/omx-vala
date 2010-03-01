@@ -25,6 +25,7 @@ namespace GOmx {
 		public void allocate_buffers () throws GLib.Error;
 		public void allocate_ports () throws GLib.Error;
 		public void empty_input_buffers () throws GLib.Error;
+		public void event_set_function (Omx.Event event, GOmx.Component.EventFunc event_function);
 		public void fill_output_buffers () throws GLib.Error;
 		public void free_handle () throws GLib.Error;
 		public void free_ports () throws GLib.Error;
@@ -33,7 +34,6 @@ namespace GOmx {
 		public Omx.State get_state () throws GLib.Error;
 		public void init () throws GLib.Error;
 		public void prepare_ports () throws GLib.Error;
-		public void set_event_function (Omx.Event event, GOmx.Component.EventFunc event_function);
 		public void set_state (Omx.State state) throws GLib.Error;
 		public void set_state_and_wait (Omx.State state) throws GLib.Error;
 		public void wait_for_state_set ();

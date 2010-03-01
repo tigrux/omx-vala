@@ -376,7 +376,7 @@ void g_omx_component_wait_for_state_set (GOmxComponent* self);
 void g_omx_component_set_state (GOmxComponent* self, OMX_STATETYPE state, GError** error);
 void g_omx_component_set_state_and_wait (GOmxComponent* self, OMX_STATETYPE state, GError** error);
 OMX_STATETYPE g_omx_component_get_state (GOmxComponent* self, GError** error);
-void g_omx_component_set_event_function (GOmxComponent* self, OMX_EVENTTYPE event, GOmxComponentEventFunc event_function, void* event_function_target);
+void g_omx_component_event_set_function (GOmxComponent* self, OMX_EVENTTYPE event, GOmxComponentEventFunc event_function, void* event_function_target);
 const char* g_omx_component_get_name (GOmxComponent* self);
 void g_omx_component_set_name (GOmxComponent* self, const char* value);
 void* g_omx_component_get_handle (GOmxComponent* self);

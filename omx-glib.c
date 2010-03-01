@@ -602,7 +602,7 @@ void g_omx_port_push_buffer (GOmxPort* self, OMX_BUFFERHEADERTYPE* buffer, GErro
 OMX_BUFFERHEADERTYPE* g_omx_port_pop_buffer (GOmxPort* self);
 void g_omx_semaphore_down (GOmxSemaphore* self);
 OMX_STATETYPE g_omx_component_get_state (GOmxComponent* self, GError** error);
-void g_omx_component_set_event_function (GOmxComponent* self, OMX_EVENTTYPE event, GOmxComponentEventFunc event_function, void* event_function_target);
+void g_omx_component_event_set_function (GOmxComponent* self, OMX_EVENTTYPE event, GOmxComponentEventFunc event_function, void* event_function_target);
 void g_omx_semaphore_up (GOmxSemaphore* self);
 static OMX_ERRORTYPE g_omx_component_buffer_done (GOmxComponent* self, GOmxPort* port, OMX_BUFFERHEADERTYPE* buffer);
 void g_omx_port_buffer_done (GOmxPort* self, OMX_BUFFERHEADERTYPE* buffer);
@@ -2185,7 +2185,7 @@ OMX_STATETYPE g_omx_component_get_state (GOmxComponent* self, GError** error) {
 }
 
 
-void g_omx_component_set_event_function (GOmxComponent* self, OMX_EVENTTYPE event, GOmxComponentEventFunc event_function, void* event_function_target) {
+void g_omx_component_event_set_function (GOmxComponent* self, OMX_EVENTTYPE event, GOmxComponentEventFunc event_function, void* event_function_target) {
 	g_return_if_fail (self != NULL);
 	switch (event) {
 		case OMX_EventCmdComplete:
