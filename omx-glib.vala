@@ -239,8 +239,10 @@ namespace GOmx {
             }
 
 
-            public uint length() {
-                return _engine.get_n_components();
+            public uint length {
+                get {
+                    return _engine.get_n_components();
+                }
             }
 
 
@@ -684,8 +686,10 @@ namespace GOmx {
             }
 
 
-            public uint length() {
-                return _component._ports.length;
+            public uint length {
+                get {
+                    return _component._ports.length;
+                }
             }
 
 
@@ -876,8 +880,10 @@ namespace GOmx {
             }
 
 
-            public uint length() {
-                return _port.get_n_buffers();
+            public uint length {
+                get {
+                    return _port.get_n_buffers();
+                }
             }
 
 

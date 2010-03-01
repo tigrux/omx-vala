@@ -15,7 +15,7 @@ namespace GOmx {
 			public PortList (GOmx.Component component);
 			public GOmx.Port @get (uint index);
 			public GOmx.Component.PortList.Iterator iterator ();
-			public uint length ();
+			public uint length { get; }
 		}
 		[CCode (cheader_filename = "omx-glib.h", instance_pos = -2)]
 		public delegate void EventFunc (GOmx.Component component, uint data1, uint data2, void* event_data);
@@ -79,7 +79,7 @@ namespace GOmx {
 			public ComponentList (GOmx.Engine engine);
 			public GOmx.Component @get (uint index);
 			public GOmx.Engine.ComponentList.Iterator iterator ();
-			public uint length ();
+			public uint length { get; }
 		}
 		[CCode (cheader_filename = "omx-glib.h")]
 		public class Iterator : GLib.Object {
@@ -128,7 +128,7 @@ namespace GOmx {
 			public BufferList (GOmx.Port port);
 			public Omx.BufferHeader @get (uint index);
 			public GOmx.Port.BufferList.Iterator iterator ();
-			public uint length ();
+			public uint length { get; }
 		}
 		[CCode (cheader_filename = "omx-glib.h", instance_pos = -2)]
 		public delegate void BufferDoneFunc (Omx.BufferHeader buffer);
