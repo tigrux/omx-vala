@@ -87,7 +87,7 @@ void handle_print_info(string name, Omx.Handle handle) throws Error {
     var port_definition = Omx.Param.PortDefinition();
     port_definition.init();
 
-    print("%s (%p)\n", name, (void*)handle);
+    print("%s (%p)\n", name, handle);
     for(uint i = param.start_port_number; i<param.ports; i++) {
         print("\tPort %u:\n", i);
         port_definition.port_index = i;

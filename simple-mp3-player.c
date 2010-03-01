@@ -521,7 +521,7 @@ void handle_print_info (const char* name, void* handle, GError** error) {
 	}
 	port_definition = (memset (&_tmp1_, 0, sizeof (OMX_PARAM_PORTDEFINITIONTYPE)), _tmp1_);
 	omx_structure_init (&port_definition);
-	g_print ("%s (%p)\n", name, (void*) handle);
+	g_print ("%s (%p)\n", name, handle);
 	{
 		guint i;
 		i = (guint) param.nStartPortNumber;
