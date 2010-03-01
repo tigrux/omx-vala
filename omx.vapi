@@ -1,7 +1,7 @@
 [CCode (cheader_filename="OMX_Core.h,OMX_Component.h")]
-namespace Omx {	
-	[CCode (cname="OMX_ALL")]
-	const uint ALL;
+namespace Omx {
+    [CCode (cname="OMX_ALL")]
+    const uint ALL;
 
     [CCode (cname="OMX_COMMANDTYPE", cprefix="OMX_Command")]
     public enum Command {
@@ -202,7 +202,7 @@ namespace Omx {
 
         [CCode (cname="nVersion")]
         public Version version;
-        
+
         [CCode (cheader_filename="omx-utils.h")]
         public void init();
     }
@@ -270,9 +270,9 @@ namespace Omx {
                 return (flags & BufferFlag.EOS) != 0;
             }
         }
-        
+
         public void set_eos() {
-            flags |= Omx.BufferFlag.EOS;        
+            flags |= Omx.BufferFlag.EOS;
         }
     }
 
@@ -442,7 +442,7 @@ namespace Omx {
     public enum Dir {
         Input,
         Output;
-        
+
         public weak string to_string() {
             switch(this) {
                 case Input:

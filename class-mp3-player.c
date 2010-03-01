@@ -35,16 +35,6 @@ typedef struct _OmxComponent OmxComponent;
 typedef struct _OmxComponentClass OmxComponentClass;
 typedef struct _OmxComponentPrivate OmxComponentPrivate;
 
-#define OMX_TYPE_PORT (omx_port_get_type ())
-#define OMX_PORT(obj) (G_TYPE_CHECK_INSTANCE_CAST ((obj), OMX_TYPE_PORT, OmxPort))
-#define OMX_PORT_CLASS(klass) (G_TYPE_CHECK_CLASS_CAST ((klass), OMX_TYPE_PORT, OmxPortClass))
-#define OMX_IS_PORT(obj) (G_TYPE_CHECK_INSTANCE_TYPE ((obj), OMX_TYPE_PORT))
-#define OMX_IS_PORT_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((klass), OMX_TYPE_PORT))
-#define OMX_PORT_GET_CLASS(obj) (G_TYPE_INSTANCE_GET_CLASS ((obj), OMX_TYPE_PORT, OmxPortClass))
-
-typedef struct _OmxPort OmxPort;
-typedef struct _OmxPortClass OmxPortClass;
-
 #define OMX_TYPE_ENGINE (omx_engine_get_type ())
 #define OMX_ENGINE(obj) (G_TYPE_CHECK_INSTANCE_CAST ((obj), OMX_TYPE_ENGINE, OmxEngine))
 #define OMX_ENGINE_CLASS(klass) (G_TYPE_CHECK_CLASS_CAST ((klass), OMX_TYPE_ENGINE, OmxEngineClass))
@@ -55,15 +45,95 @@ typedef struct _OmxPortClass OmxPortClass;
 typedef struct _OmxEngine OmxEngine;
 typedef struct _OmxEngineClass OmxEngineClass;
 
-#define OMX_ENGINE_TYPE_ITERATOR (omx_engine_iterator_get_type ())
-#define OMX_ENGINE_ITERATOR(obj) (G_TYPE_CHECK_INSTANCE_CAST ((obj), OMX_ENGINE_TYPE_ITERATOR, OmxEngineIterator))
-#define OMX_ENGINE_ITERATOR_CLASS(klass) (G_TYPE_CHECK_CLASS_CAST ((klass), OMX_ENGINE_TYPE_ITERATOR, OmxEngineIteratorClass))
-#define OMX_ENGINE_IS_ITERATOR(obj) (G_TYPE_CHECK_INSTANCE_TYPE ((obj), OMX_ENGINE_TYPE_ITERATOR))
-#define OMX_ENGINE_IS_ITERATOR_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((klass), OMX_ENGINE_TYPE_ITERATOR))
-#define OMX_ENGINE_ITERATOR_GET_CLASS(obj) (G_TYPE_INSTANCE_GET_CLASS ((obj), OMX_ENGINE_TYPE_ITERATOR, OmxEngineIteratorClass))
+#define OMX_ENGINE_TYPE_COMPONENT_LIST (omx_engine_component_list_get_type ())
+#define OMX_ENGINE_COMPONENT_LIST(obj) (G_TYPE_CHECK_INSTANCE_CAST ((obj), OMX_ENGINE_TYPE_COMPONENT_LIST, OmxEngineComponentList))
+#define OMX_ENGINE_COMPONENT_LIST_CLASS(klass) (G_TYPE_CHECK_CLASS_CAST ((klass), OMX_ENGINE_TYPE_COMPONENT_LIST, OmxEngineComponentListClass))
+#define OMX_ENGINE_IS_COMPONENT_LIST(obj) (G_TYPE_CHECK_INSTANCE_TYPE ((obj), OMX_ENGINE_TYPE_COMPONENT_LIST))
+#define OMX_ENGINE_IS_COMPONENT_LIST_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((klass), OMX_ENGINE_TYPE_COMPONENT_LIST))
+#define OMX_ENGINE_COMPONENT_LIST_GET_CLASS(obj) (G_TYPE_INSTANCE_GET_CLASS ((obj), OMX_ENGINE_TYPE_COMPONENT_LIST, OmxEngineComponentListClass))
 
-typedef struct _OmxEngineIterator OmxEngineIterator;
-typedef struct _OmxEngineIteratorClass OmxEngineIteratorClass;
+typedef struct _OmxEngineComponentList OmxEngineComponentList;
+typedef struct _OmxEngineComponentListClass OmxEngineComponentListClass;
+
+#define OMX_ENGINE_COMPONENT_LIST_TYPE_ITERATOR (omx_engine_component_list_iterator_get_type ())
+#define OMX_ENGINE_COMPONENT_LIST_ITERATOR(obj) (G_TYPE_CHECK_INSTANCE_CAST ((obj), OMX_ENGINE_COMPONENT_LIST_TYPE_ITERATOR, OmxEngineComponentListIterator))
+#define OMX_ENGINE_COMPONENT_LIST_ITERATOR_CLASS(klass) (G_TYPE_CHECK_CLASS_CAST ((klass), OMX_ENGINE_COMPONENT_LIST_TYPE_ITERATOR, OmxEngineComponentListIteratorClass))
+#define OMX_ENGINE_COMPONENT_LIST_IS_ITERATOR(obj) (G_TYPE_CHECK_INSTANCE_TYPE ((obj), OMX_ENGINE_COMPONENT_LIST_TYPE_ITERATOR))
+#define OMX_ENGINE_COMPONENT_LIST_IS_ITERATOR_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((klass), OMX_ENGINE_COMPONENT_LIST_TYPE_ITERATOR))
+#define OMX_ENGINE_COMPONENT_LIST_ITERATOR_GET_CLASS(obj) (G_TYPE_INSTANCE_GET_CLASS ((obj), OMX_ENGINE_COMPONENT_LIST_TYPE_ITERATOR, OmxEngineComponentListIteratorClass))
+
+typedef struct _OmxEngineComponentListIterator OmxEngineComponentListIterator;
+typedef struct _OmxEngineComponentListIteratorClass OmxEngineComponentListIteratorClass;
+
+#define OMX_COMPONENT_TYPE_PORT_LIST (omx_component_port_list_get_type ())
+#define OMX_COMPONENT_PORT_LIST(obj) (G_TYPE_CHECK_INSTANCE_CAST ((obj), OMX_COMPONENT_TYPE_PORT_LIST, OmxComponentPortList))
+#define OMX_COMPONENT_PORT_LIST_CLASS(klass) (G_TYPE_CHECK_CLASS_CAST ((klass), OMX_COMPONENT_TYPE_PORT_LIST, OmxComponentPortListClass))
+#define OMX_COMPONENT_IS_PORT_LIST(obj) (G_TYPE_CHECK_INSTANCE_TYPE ((obj), OMX_COMPONENT_TYPE_PORT_LIST))
+#define OMX_COMPONENT_IS_PORT_LIST_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((klass), OMX_COMPONENT_TYPE_PORT_LIST))
+#define OMX_COMPONENT_PORT_LIST_GET_CLASS(obj) (G_TYPE_INSTANCE_GET_CLASS ((obj), OMX_COMPONENT_TYPE_PORT_LIST, OmxComponentPortListClass))
+
+typedef struct _OmxComponentPortList OmxComponentPortList;
+typedef struct _OmxComponentPortListClass OmxComponentPortListClass;
+
+#define OMX_COMPONENT_PORT_LIST_TYPE_ITERATOR (omx_component_port_list_iterator_get_type ())
+#define OMX_COMPONENT_PORT_LIST_ITERATOR(obj) (G_TYPE_CHECK_INSTANCE_CAST ((obj), OMX_COMPONENT_PORT_LIST_TYPE_ITERATOR, OmxComponentPortListIterator))
+#define OMX_COMPONENT_PORT_LIST_ITERATOR_CLASS(klass) (G_TYPE_CHECK_CLASS_CAST ((klass), OMX_COMPONENT_PORT_LIST_TYPE_ITERATOR, OmxComponentPortListIteratorClass))
+#define OMX_COMPONENT_PORT_LIST_IS_ITERATOR(obj) (G_TYPE_CHECK_INSTANCE_TYPE ((obj), OMX_COMPONENT_PORT_LIST_TYPE_ITERATOR))
+#define OMX_COMPONENT_PORT_LIST_IS_ITERATOR_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((klass), OMX_COMPONENT_PORT_LIST_TYPE_ITERATOR))
+#define OMX_COMPONENT_PORT_LIST_ITERATOR_GET_CLASS(obj) (G_TYPE_INSTANCE_GET_CLASS ((obj), OMX_COMPONENT_PORT_LIST_TYPE_ITERATOR, OmxComponentPortListIteratorClass))
+
+typedef struct _OmxComponentPortListIterator OmxComponentPortListIterator;
+typedef struct _OmxComponentPortListIteratorClass OmxComponentPortListIteratorClass;
+
+#define OMX_TYPE_PORT (omx_port_get_type ())
+#define OMX_PORT(obj) (G_TYPE_CHECK_INSTANCE_CAST ((obj), OMX_TYPE_PORT, OmxPort))
+#define OMX_PORT_CLASS(klass) (G_TYPE_CHECK_CLASS_CAST ((klass), OMX_TYPE_PORT, OmxPortClass))
+#define OMX_IS_PORT(obj) (G_TYPE_CHECK_INSTANCE_TYPE ((obj), OMX_TYPE_PORT))
+#define OMX_IS_PORT_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((klass), OMX_TYPE_PORT))
+#define OMX_PORT_GET_CLASS(obj) (G_TYPE_INSTANCE_GET_CLASS ((obj), OMX_TYPE_PORT, OmxPortClass))
+
+typedef struct _OmxPort OmxPort;
+typedef struct _OmxPortClass OmxPortClass;
+
+#define OMX_PORT_TYPE_BUFFER_LIST (omx_port_buffer_list_get_type ())
+#define OMX_PORT_BUFFER_LIST(obj) (G_TYPE_CHECK_INSTANCE_CAST ((obj), OMX_PORT_TYPE_BUFFER_LIST, OmxPortBufferList))
+#define OMX_PORT_BUFFER_LIST_CLASS(klass) (G_TYPE_CHECK_CLASS_CAST ((klass), OMX_PORT_TYPE_BUFFER_LIST, OmxPortBufferListClass))
+#define OMX_PORT_IS_BUFFER_LIST(obj) (G_TYPE_CHECK_INSTANCE_TYPE ((obj), OMX_PORT_TYPE_BUFFER_LIST))
+#define OMX_PORT_IS_BUFFER_LIST_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((klass), OMX_PORT_TYPE_BUFFER_LIST))
+#define OMX_PORT_BUFFER_LIST_GET_CLASS(obj) (G_TYPE_INSTANCE_GET_CLASS ((obj), OMX_PORT_TYPE_BUFFER_LIST, OmxPortBufferListClass))
+
+typedef struct _OmxPortBufferList OmxPortBufferList;
+typedef struct _OmxPortBufferListClass OmxPortBufferListClass;
+
+#define OMX_PORT_BUFFER_LIST_TYPE_ITERATOR (omx_port_buffer_list_iterator_get_type ())
+#define OMX_PORT_BUFFER_LIST_ITERATOR(obj) (G_TYPE_CHECK_INSTANCE_CAST ((obj), OMX_PORT_BUFFER_LIST_TYPE_ITERATOR, OmxPortBufferListIterator))
+#define OMX_PORT_BUFFER_LIST_ITERATOR_CLASS(klass) (G_TYPE_CHECK_CLASS_CAST ((klass), OMX_PORT_BUFFER_LIST_TYPE_ITERATOR, OmxPortBufferListIteratorClass))
+#define OMX_PORT_BUFFER_LIST_IS_ITERATOR(obj) (G_TYPE_CHECK_INSTANCE_TYPE ((obj), OMX_PORT_BUFFER_LIST_TYPE_ITERATOR))
+#define OMX_PORT_BUFFER_LIST_IS_ITERATOR_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((klass), OMX_PORT_BUFFER_LIST_TYPE_ITERATOR))
+#define OMX_PORT_BUFFER_LIST_ITERATOR_GET_CLASS(obj) (G_TYPE_INSTANCE_GET_CLASS ((obj), OMX_PORT_BUFFER_LIST_TYPE_ITERATOR, OmxPortBufferListIteratorClass))
+
+typedef struct _OmxPortBufferListIterator OmxPortBufferListIterator;
+typedef struct _OmxPortBufferListIteratorClass OmxPortBufferListIteratorClass;
+
+#define OMX_ENGINE_TYPE_PORT_QUEUE (omx_engine_port_queue_get_type ())
+#define OMX_ENGINE_PORT_QUEUE(obj) (G_TYPE_CHECK_INSTANCE_CAST ((obj), OMX_ENGINE_TYPE_PORT_QUEUE, OmxEnginePortQueue))
+#define OMX_ENGINE_PORT_QUEUE_CLASS(klass) (G_TYPE_CHECK_CLASS_CAST ((klass), OMX_ENGINE_TYPE_PORT_QUEUE, OmxEnginePortQueueClass))
+#define OMX_ENGINE_IS_PORT_QUEUE(obj) (G_TYPE_CHECK_INSTANCE_TYPE ((obj), OMX_ENGINE_TYPE_PORT_QUEUE))
+#define OMX_ENGINE_IS_PORT_QUEUE_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((klass), OMX_ENGINE_TYPE_PORT_QUEUE))
+#define OMX_ENGINE_PORT_QUEUE_GET_CLASS(obj) (G_TYPE_INSTANCE_GET_CLASS ((obj), OMX_ENGINE_TYPE_PORT_QUEUE, OmxEnginePortQueueClass))
+
+typedef struct _OmxEnginePortQueue OmxEnginePortQueue;
+typedef struct _OmxEnginePortQueueClass OmxEnginePortQueueClass;
+
+#define OMX_ENGINE_PORT_QUEUE_TYPE_ITERATOR (omx_engine_port_queue_iterator_get_type ())
+#define OMX_ENGINE_PORT_QUEUE_ITERATOR(obj) (G_TYPE_CHECK_INSTANCE_CAST ((obj), OMX_ENGINE_PORT_QUEUE_TYPE_ITERATOR, OmxEnginePortQueueIterator))
+#define OMX_ENGINE_PORT_QUEUE_ITERATOR_CLASS(klass) (G_TYPE_CHECK_CLASS_CAST ((klass), OMX_ENGINE_PORT_QUEUE_TYPE_ITERATOR, OmxEnginePortQueueIteratorClass))
+#define OMX_ENGINE_PORT_QUEUE_IS_ITERATOR(obj) (G_TYPE_CHECK_INSTANCE_TYPE ((obj), OMX_ENGINE_PORT_QUEUE_TYPE_ITERATOR))
+#define OMX_ENGINE_PORT_QUEUE_IS_ITERATOR_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((klass), OMX_ENGINE_PORT_QUEUE_TYPE_ITERATOR))
+#define OMX_ENGINE_PORT_QUEUE_ITERATOR_GET_CLASS(obj) (G_TYPE_INSTANCE_GET_CLASS ((obj), OMX_ENGINE_PORT_QUEUE_TYPE_ITERATOR, OmxEnginePortQueueIteratorClass))
+
+typedef struct _OmxEnginePortQueueIterator OmxEnginePortQueueIterator;
+typedef struct _OmxEnginePortQueueIteratorClass OmxEnginePortQueueIteratorClass;
 typedef struct _OmxPortPrivate OmxPortPrivate;
 
 struct _OmxComponent {
@@ -75,7 +145,6 @@ struct _OmxComponent {
 
 struct _OmxComponentClass {
 	GObjectClass parent_class;
-	OMX_ERRORTYPE (*buffer_done) (OmxComponent* self, OmxPort* port, OMX_BUFFERHEADERTYPE* buffer);
 };
 
 struct _OmxPort {
@@ -102,7 +171,6 @@ void omx_core_init (OmxCore* self, GError** error);
 GType omx_component_get_type (void);
 OmxComponent* omx_core_get_component (OmxCore* self, const char* component_name, OMX_INDEXTYPE param_init_index, GError** error);
 void omx_component_set_name (OmxComponent* self, const char* value);
-GType omx_port_get_type (void);
 OmxEngine* omx_engine_new (void);
 OmxEngine* omx_engine_construct (GType object_type);
 GType omx_engine_get_type (void);
@@ -111,13 +179,57 @@ void omx_engine_set_state (OmxEngine* self, OMX_STATETYPE state, GError** error)
 void omx_engine_allocate_ports (OmxEngine* self, GError** error);
 void omx_engine_allocate_buffers (OmxEngine* self, GError** error);
 void omx_engine_wait_for_state_set (OmxEngine* self);
+gpointer omx_engine_component_list_ref (gpointer instance);
+void omx_engine_component_list_unref (gpointer instance);
+GParamSpec* omx_engine_param_spec_component_list (const gchar* name, const gchar* nick, const gchar* blurb, GType object_type, GParamFlags flags);
+void omx_engine_value_set_component_list (GValue* value, gpointer v_object);
+gpointer omx_engine_value_get_component_list (const GValue* value);
+GType omx_engine_component_list_get_type (void);
+OmxEngineComponentList* omx_engine_get_components (OmxEngine* self);
+GType omx_engine_component_list_iterator_get_type (void);
+OmxEngineComponentListIterator* omx_engine_component_list_iterator (OmxEngineComponentList* self);
+gboolean omx_engine_component_list_iterator_next (OmxEngineComponentListIterator* self);
+OmxComponent* omx_engine_component_list_iterator_get (OmxEngineComponentListIterator* self);
+const char* omx_component_get_name (OmxComponent* self);
+gpointer omx_component_port_list_ref (gpointer instance);
+void omx_component_port_list_unref (gpointer instance);
+GParamSpec* omx_component_param_spec_port_list (const gchar* name, const gchar* nick, const gchar* blurb, GType object_type, GParamFlags flags);
+void omx_component_value_set_port_list (GValue* value, gpointer v_object);
+gpointer omx_component_value_get_port_list (const GValue* value);
+GType omx_component_port_list_get_type (void);
+OmxComponentPortList* omx_component_get_ports (OmxComponent* self);
+GType omx_component_port_list_iterator_get_type (void);
+OmxComponentPortListIterator* omx_component_port_list_iterator (OmxComponentPortList* self);
+gboolean omx_component_port_list_iterator_next (OmxComponentPortListIterator* self);
+GType omx_port_get_type (void);
+OmxPort* omx_component_port_list_iterator_get (OmxComponentPortListIterator* self);
+const char* omx_port_get_name (OmxPort* self);
+gpointer omx_port_buffer_list_ref (gpointer instance);
+void omx_port_buffer_list_unref (gpointer instance);
+GParamSpec* omx_port_param_spec_buffer_list (const gchar* name, const gchar* nick, const gchar* blurb, GType object_type, GParamFlags flags);
+void omx_port_value_set_buffer_list (GValue* value, gpointer v_object);
+gpointer omx_port_value_get_buffer_list (const GValue* value);
+GType omx_port_buffer_list_get_type (void);
+OmxPortBufferList* omx_port_get_buffers (OmxPort* self);
+GType omx_port_buffer_list_iterator_get_type (void);
+OmxPortBufferListIterator* omx_port_buffer_list_iterator (OmxPortBufferList* self);
+gboolean omx_port_buffer_list_iterator_next (OmxPortBufferListIterator* self);
+OMX_BUFFERHEADERTYPE* omx_port_buffer_list_iterator_get (OmxPortBufferListIterator* self);
 void omx_engine_start (OmxEngine* self, GError** error);
-GType omx_engine_iterator_get_type (void);
-OmxEngineIterator* omx_engine_iterator (OmxEngine* self);
-gboolean omx_engine_iterator_next (OmxEngineIterator* self);
-OmxPort* omx_engine_iterator_get (OmxEngineIterator* self);
+gpointer omx_engine_port_queue_ref (gpointer instance);
+void omx_engine_port_queue_unref (gpointer instance);
+GParamSpec* omx_engine_param_spec_port_queue (const gchar* name, const gchar* nick, const gchar* blurb, GType object_type, GParamFlags flags);
+void omx_engine_value_set_port_queue (GValue* value, gpointer v_object);
+gpointer omx_engine_value_get_port_queue (const GValue* value);
+GType omx_engine_port_queue_get_type (void);
+OmxEnginePortQueue* omx_engine_get_ports (OmxEngine* self);
+GType omx_engine_port_queue_iterator_get_type (void);
+OmxEnginePortQueueIterator* omx_engine_port_queue_iterator (OmxEnginePortQueue* self);
+gboolean omx_engine_port_queue_iterator_next (OmxEnginePortQueueIterator* self);
+OmxPort* omx_engine_port_queue_iterator_get (OmxEnginePortQueueIterator* self);
 OmxComponent* omx_port_get_component (OmxPort* self);
 OMX_BUFFERHEADERTYPE* omx_port_pop_buffer (OmxPort* self);
+void omx_buffer_read_from_file (OMX_BUFFERHEADERTYPE* buffer, FILE* fs);
 void omx_port_push_buffer (OmxPort* self, OMX_BUFFERHEADERTYPE* buffer, GError** error);
 OmxPort* omx_component_get_port (OmxComponent* self, guint i);
 void omx_buffer_copy (OMX_BUFFERHEADERTYPE* dest, OMX_BUFFERHEADERTYPE* source);
@@ -170,12 +282,6 @@ int main (int argc, char ** argv) {
 	g_thread_init (NULL);
 	g_type_init ();
 	return _main (argv, argc);
-}
-
-
-static void omx_buffer_header_set_eos (OMX_BUFFERHEADERTYPE* self) {
-	g_return_if_fail (self != NULL);
-	self->nFlags = self->nFlags | ((guint32) OMX_BUFFERFLAG_EOS);
 }
 
 
@@ -269,6 +375,47 @@ void play (const char* filename, GError** error) {
 		return;
 	}
 	omx_engine_wait_for_state_set (engine);
+	{
+		OmxEngineComponentListIterator* _component_it;
+		_component_it = omx_engine_component_list_iterator (omx_engine_get_components (engine));
+		while (TRUE) {
+			OmxComponent* component;
+			if (!omx_engine_component_list_iterator_next (_component_it)) {
+				break;
+			}
+			component = omx_engine_component_list_iterator_get (_component_it);
+			g_print ("Component %s\n", omx_component_get_name (component));
+			{
+				OmxComponentPortListIterator* _port_it;
+				_port_it = omx_component_port_list_iterator (omx_component_get_ports (component));
+				while (TRUE) {
+					OmxPort* port;
+					if (!omx_component_port_list_iterator_next (_port_it)) {
+						break;
+					}
+					port = omx_component_port_list_iterator_get (_port_it);
+					g_print ("\tPort %s\n", omx_port_get_name (port));
+					{
+						OmxPortBufferListIterator* _buffer_it;
+						_buffer_it = omx_port_buffer_list_iterator (omx_port_get_buffers (port));
+						while (TRUE) {
+							OMX_BUFFERHEADERTYPE* buffer;
+							if (!omx_port_buffer_list_iterator_next (_buffer_it)) {
+								break;
+							}
+							buffer = omx_port_buffer_list_iterator_get (_buffer_it);
+							g_print ("\t\tBuffer %p\n", buffer);
+						}
+						_g_object_unref0 (_buffer_it);
+					}
+					_g_object_unref0 (port);
+				}
+				_g_object_unref0 (_port_it);
+			}
+			_g_object_unref0 (component);
+		}
+		_g_object_unref0 (_component_it);
+	}
 	omx_engine_start (engine, &_inner_error_);
 	if (_inner_error_ != NULL) {
 		g_propagate_error (error, _inner_error_);
@@ -280,16 +427,14 @@ void play (const char* filename, GError** error) {
 		return;
 	}
 	{
-		OmxEngineIterator* _port_it;
-		_port_it = omx_engine_iterator (engine);
+		OmxEnginePortQueueIterator* _port_it;
+		_port_it = omx_engine_port_queue_iterator (omx_engine_get_ports (engine));
 		while (TRUE) {
 			OmxPort* port;
-			OMX_BUFFERHEADERTYPE* buffer;
-			if (!omx_engine_iterator_next (_port_it)) {
+			if (!omx_engine_port_queue_iterator_next (_port_it)) {
 				break;
 			}
-			port = omx_engine_iterator_get (_port_it);
-			buffer = NULL;
+			port = omx_engine_port_queue_iterator_get (_port_it);
 			switch (omx_port_get_component (port)->id) {
 				case AUDIODEC_ID:
 				{
@@ -297,12 +442,9 @@ void play (const char* filename, GError** error) {
 						case OMX_DirInput:
 						{
 							{
+								OMX_BUFFERHEADERTYPE* buffer;
 								buffer = omx_port_pop_buffer (port);
-								buffer->nOffset = (gsize) 0;
-								buffer->nFilledLen = fread (buffer->pBuffer, 1, buffer->nAllocLen, fd);
-								if (feof (fd)) {
-									omx_buffer_header_set_eos (buffer);
-								}
+								omx_buffer_read_from_file (buffer, fd);
 								omx_port_push_buffer (port, buffer, &_inner_error_);
 								if (_inner_error_ != NULL) {
 									g_propagate_error (error, _inner_error_);
@@ -321,13 +463,14 @@ void play (const char* filename, GError** error) {
 						case OMX_DirOutput:
 						{
 							{
+								OMX_BUFFERHEADERTYPE* buffer;
 								OmxPort* audiosink_inport;
-								OMX_BUFFERHEADERTYPE* sink_buffer;
+								OMX_BUFFERHEADERTYPE* alsa_buffer;
 								buffer = omx_port_pop_buffer (port);
 								audiosink_inport = omx_component_get_port (audiosink, (guint) 0);
-								sink_buffer = omx_port_pop_buffer (audiosink_inport);
-								omx_buffer_copy (sink_buffer, buffer);
-								omx_port_push_buffer (audiosink_inport, sink_buffer, &_inner_error_);
+								alsa_buffer = omx_port_pop_buffer (audiosink_inport);
+								omx_buffer_copy (alsa_buffer, buffer);
+								omx_port_push_buffer (audiosink_inport, alsa_buffer, &_inner_error_);
 								if (_inner_error_ != NULL) {
 									g_propagate_error (error, _inner_error_);
 									_g_object_unref0 (audiosink_inport);

@@ -1,23 +1,7 @@
 namespace Omx {
 
-    public delegate Error InitFunc();
-
-    public delegate Error DeinitFunc();
-
-    public delegate Error GetHandleFunc(
-        out Handle component, string component_name,
-        void *app_data, Callback callbacks);
-
-    public delegate Error FreeHandleFunc(Handle handle);
-
-    public delegate Error SetupTunnelFunc(
-        Handle output, uint32 port_output,
-        Handle input, uint32 port_input);
-
-
-
-    public class Core: GLib.Object {
-        GLib.Module _module;
+    public class Core: Object {
+        Module _module;
 
         InitFunc _init;
         DeinitFunc _deinit;
@@ -26,44 +10,58 @@ namespace Omx {
         SetupTunnelFunc _setup_tunnel;
 
 
+        public delegate Error InitFunc();
+
+        public delegate Error DeinitFunc();
+
+        public delegate Error GetHandleFunc(
+            out Handle component, string component_name,
+            void *app_data, Callback callbacks);
+
+        public delegate Error FreeHandleFunc(Handle handle);
+
+        public delegate Error SetupTunnelFunc(
+            Handle output, uint32 port_output,
+            Handle input, uint32 port_input);
+
+
         public void init() throws GLib.Error {
-            Omx.try_run(_init());
+            try_run(_init());
         }
 
 
         public void deinit() throws GLib.Error {
-            Omx.try_run(_deinit());
+            try_run(_deinit());
         }
 
 
         public void get_handle(
                 out Handle component, string component_name,
                 void *app_data, Callback callbacks) throws GLib.Error {
-            Omx.try_run(
+            try_run(
                 _get_handle(
                     out component, component_name, app_data, callbacks));
         }
 
-        
+
         public void free_handle(Handle handle) throws GLib.Error {
-            Omx.try_run(_free_handle(handle));
+            try_run(_free_handle(handle));
         }
 
 
         public void setup_tunnel(
                 Handle output, uint32 port_output,
                 Handle input, uint32 port_input) throws GLib.Error {
-            Omx.try_run(
+            try_run(
                 _setup_tunnel(output, port_output, input, port_input));
         }
 
 
         public Component get_component(
                 string component_name,
-                Omx.Index param_init_index) throws GLib.Error {
+                Index param_init_index) throws GLib.Error {
             var component =
                 new Component(this, component_name, param_init_index);
-            component.name = component_name;
             component.init();
             return component;
         }
@@ -71,8 +69,8 @@ namespace Omx {
 
         public static Core? open(string soname) {
             var core = new Core();
-    
-            var module = GLib.Module.open(soname, GLib.ModuleFlags.BIND_LAZY);
+
+            var module = Module.open(soname, ModuleFlags.BIND_LAZY);
             if(module == null)
                 return null;
 
@@ -90,12 +88,12 @@ namespace Omx {
             module.symbol ("OMX_GetHandle", out symbol);
             if(symbol == null)
                 return null;
-            core._get_handle = (GetHandleFunc)symbol;            
+            core._get_handle = (GetHandleFunc)symbol;
 
             module.symbol ("OMX_FreeHandle", out symbol);
             if(symbol == null)
                 return null;
-            core._free_handle = (FreeHandleFunc)symbol;            
+            core._free_handle = (FreeHandleFunc)symbol;
 
             module.symbol ("OMX_SetupTunnel", out symbol);
             if(symbol == null)
@@ -110,65 +108,90 @@ namespace Omx {
 
 
     public class Engine: Object {
-        GLib.AsyncQueue<Omx.Port> _queue;
-        GLib.List<Omx.Component> _components_list;
+        AsyncQueue<Port> _buffers_queue;
+        List<Component> _components_list;
+        ComponentList _component_list;
+        PortQueue _port_queue;
 
 
         public Engine() {
-            _queue = new GLib.AsyncQueue<Omx.Port>();
-            _components_list = new GLib.List<Omx.Component>();
+            _buffers_queue = new AsyncQueue<Port>();
+            _components_list = new List<Component>();
+            _component_list = new ComponentList(this);
+            _port_queue = new PortQueue(this);
         }
 
 
-        public void add_component(Omx.Component component) {
-            component.queue = _queue;
+        public ComponentList components {
+            get {
+                return _component_list;
+            }
+        }
+
+
+        public PortQueue ports {
+            get {
+                return _port_queue;
+            }
+        }
+
+
+        public void add_component(Component component) {
+            component.queue = _buffers_queue;
             _components_list.append(component);
         }
 
 
-        public weak GLib.List<weak Omx.Component> get_components() {
-            return _components_list;
+        public uint get_n_components() {
+            return _components_list.length();
         }
 
+
+        public Component get_component(uint i) {
+            return _components_list.nth_data(i);
+        }
+
+
         public void start() throws GLib.Error {
-            foreach(var component in get_components()) {
+            foreach(var component in _components_list) {
                 component.prepare_ports();
                 break;
             }
         }
 
-        public void set_state(Omx.State state) throws GLib.Error {
-            foreach(var component in get_components())
+
+        public void set_state(State state) throws GLib.Error {
+            foreach(var component in _components_list)
                 component.set_state(state);
         }
 
-        
+
         public void wait_for_state_set() {
-            foreach(var component in get_components())
+            foreach(var component in _components_list)
                 component.wait_for_state_set();
         }
 
 
         public void allocate_ports() throws GLib.Error {
-            foreach(var component in get_components())
+            foreach(var component in _components_list)
                 component.allocate_ports();
         }
 
 
         public void allocate_buffers() throws GLib.Error {
-            foreach(var component in get_components())
+            foreach(var component in _components_list)
                 component.allocate_buffers();
         }
 
-        
+
         public void free_ports() throws GLib.Error {
-            foreach(var component in get_components())
+            foreach(var component in _components_list)
                 component.free_ports();
         }
 
 
         public void free_handles() throws GLib.Error {
-            foreach(var component in get_components())
+            foreach(var component in _components_list)
                 component.free_handle();
         }
 
@@ -177,40 +200,123 @@ namespace Omx {
             return new Iterator(this);
         }
 
+
         public class Iterator: Object {
-            GLib.AsyncQueue<Omx.Port> _queue;
+            AsyncQueue<Port> _buffers_queue;
             bool _eos_found;
 
             public Iterator(Engine engine) {
-                _queue = engine._queue;
+                _buffers_queue = engine._buffers_queue;
             }
-            
+
             public bool next() {
                 return !_eos_found;
             }
-            
-            public new Omx.Port get() {
-                var port = _queue.pop();
+
+            public new Port get() {
+                var port = _buffers_queue.pop();
                 if(port.eos)
                     _eos_found = true;
                 return port;
             }
-        }    
+        }
+
+
+        public class ComponentList {
+            Engine _engine;
+
+
+            public ComponentList(Engine engine) {
+                _engine = engine;
+            }
+
+
+            public Iterator iterator() {
+                return new Iterator(_engine);
+            }
+
+
+            public uint length() {
+                return _engine.get_n_components();
+            }
+
+
+            public new Component get(uint index) {
+                return _engine.get_component(index);
+            }
+
+
+            public class Iterator: Object {
+                weak List<Component> _components_list;
+
+                public Iterator(Engine engine) {
+                    _components_list = engine._components_list;
+                }
+
+                public bool next() {
+                    return _components_list != null;
+                }
+
+                public new Component get() {
+                    var component = _components_list.data;
+                    _components_list = _components_list.next;
+                    return component;
+                }
+            }
+        }
+
+
+
+        public class PortQueue {
+            Engine _engine;
+
+
+            public PortQueue(Engine engine) {
+                _engine = engine;
+            }
+
+
+            public Iterator iterator() {
+                return new Iterator(_engine);
+            }
+
+
+            public class Iterator: Object {
+                AsyncQueue<Port> _buffers_queue;
+                bool _eos_found;
+
+                public Iterator(Engine engine) {
+                    _buffers_queue = engine._buffers_queue;
+                }
+
+                public bool next() {
+                    return !_eos_found;
+                }
+
+                public new Port get() {
+                    var port = _buffers_queue.pop();
+                    if(port.eos)
+                        _eos_found = true;
+                    return port;
+                }
+            }
+        }
     }
 
 
 
-    public class Component: GLib.Object {
-        public Omx.PortParam port_param;
+    public class Component: Object {
+        public PortParam port_param;
         public int id;
-        Omx.Handle _handle;
+        Handle _handle;
 
         string _component_name;
-        Omx.Index _param_init_index;
-        AsyncQueue<Omx.Port> _queue;
+        Index _param_init_index;
+        AsyncQueue<Port> _buffers_queue;
         Semaphore _wait_for_state_sem;
         Core _core;
         Port[] _ports;
+        PortList _port_list;
 
 
         public string name {
@@ -225,12 +331,19 @@ namespace Omx {
         }
 
 
-        public AsyncQueue<Omx.Port> queue {
+        public PortList ports {
             get {
-                return _queue;
+                return _port_list;
+            }
+        }
+
+
+        public AsyncQueue<Port> queue {
+            get {
+                return _buffers_queue;
             }
             set {
-                _queue = value;
+                _buffers_queue = value;
             }
         }
 
@@ -242,15 +355,20 @@ namespace Omx {
         }
 
 
+        construct {
+            _buffers_queue = new AsyncQueue<Port>();
+            _wait_for_state_sem = new Semaphore();
+            _port_list = new PortList(this);
+        }
+
+
         public Component(
                 Core core,
                 string component_name,
-                Omx.Index param_init_index) {
+                Index param_init_index) {
             _core = core;
-            _component_name = component_name;
+            name = _component_name = component_name;
             _param_init_index = param_init_index;
-            _queue = new AsyncQueue<Omx.Port>();
-            _wait_for_state_sem = new Semaphore();
         }
 
 
@@ -260,11 +378,10 @@ namespace Omx {
                 this, callbacks);
 
             port_param.init();
-            Omx.try_run(
+            try_run(
                 _handle.get_parameter(
                     _param_init_index, port_param));
         }
-
 
 
         public void free_handle() throws GLib.Error {
@@ -289,7 +406,7 @@ namespace Omx {
             for(uint i = 0; i<n_ports; i++) {
                 var port = new Port(this, i);
                 port.init();
-                port.name = "%s.port%u".printf(name, i);
+                port.name = "%s_port%u".printf(name, i);
                 _ports[i] = port;
             }
         }
@@ -316,7 +433,7 @@ namespace Omx {
 
         public void fill_output_buffers() throws GLib.Error {
             foreach(var port in _ports) {
-                if(port.definition.dir == Omx.Dir.Output) {
+                if(port.definition.dir == Dir.Output) {
                     var n_buffers = port.get_n_buffers();
                     for(int i=0; i<n_buffers; i++)
                         port.push_buffer(port.pop_buffer());
@@ -327,10 +444,10 @@ namespace Omx {
 
         public void empty_input_buffers() throws GLib.Error {
             foreach(var port in _ports) {
-                if(port.definition.dir == Omx.Dir.Input) {
+                if(port.definition.dir == Dir.Input) {
                     uint n_buffers = port.get_n_buffers();
                     for(uint i=0; i<n_buffers; i++)
-                        _queue.push(port);
+                        _buffers_queue.push(port);
                 }
             }
         }
@@ -341,36 +458,36 @@ namespace Omx {
         }
 
 
-        public void set_state(Omx.State state) throws GLib.Error {
-            Omx.try_run(
+        public void set_state(State state) throws GLib.Error {
+            try_run(
                 _handle.send_command(
-                    Omx.Command.StateSet, state, null));
+                    Command.StateSet, state, null));
         }
 
 
-        public Omx.State get_state() throws GLib.Error {
-            Omx.State state;
-            Omx.try_run(
+        public State get_state() throws GLib.Error {
+            State state;
+            try_run(
                 _handle.get_state(
                     out state));
             return state;
         }
 
 
-        const Omx.Callback callbacks = {
+        const Callback callbacks = {
             event_handler,
             empty_buffer_done,
             fill_buffer_done
         };
 
 
-        Omx.Error event_handler(
-                Omx.Handle component, Omx.Event event,
+        Error event_handler(
+                Handle component, Event event,
                 uint32 data1, uint32 data2, void *event_data) {
             switch(event) {
-                case Omx.Event.CmdComplete:
+                case Event.CmdComplete:
                     switch(data1) {
-                        case Omx.Command.StateSet:
+                        case Command.StateSet:
                             _wait_for_state_sem.up();
                             break;
                         default:
@@ -380,42 +497,92 @@ namespace Omx {
                 default:
                     break;
             }
-            return Omx.Error.None;
+            return Error.None;
         }
 
 
-        Omx.Error empty_buffer_done(
-                Omx.Handle component,
-                Omx.BufferHeader buffer) {
+        Error empty_buffer_done(
+                Handle component,
+                BufferHeader buffer) {
             return buffer_done(get_port(buffer.input_port_index), buffer);
         }
 
 
-        Omx.Error fill_buffer_done(
-                Omx.Handle component,
-                Omx.BufferHeader buffer) {
-            return buffer_done(get_port(buffer.output_port_index), buffer);
+        Error fill_buffer_done(
+                Handle component,
+                BufferHeader buffer) {
+            var port = get_port(buffer.output_port_index);
+            port.buffer_done(buffer);
+            return buffer_done(port, buffer);
         }
 
 
-        protected virtual Omx.Error buffer_done(
-                Omx.Port port,
-                Omx.BufferHeader buffer) {
+        Error buffer_done(
+                Port port,
+                BufferHeader buffer) {
             port.queue.push(buffer);
-            _queue.push(port);
-            return Omx.Error.None;
+            _buffers_queue.push(port);
+            return Error.None;
+        }
+
+
+
+        public class PortList {
+            Component _component;
+
+
+            public PortList(Component component) {
+                _component = component;
+            }
+
+
+            public Iterator iterator() {
+                return new Iterator(_component);
+            }
+
+
+            public uint length() {
+                return _component._ports.length;
+            }
+
+
+            public new Port get(uint index) {
+                return _component._ports[index];
+            }
+
+
+            public class Iterator: Object {
+                Component _component;
+                uint _index;
+
+                public Iterator(Component component) {
+                    _component = component;
+                }
+
+                public bool next() {
+                    return _index < _component._ports.length;
+                }
+
+                public new Port get() {
+                    return _component._ports[_index++];
+                }
+            }
         }
     }
 
 
 
-    public class Port: GLib.Object {
-        public Omx.Param.PortDefinition definition;
-        
-        Omx.BufferHeader[] _buffers;
-        AsyncQueue<Omx.BufferHeader> _queue;
+    public class Port: Object {
+        public Param.PortDefinition definition;
+
+        BufferHeader[] _buffers;
+        AsyncQueue<BufferHeader> _buffers_queue;
+        BufferList _buffer_list;
         Component _component;
         bool _eos;
+        BufferDoneFunc _buffer_done_func;
+
+        public delegate void BufferDoneFunc(BufferHeader buffer);
 
 
         public string name {
@@ -436,56 +603,69 @@ namespace Omx {
             }
         }
 
-        public AsyncQueue<Omx.BufferHeader> queue {
+
+        public AsyncQueue<BufferHeader> queue {
             get {
-                return _queue;
+                return _buffers_queue;
             }
         }
 
-        
+
+        public BufferList buffers {
+            get {
+                return _buffer_list;
+            }
+        }
+
+
+        construct {
+            _buffers_queue = new AsyncQueue<BufferHeader>();
+            _buffer_list = new BufferList(this);
+            definition.init();
+        }
+
         public Port(Component parent_component, uint32 port_index) {
             _component = parent_component;
-            _queue = new AsyncQueue<Omx.BufferHeader>();
-            definition.init();
             definition.port_index = port_index;
         }
 
 
         public void init() throws GLib.Error {
-            Omx.try_run(
+            try_run(
                 _component.handle.get_parameter(
-                    Omx.Index.ParamPortDefinition, definition));
+                    Index.ParamPortDefinition, definition));
         }
 
 
         public void allocate_buffers() throws GLib.Error {
             uint n_buffers = get_n_buffers();
-            _buffers = new Omx.BufferHeader[n_buffers];
+            _buffers = new BufferHeader[n_buffers];
             for(uint i=0; i<n_buffers; i++) {
-                Omx.try_run(
+                try_run(
                     _component.handle.allocate_buffer(
                         out _buffers[i], definition.port_index,
                         this, definition.buffer_size));
-                _queue.push(_buffers[i]);
+                _buffers_queue.push(_buffers[i]);
             }
         }
 
 
-        public void use_buffers_of_port(Omx.Port port) throws GLib.Error {
+        public void use_buffers_of(Port port) throws GLib.Error {
             uint n_buffers = get_n_buffers();
-            _buffers = new Omx.BufferHeader[n_buffers];
+            _buffers = new BufferHeader[n_buffers];
             for(uint i=0; i<n_buffers; i++) {
-                Omx.try_run(
+                var buffer_used = port.get_buffer(i);
+                try_run(
                     _component.handle.use_buffer(
                         out _buffers[i], definition.port_index,
                         _component, definition.buffer_size,
-                        port.get_buffer(i).buffer));
-                _queue.push(_buffers[i]);
+                        buffer_used.buffer));
+                _buffers_queue.push(_buffers[i]);
             }
         }
 
 
-        public weak Omx.BufferHeader get_buffer(uint i) {
+        public weak BufferHeader get_buffer(uint i) {
             return _buffers[i];
         }
 
@@ -497,47 +677,102 @@ namespace Omx {
 
         public void free_buffers() throws GLib.Error {
             foreach(var buffer in _buffers)
-                Omx.try_run(
+                try_run(
                     _component.handle.free_buffer(
                         definition.port_index, buffer));
             _buffers = null;
         }
 
 
-        public Omx.BufferHeader pop_buffer() {
-            var buffer = _queue.pop();
+        public BufferHeader pop_buffer() {
+            var buffer = _buffers_queue.pop();
             if(buffer.eos)
                 _eos = true;
             return buffer;
         }
 
 
-        public void push_buffer(Omx.BufferHeader buffer) throws GLib.Error {
+        public void push_buffer(BufferHeader buffer) throws GLib.Error {
             var handle = component.handle;
             switch(definition.dir) {
-                case Omx.Dir.Input:
+                case Dir.Input:
                     handle.empty_this_buffer(buffer);
                     break;
-                case Omx.Dir.Output:
+                case Dir.Output:
                     handle.fill_this_buffer(buffer);
                     break;
                 default:
                     break;
             }
         }
+
+
+        public void set_buffer_done_function(BufferDoneFunc buffer_done_func) {
+            _buffer_done_func = buffer_done_func;
+        }
+
+
+        public void buffer_done(BufferHeader buffer) {
+            if(_buffer_done_func != null)
+                _buffer_done_func(buffer);
+        }
+
+
+
+        public class BufferList {
+            Port _port;
+
+
+            public BufferList(Port port) {
+                _port = port;
+            }
+
+
+            public Iterator iterator() {
+                return new Iterator(_port);
+            }
+
+
+            public uint length() {
+                return _port.get_n_buffers();
+            }
+
+
+            public new BufferHeader get(uint index) {
+                return _port.get_buffer(index);
+            }
+
+
+            public class Iterator: Object {
+                Port _port;
+                uint _index;
+
+                public Iterator(Port port) {
+                    _port = port;
+                }
+
+                public bool next() {
+                    return _index < _port.get_n_buffers();
+                }
+
+                public new BufferHeader get() {
+                    return _port.get_buffer(_index++);
+                }
+            }
+        }
     }
 
 
 
-    public class Semaphore {
-        GLib.Cond _cond;
-        GLib.Mutex _mutex;
+    public class Semaphore: Object {
+        Cond _cond;
+        Mutex _mutex;
         int counter;
 
 
-        public Semaphore() {
-            _cond = new GLib.Cond();
-            _mutex = new GLib.Mutex();
+        construct {
+            _cond = new Cond();
+            _mutex = new Mutex();
             counter = 0;
         }
 
@@ -561,10 +796,24 @@ namespace Omx {
 
 
 
-    public void buffer_copy(Omx.BufferHeader dest, Omx.BufferHeader source) {
+    public void buffer_copy(BufferHeader dest, BufferHeader source) {
         Memory.copy(dest.buffer, source.buffer, source.filled_len);
         dest.filled_len = source.filled_len;
         dest.offset = source.offset;
+    }
+
+
+    public void buffer_copy_len(BufferHeader dest, BufferHeader source) {
+        dest.filled_len = source.filled_len;
+        dest.offset = source.offset;
+    }
+
+
+    public void buffer_read_from_file(BufferHeader buffer, FileStream fs) {
+        buffer.offset = 0;
+        buffer.filled_len = fs.read(buffer.buffer);
+        if(fs.eof())
+            buffer.set_eos();
     }
 }
 

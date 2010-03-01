@@ -79,7 +79,7 @@ void get_handles() throws Error {
 void handle_print_info(string name, Omx.Handle handle) throws Error {
     var param = Omx.PortParam();
     param.init();
-    
+
     Omx.try_run(
         handle.get_parameter(
             Omx.Index.ParamAudioInit, param));
@@ -149,12 +149,12 @@ void move_buffers() throws Error {
     for(int i=0; i<N_BUFFERS; i++) {
         read_buffer_from_fd(in_buffer_audiodec[i]);
         Omx.try_run(
-        	audiodec_handle.empty_this_buffer(
-        		in_buffer_audiodec[i]));
+            audiodec_handle.empty_this_buffer(
+                in_buffer_audiodec[i]));
         Omx.try_run(
-        	audiodec_handle.fill_this_buffer(
-        		out_buffer_audiodec[i]));
-	}
+            audiodec_handle.fill_this_buffer(
+                out_buffer_audiodec[i]));
+    }
 }
 
 void free_buffers() throws Error {
@@ -220,7 +220,7 @@ Omx.Error audiodec_empty_buffer_done(
         return Omx.Error.None;
 
     read_buffer_from_fd(buffer);
-    
+
     if(fd.eof()) {
         print("Setting eos flag\n");
         buffer.set_eos();
@@ -232,10 +232,10 @@ Omx.Error audiodec_fill_buffer_done(
         Omx.Handle component,
         Omx.BufferHeader buffer) {
     if(buffer.eos) {
-    	print("Got eos flag\n");
-    	eos_sem.up();
-    	return Omx.Error.None;
-	}
+        print("Got eos flag\n");
+        eos_sem.up();
+        return Omx.Error.None;
+    }
     return audiosink_handle.empty_this_buffer(buffer);
 }
 
