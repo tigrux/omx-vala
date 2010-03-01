@@ -21,7 +21,7 @@ gomx-mp3-player.c: gomx-mp3-player.vala omx.vapi omx-glib.vapi
 	valac -C --thread --pkg gmodule-2.0 $^
 	touch $@
 
-omx-glib.vapi: omx-glib.vala omx.vapi
+omx-glib.vapi omx-glib.c: omx-glib.vala omx.vapi
 	valac --vapi=omx-glib.vapi --pkg gmodule-2.0 -C -H omx-glib.h $^
 	touch $@
 

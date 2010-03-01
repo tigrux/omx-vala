@@ -343,7 +343,7 @@ static void omx_try_run (OMX_ERRORTYPE err, const char* file, const char* functi
 	if (err != OMX_ErrorNone) {
 		GError* e;
 		e = g_error_new (omx_error_domain (), (gint) err, "%s (0x%x) in function %s at %s:%d", omx_error_to_string (err), err, function, file, line, NULL);
-		_inner_error_ = _g_error_copy0 ((GError*) e);
+		_inner_error_ = _g_error_copy0 (e);
 		{
 			g_propagate_error (error, _inner_error_);
 			_g_error_free0 (e);
