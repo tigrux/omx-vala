@@ -323,6 +323,7 @@ struct _OmxComponentClass {
 	GObjectClass parent_class;
 };
 
+typedef void (*OmxComponentEventFunc) (guint data1, guint data2, void* event_data, void* user_data);
 struct _OmxComponentPrivate {
 	void* _handle;
 	OMX_STATETYPE _current_state;
@@ -337,6 +338,33 @@ struct _OmxComponentPrivate {
 	gint _ports_length1;
 	gint _ports_size;
 	OmxComponentPortList* _port_list;
+	OmxComponentEventFunc _event_func_0;
+	gpointer _event_func_0_target;
+	GDestroyNotify _event_func_0_target_destroy_notify;
+	OmxComponentEventFunc _event_func_1;
+	gpointer _event_func_1_target;
+	GDestroyNotify _event_func_1_target_destroy_notify;
+	OmxComponentEventFunc _event_func_2;
+	gpointer _event_func_2_target;
+	GDestroyNotify _event_func_2_target_destroy_notify;
+	OmxComponentEventFunc _event_func_3;
+	gpointer _event_func_3_target;
+	GDestroyNotify _event_func_3_target_destroy_notify;
+	OmxComponentEventFunc _event_func_4;
+	gpointer _event_func_4_target;
+	GDestroyNotify _event_func_4_target_destroy_notify;
+	OmxComponentEventFunc _event_func_5;
+	gpointer _event_func_5_target;
+	GDestroyNotify _event_func_5_target_destroy_notify;
+	OmxComponentEventFunc _event_func_6;
+	gpointer _event_func_6_target;
+	GDestroyNotify _event_func_6_target_destroy_notify;
+	OmxComponentEventFunc _event_func_7;
+	gpointer _event_func_7_target;
+	GDestroyNotify _event_func_7_target_destroy_notify;
+	OmxComponentEventFunc _event_func_8;
+	gpointer _event_func_8_target;
+	GDestroyNotify _event_func_8_target_destroy_notify;
 	char* _name;
 };
 
@@ -618,6 +646,7 @@ void omx_port_push_buffer (OmxPort* self, OMX_BUFFERHEADERTYPE* buffer, GError**
 OMX_BUFFERHEADERTYPE* omx_port_pop_buffer (OmxPort* self);
 void omx_semaphore_down (OmxSemaphore* self);
 OMX_STATETYPE omx_component_get_state (OmxComponent* self, GError** error);
+void omx_component_set_event_function (OmxComponent* self, OMX_EVENTTYPE event, OmxComponentEventFunc event_function, void* event_function_target);
 void omx_semaphore_up (OmxSemaphore* self);
 static OMX_ERRORTYPE omx_component_buffer_done (OmxComponent* self, OmxPort* port, OMX_BUFFERHEADERTYPE* buffer);
 void omx_port_buffer_done (OmxPort* self, OMX_BUFFERHEADERTYPE* buffer);
@@ -2334,6 +2363,89 @@ OMX_STATETYPE omx_component_get_state (OmxComponent* self, GError** error) {
 }
 
 
+void omx_component_set_event_function (OmxComponent* self, OMX_EVENTTYPE event, OmxComponentEventFunc event_function, void* event_function_target) {
+	g_return_if_fail (self != NULL);
+	switch (event) {
+		case OMX_EventCmdComplete:
+		{
+			{
+				OmxComponentEventFunc _tmp0_;
+				self->priv->_event_func_0 = (_tmp0_ = event_function, ((self->priv->_event_func_0_target_destroy_notify == NULL) ? NULL : self->priv->_event_func_0_target_destroy_notify (self->priv->_event_func_0_target), self->priv->_event_func_0 = NULL, self->priv->_event_func_0_target = NULL, self->priv->_event_func_0_target_destroy_notify = NULL), self->priv->_event_func_0_target = event_function_target, self->priv->_event_func_0_target_destroy_notify = NULL, _tmp0_);
+				break;
+			}
+		}
+		case OMX_EventError:
+		{
+			{
+				OmxComponentEventFunc _tmp1_;
+				self->priv->_event_func_1 = (_tmp1_ = event_function, ((self->priv->_event_func_1_target_destroy_notify == NULL) ? NULL : self->priv->_event_func_1_target_destroy_notify (self->priv->_event_func_1_target), self->priv->_event_func_1 = NULL, self->priv->_event_func_1_target = NULL, self->priv->_event_func_1_target_destroy_notify = NULL), self->priv->_event_func_1_target = event_function_target, self->priv->_event_func_1_target_destroy_notify = NULL, _tmp1_);
+				break;
+			}
+		}
+		case OMX_EventMark:
+		{
+			{
+				OmxComponentEventFunc _tmp2_;
+				self->priv->_event_func_2 = (_tmp2_ = event_function, ((self->priv->_event_func_2_target_destroy_notify == NULL) ? NULL : self->priv->_event_func_2_target_destroy_notify (self->priv->_event_func_2_target), self->priv->_event_func_2 = NULL, self->priv->_event_func_2_target = NULL, self->priv->_event_func_2_target_destroy_notify = NULL), self->priv->_event_func_2_target = event_function_target, self->priv->_event_func_2_target_destroy_notify = NULL, _tmp2_);
+				break;
+			}
+		}
+		case OMX_EventPortSettingsChanged:
+		{
+			{
+				OmxComponentEventFunc _tmp3_;
+				self->priv->_event_func_3 = (_tmp3_ = event_function, ((self->priv->_event_func_3_target_destroy_notify == NULL) ? NULL : self->priv->_event_func_3_target_destroy_notify (self->priv->_event_func_3_target), self->priv->_event_func_3 = NULL, self->priv->_event_func_3_target = NULL, self->priv->_event_func_3_target_destroy_notify = NULL), self->priv->_event_func_3_target = event_function_target, self->priv->_event_func_3_target_destroy_notify = NULL, _tmp3_);
+				break;
+			}
+		}
+		case OMX_EventBufferFlag:
+		{
+			{
+				OmxComponentEventFunc _tmp4_;
+				self->priv->_event_func_4 = (_tmp4_ = event_function, ((self->priv->_event_func_4_target_destroy_notify == NULL) ? NULL : self->priv->_event_func_4_target_destroy_notify (self->priv->_event_func_4_target), self->priv->_event_func_4 = NULL, self->priv->_event_func_4_target = NULL, self->priv->_event_func_4_target_destroy_notify = NULL), self->priv->_event_func_4_target = event_function_target, self->priv->_event_func_4_target_destroy_notify = NULL, _tmp4_);
+				break;
+			}
+		}
+		case OMX_EventResourcesAcquired:
+		{
+			{
+				OmxComponentEventFunc _tmp5_;
+				self->priv->_event_func_5 = (_tmp5_ = event_function, ((self->priv->_event_func_5_target_destroy_notify == NULL) ? NULL : self->priv->_event_func_5_target_destroy_notify (self->priv->_event_func_5_target), self->priv->_event_func_5 = NULL, self->priv->_event_func_5_target = NULL, self->priv->_event_func_5_target_destroy_notify = NULL), self->priv->_event_func_5_target = event_function_target, self->priv->_event_func_5_target_destroy_notify = NULL, _tmp5_);
+				break;
+			}
+		}
+		case OMX_EventComponentResumed:
+		{
+			{
+				OmxComponentEventFunc _tmp6_;
+				self->priv->_event_func_6 = (_tmp6_ = event_function, ((self->priv->_event_func_6_target_destroy_notify == NULL) ? NULL : self->priv->_event_func_6_target_destroy_notify (self->priv->_event_func_6_target), self->priv->_event_func_6 = NULL, self->priv->_event_func_6_target = NULL, self->priv->_event_func_6_target_destroy_notify = NULL), self->priv->_event_func_6_target = event_function_target, self->priv->_event_func_6_target_destroy_notify = NULL, _tmp6_);
+				break;
+			}
+		}
+		case OMX_EventDynamicResourcesAvailable:
+		{
+			{
+				OmxComponentEventFunc _tmp7_;
+				self->priv->_event_func_7 = (_tmp7_ = event_function, ((self->priv->_event_func_7_target_destroy_notify == NULL) ? NULL : self->priv->_event_func_7_target_destroy_notify (self->priv->_event_func_7_target), self->priv->_event_func_7 = NULL, self->priv->_event_func_7_target = NULL, self->priv->_event_func_7_target_destroy_notify = NULL), self->priv->_event_func_7_target = event_function_target, self->priv->_event_func_7_target_destroy_notify = NULL, _tmp7_);
+				break;
+			}
+		}
+		case OMX_EventPortFormatDetected:
+		{
+			{
+				OmxComponentEventFunc _tmp8_;
+				self->priv->_event_func_8 = (_tmp8_ = event_function, ((self->priv->_event_func_8_target_destroy_notify == NULL) ? NULL : self->priv->_event_func_8_target_destroy_notify (self->priv->_event_func_8_target), self->priv->_event_func_8 = NULL, self->priv->_event_func_8_target = NULL, self->priv->_event_func_8_target_destroy_notify = NULL), self->priv->_event_func_8_target = event_function_target, self->priv->_event_func_8_target_destroy_notify = NULL, _tmp8_);
+				break;
+			}
+		}
+		default:
+		{
+			break;
+		}
+	}
+}
+
+
 static OMX_ERRORTYPE omx_component_event_handler (OmxComponent* self, void* component, OMX_EVENTTYPE event, guint32 data1, guint32 data2, void* event_data) {
 	OMX_ERRORTYPE result;
 	g_return_val_if_fail (self != NULL, 0);
@@ -2341,20 +2453,72 @@ static OMX_ERRORTYPE omx_component_event_handler (OmxComponent* self, void* comp
 	switch (event) {
 		case OMX_EventCmdComplete:
 		{
-			switch (data1) {
-				case OMX_CommandStateSet:
-				{
-					{
-						self->priv->_previous_state = self->priv->_current_state;
-						self->priv->_current_state = self->priv->_pending_state = (OMX_STATETYPE) data2;
-						omx_semaphore_up (self->priv->_wait_for_state_sem);
-						break;
-					}
-				}
-				default:
-				{
-					break;
-				}
+			if (data1 == OMX_CommandStateSet) {
+				self->priv->_previous_state = self->priv->_current_state;
+			}
+			self->priv->_current_state = self->priv->_pending_state = (OMX_STATETYPE) data2;
+			if (self->priv->_event_func_0 != NULL) {
+				self->priv->_event_func_0 ((guint) data1, (guint) data2, event_data, self->priv->_event_func_0_target);
+			}
+			omx_semaphore_up (self->priv->_wait_for_state_sem);
+			break;
+		}
+		case OMX_EventError:
+		{
+			OMX_ERRORTYPE _error_;
+			_error_ = (OMX_ERRORTYPE) data1;
+			g_warning ("omx-glib.vala:586: An error was detected: %s\n", omx_error_to_string (_error_));
+			if (self->priv->_event_func_1 != NULL) {
+				self->priv->_event_func_1 ((guint) data1, (guint) data2, event_data, self->priv->_event_func_1_target);
+			}
+			break;
+		}
+		case OMX_EventMark:
+		{
+			if (self->priv->_event_func_2 != NULL) {
+				self->priv->_event_func_2 ((guint) data1, (guint) data2, event_data, self->priv->_event_func_2_target);
+			}
+			break;
+		}
+		case OMX_EventPortSettingsChanged:
+		{
+			if (self->priv->_event_func_3 != NULL) {
+				self->priv->_event_func_3 ((guint) data1, (guint) data2, event_data, self->priv->_event_func_3_target);
+			}
+			break;
+		}
+		case OMX_EventBufferFlag:
+		{
+			if (self->priv->_event_func_4 != NULL) {
+				self->priv->_event_func_4 ((guint) data1, (guint) data2, event_data, self->priv->_event_func_4_target);
+			}
+			break;
+		}
+		case OMX_EventResourcesAcquired:
+		{
+			if (self->priv->_event_func_5 != NULL) {
+				self->priv->_event_func_5 ((guint) data1, (guint) data2, event_data, self->priv->_event_func_5_target);
+			}
+			break;
+		}
+		case OMX_EventComponentResumed:
+		{
+			if (self->priv->_event_func_6 != NULL) {
+				self->priv->_event_func_6 ((guint) data1, (guint) data2, event_data, self->priv->_event_func_6_target);
+			}
+			break;
+		}
+		case OMX_EventDynamicResourcesAvailable:
+		{
+			if (self->priv->_event_func_7 != NULL) {
+				self->priv->_event_func_7 ((guint) data1, (guint) data2, event_data, self->priv->_event_func_7_target);
+			}
+			break;
+		}
+		case OMX_EventPortFormatDetected:
+		{
+			if (self->priv->_event_func_8 != NULL) {
+				self->priv->_event_func_8 ((guint) data1, (guint) data2, event_data, self->priv->_event_func_8_target);
 			}
 			break;
 		}
@@ -2783,6 +2947,42 @@ static void omx_component_finalize (GObject* obj) {
 	_g_object_unref0 (self->priv->_core);
 	self->priv->_ports = (_vala_array_free (self->priv->_ports, self->priv->_ports_length1, (GDestroyNotify) g_object_unref), NULL);
 	_omx_component_port_list_unref0 (self->priv->_port_list);
+	(self->priv->_event_func_0_target_destroy_notify == NULL) ? NULL : self->priv->_event_func_0_target_destroy_notify (self->priv->_event_func_0_target);
+	self->priv->_event_func_0 = NULL;
+	self->priv->_event_func_0_target = NULL;
+	self->priv->_event_func_0_target_destroy_notify = NULL;
+	(self->priv->_event_func_1_target_destroy_notify == NULL) ? NULL : self->priv->_event_func_1_target_destroy_notify (self->priv->_event_func_1_target);
+	self->priv->_event_func_1 = NULL;
+	self->priv->_event_func_1_target = NULL;
+	self->priv->_event_func_1_target_destroy_notify = NULL;
+	(self->priv->_event_func_2_target_destroy_notify == NULL) ? NULL : self->priv->_event_func_2_target_destroy_notify (self->priv->_event_func_2_target);
+	self->priv->_event_func_2 = NULL;
+	self->priv->_event_func_2_target = NULL;
+	self->priv->_event_func_2_target_destroy_notify = NULL;
+	(self->priv->_event_func_3_target_destroy_notify == NULL) ? NULL : self->priv->_event_func_3_target_destroy_notify (self->priv->_event_func_3_target);
+	self->priv->_event_func_3 = NULL;
+	self->priv->_event_func_3_target = NULL;
+	self->priv->_event_func_3_target_destroy_notify = NULL;
+	(self->priv->_event_func_4_target_destroy_notify == NULL) ? NULL : self->priv->_event_func_4_target_destroy_notify (self->priv->_event_func_4_target);
+	self->priv->_event_func_4 = NULL;
+	self->priv->_event_func_4_target = NULL;
+	self->priv->_event_func_4_target_destroy_notify = NULL;
+	(self->priv->_event_func_5_target_destroy_notify == NULL) ? NULL : self->priv->_event_func_5_target_destroy_notify (self->priv->_event_func_5_target);
+	self->priv->_event_func_5 = NULL;
+	self->priv->_event_func_5_target = NULL;
+	self->priv->_event_func_5_target_destroy_notify = NULL;
+	(self->priv->_event_func_6_target_destroy_notify == NULL) ? NULL : self->priv->_event_func_6_target_destroy_notify (self->priv->_event_func_6_target);
+	self->priv->_event_func_6 = NULL;
+	self->priv->_event_func_6_target = NULL;
+	self->priv->_event_func_6_target_destroy_notify = NULL;
+	(self->priv->_event_func_7_target_destroy_notify == NULL) ? NULL : self->priv->_event_func_7_target_destroy_notify (self->priv->_event_func_7_target);
+	self->priv->_event_func_7 = NULL;
+	self->priv->_event_func_7_target = NULL;
+	self->priv->_event_func_7_target_destroy_notify = NULL;
+	(self->priv->_event_func_8_target_destroy_notify == NULL) ? NULL : self->priv->_event_func_8_target_destroy_notify (self->priv->_event_func_8_target);
+	self->priv->_event_func_8 = NULL;
+	self->priv->_event_func_8_target = NULL;
+	self->priv->_event_func_8_target_destroy_notify = NULL;
 	_g_free0 (self->priv->_name);
 	G_OBJECT_CLASS (omx_component_parent_class)->finalize (obj);
 }

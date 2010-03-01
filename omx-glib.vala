@@ -322,6 +322,19 @@ namespace Omx {
         Port[] _ports;
         PortList _port_list;
 
+        public delegate void EventFunc(
+            uint data1, uint data2, void *event_data);
+
+        EventFunc _event_func_0;
+        EventFunc _event_func_1;
+        EventFunc _event_func_2;
+        EventFunc _event_func_3;
+        EventFunc _event_func_4;
+        EventFunc _event_func_5;
+        EventFunc _event_func_6;
+        EventFunc _event_func_7;
+        EventFunc _event_func_8;
+        
 
         public string name {
             get; set;
@@ -512,21 +525,95 @@ namespace Omx {
         };
 
 
+        public void set_event_function(Event event, EventFunc event_function) {
+            switch(event) {
+                case Event.CmdComplete: {
+                    _event_func_0 = event_function;
+                    break;
+                }
+                case Event.Error: {
+                    _event_func_1 = event_function;
+                    break;
+                }
+                case Event.Mark: {
+                    _event_func_2 = event_function;
+                    break;
+                }
+                case Event.PortSettingsChanged: {
+                    _event_func_3 = event_function;
+                    break;
+                }
+                case Event.BufferFlag: {
+                    _event_func_4 = event_function;
+                    break;
+                }
+                case Event.ResourcesAcquired: {
+                    _event_func_5 = event_function;
+                    break;
+                }
+                case Event.ComponentResumed: {
+                    _event_func_6 = event_function;
+                    break;
+                }
+                case Event.DynamicResourcesAvailable: {
+                    _event_func_7 = event_function;
+                    break;
+                }
+                case Event.PortFormatDetected: {
+                    _event_func_8 = event_function;
+                    break;
+                }
+                default:
+                    break;
+            }
+        }
+
+
         Error event_handler(
                 Handle component, Event event,
                 uint32 data1, uint32 data2, void *event_data) {
             switch(event) {
                 case Event.CmdComplete:
-                    switch(data1) {
-                        case Command.StateSet: {
-                            _previous_state = _current_state;
-                            _current_state = _pending_state = (State)data2;
-                            _wait_for_state_sem.up();
-                            break;
-                        }
-                        default:
-                            break;
-                    }
+                    if(data1 == Command.StateSet)
+                        _previous_state = _current_state;
+                        _current_state = _pending_state = (State)data2;
+                        if(_event_func_0 != null)
+                            _event_func_0(data1, data2, event_data);
+                        _wait_for_state_sem.up();
+                    break;
+                case Event.Error:
+                    var error = (Error)data1;
+                    warning("An error was detected: %s\n", error.to_string());
+                    if(_event_func_1 != null)
+                        _event_func_1(data1, data2, event_data);
+                    break;
+                case Event.Mark:
+                    if(_event_func_2 != null)
+                        _event_func_2(data1, data2, event_data);
+                    break;
+                case Event.PortSettingsChanged:
+                    if(_event_func_3 != null)
+                        _event_func_3(data1, data2, event_data);
+                    break;
+                case Event.BufferFlag:
+                    if(_event_func_4 != null)
+                        _event_func_4(data1, data2, event_data);
+                    break;
+                case Event.ResourcesAcquired:
+                    if(_event_func_5 != null)
+                        _event_func_5(data1, data2, event_data);
+                    break;
+                case Event.ComponentResumed:
+                    if(_event_func_6 != null)
+                        _event_func_6(data1, data2, event_data);
+                    break;
+                case Event.DynamicResourcesAvailable:
+                    if(_event_func_7 != null)
+                        _event_func_7(data1, data2, event_data);
+                    break;
+                case Event.PortFormatDetected:
+                    if(_event_func_8 != null)
+                        _event_func_8(data1, data2, event_data);
                     break;
                 default:
                     break;
