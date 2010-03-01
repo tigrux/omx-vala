@@ -25,20 +25,20 @@ public void play(string filename) throws Error {
     if(fd == null)
         throw new FileError.FAILED("Error opening %s", filename);
 
-    var core = Omx.Core.open("libomxil-bellagio.so.0");
+    var core = GOmx.Core.open("libomxil-bellagio.so.0");
     core.init();
 
     var audiodec =
-        new Omx.Component(core, AUDIODEC_COMPONENT, Omx.Index.ParamAudioInit);
+        new GOmx.Component(core, AUDIODEC_COMPONENT, Omx.Index.ParamAudioInit);
     audiodec.name = "audiodec";
     audiodec.id = AUDIODEC_ID;
 
     var audiosink =
-        new Omx.Component(core, AUDIOSINK_COMPONENT, Omx.Index.ParamAudioInit);
+        new GOmx.Component(core, AUDIOSINK_COMPONENT, Omx.Index.ParamAudioInit);
     audiosink.name = "audiosink";
     audiosink.id = AUDIOSINK_ID;
 
-    var engine = new Omx.Engine();
+    var engine = new GOmx.Engine();
     engine.add_component(audiodec);
     engine.add_component(audiosink);
 
@@ -62,7 +62,7 @@ public void play(string filename) throws Error {
                 switch(port.definition.dir) {
                     case Omx.Dir.Input: {
                         var buffer = port.pop_buffer();
-                        Omx.buffer_read_from_file(buffer, fd);
+                        GOmx.buffer_read_from_file(buffer, fd);
                         port.push_buffer(buffer);
                         break;
                     }
@@ -70,7 +70,7 @@ public void play(string filename) throws Error {
                         var buffer = port.pop_buffer();
                         var audiosink_inport = audiosink.get_port(0);
                         var alsa_buffer = audiosink_inport.pop_buffer();
-                        Omx.buffer_copy(alsa_buffer, buffer);
+                        GOmx.buffer_copy(alsa_buffer, buffer);
                         audiosink_inport.push_buffer(alsa_buffer);
                         port.push_buffer(buffer);
                         break;
