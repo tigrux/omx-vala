@@ -1,5 +1,6 @@
 [CCode (lower_case_cprefix = "g_omx_")]
 namespace GOmx {
+
     public class Core: Object {
         Module _module;
 
@@ -509,10 +510,12 @@ namespace GOmx {
             Omx.try_run(
                 _handle.send_command(
                     Omx.Command.StateSet, state, null));
-            if(_current_state == Omx.State.Loaded && _pending_state == Omx.State.Idle)
+            if(_current_state == Omx.State.Loaded &&
+               _pending_state == Omx.State.Idle)
                 allocate_ports();
             else
-            if(_current_state == Omx.State.Idle && _pending_state == Omx.State.Loaded)
+            if(_current_state == Omx.State.Idle &&
+               _pending_state == Omx.State.Loaded)
                 free_ports();
         }
 
@@ -539,7 +542,9 @@ namespace GOmx {
         };
 
 
-        public void set_event_function(Omx.Event event, EventFunc event_function) {
+        public void set_event_function(
+                Omx.Event event,
+                EventFunc event_function) {
             switch(event) {
                 case Omx.Event.CmdComplete: {
                     _event_func_0 = event_function;
@@ -591,6 +596,7 @@ namespace GOmx {
                     if(data1 == Omx.Command.StateSet) {
                         _previous_state = _current_state;
                         _current_state = _pending_state = (Omx.State)data2;
+
                         if(_event_func_0 != null)
                             _event_func_0(this, data1, data2, event_data);
                         _wait_for_state_sem.up();
@@ -640,7 +646,8 @@ namespace GOmx {
         Omx.Error empty_buffer_done(
                 Omx.Handle component,
                 Omx.BufferHeader buffer) {
-            return buffer_done(get_port(buffer.input_port_index), buffer);
+            var port = get_port(buffer.input_port_index);
+            return buffer_done(port, buffer);
         }
 
 
@@ -932,20 +939,26 @@ namespace GOmx {
 
 
 
-    public void buffer_copy(Omx.BufferHeader dest, Omx.BufferHeader source) {
+    public void buffer_copy(
+            Omx.BufferHeader dest,
+            Omx.BufferHeader source) {
         Memory.copy(dest.buffer, source.buffer, source.filled_len);
         dest.filled_len = source.filled_len;
         dest.offset = source.offset;
     }
 
 
-    public void buffer_copy_len(Omx.BufferHeader dest, Omx.BufferHeader source) {
+    public void buffer_copy_len(
+            Omx.BufferHeader dest,
+            Omx.BufferHeader source) {
         dest.filled_len = source.filled_len;
         dest.offset = source.offset;
     }
 
 
-    public void buffer_read_from_file(Omx.BufferHeader buffer, FileStream fs) {
+    public void buffer_read_from_file(
+            Omx.BufferHeader buffer,
+            FileStream fs) {
         buffer.offset = 0;
         buffer.filled_len = fs.read(buffer.buffer);
         if(fs.eof())
