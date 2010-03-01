@@ -2287,9 +2287,6 @@ static OMX_ERRORTYPE g_omx_component_event_handler (GOmxComponent* self, void* c
 		}
 		case OMX_EventError:
 		{
-			OMX_ERRORTYPE _error_;
-			_error_ = (OMX_ERRORTYPE) data1;
-			g_warning ("omx-glib.vala:609: An error was detected: %s\n", omx_error_to_string (_error_));
 			if (self->priv->_event_func_1 != NULL) {
 				self->priv->_event_func_1 (self, (guint) data1, (guint) data2, event_data, self->priv->_event_func_1_target);
 			}

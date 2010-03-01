@@ -605,8 +605,6 @@ namespace GOmx {
                     }
                     break;
                 case Omx.Event.Error:
-                    var error = (Omx.Error)data1;
-                    warning("An error was detected: %s\n", error.to_string());
                     if(_event_func_1 != null)
                         _event_func_1(this, data1, data2, event_data);
                     break;
