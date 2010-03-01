@@ -3,11 +3,11 @@ namespace Omx {
     public class Core: Object {
         Module _module;
 
-        InitFunc _init;
-        DeinitFunc _deinit;
-        GetHandleFunc _get_handle;
-        FreeHandleFunc _free_handle;
-        SetupTunnelFunc _setup_tunnel;
+        InitFunc _init_func;
+        DeinitFunc _deinit_func;
+        GetHandleFunc _get_handle_func;
+        FreeHandleFunc _free_handle_func;
+        SetupTunnelFunc _setup_tunnel_func;
 
 
         public delegate Error InitFunc();
@@ -26,12 +26,12 @@ namespace Omx {
 
 
         public void init() throws GLib.Error {
-            try_run(_init());
+            try_run(_init_func());
         }
 
 
         public void deinit() throws GLib.Error {
-            try_run(_deinit());
+            try_run(_deinit_func());
         }
 
 
@@ -39,13 +39,13 @@ namespace Omx {
                 out Handle component, string component_name,
                 void *app_data, Callback callbacks) throws GLib.Error {
             try_run(
-                _get_handle(
+                _get_handle_func(
                     out component, component_name, app_data, callbacks));
         }
 
 
         public void free_handle(Handle handle) throws GLib.Error {
-            try_run(_free_handle(handle));
+            try_run(_free_handle_func(handle));
         }
 
 
@@ -53,17 +53,7 @@ namespace Omx {
                 Handle output, uint32 port_output,
                 Handle input, uint32 port_input) throws GLib.Error {
             try_run(
-                _setup_tunnel(output, port_output, input, port_input));
-        }
-
-
-        public Component get_component(
-                string component_name,
-                Index param_init_index) throws GLib.Error {
-            var component =
-                new Component(this, component_name, param_init_index);
-            component.init();
-            return component;
+                _setup_tunnel_func(output, port_output, input, port_input));
         }
 
 
@@ -78,27 +68,27 @@ namespace Omx {
             module.symbol ("OMX_Init", out symbol);
             if(symbol == null)
                 return null;
-            core._init = (InitFunc)symbol;
+            core._init_func = (InitFunc)symbol;
 
             module.symbol ("OMX_Deinit", out symbol);
             if(symbol == null)
                 return null;
-            core._deinit = (DeinitFunc)symbol;
+            core._deinit_func = (DeinitFunc)symbol;
 
             module.symbol ("OMX_GetHandle", out symbol);
             if(symbol == null)
                 return null;
-            core._get_handle = (GetHandleFunc)symbol;
+            core._get_handle_func = (GetHandleFunc)symbol;
 
             module.symbol ("OMX_FreeHandle", out symbol);
             if(symbol == null)
                 return null;
-            core._free_handle = (FreeHandleFunc)symbol;
+            core._free_handle_func = (FreeHandleFunc)symbol;
 
             module.symbol ("OMX_SetupTunnel", out symbol);
             if(symbol == null)
                 return null;
-            core._setup_tunnel = (SetupTunnelFunc)symbol;
+            core._setup_tunnel_func = (SetupTunnelFunc)symbol;
 
             core._module = (owned)module;
             return core;
@@ -160,9 +150,21 @@ namespace Omx {
         }
 
 
+        public void init() throws GLib.Error {
+            foreach(var component in _components_list)
+                component.init();
+        }
+
+
         public void set_state(State state) throws GLib.Error {
             foreach(var component in _components_list)
                 component.set_state(state);
+        }
+
+
+        public void set_state_and_wait(State state) throws GLib.Error {
+            foreach(var component in _components_list)
+                component.set_state_and_wait(state);
         }
 
 
@@ -323,7 +325,7 @@ namespace Omx {
         PortList _port_list;
 
         public delegate void EventFunc(
-            uint data1, uint data2, void *event_data);
+            Component component, uint data1, uint data2, void *event_data);
 
         EventFunc _event_func_0;
         EventFunc _event_func_1;
@@ -334,7 +336,7 @@ namespace Omx {
         EventFunc _event_func_6;
         EventFunc _event_func_7;
         EventFunc _event_func_8;
-        
+
 
         public string name {
             get; set;
@@ -450,6 +452,7 @@ namespace Omx {
                 var port = new Port(this, i);
                 port.init();
                 port.name = "%s_port%u".printf(name, i);
+                port.allocate_buffers();
                 _ports[i] = port;
             }
         }
@@ -506,6 +509,17 @@ namespace Omx {
             try_run(
                 _handle.send_command(
                     Command.StateSet, state, null));
+            if(_current_state == State.Loaded && _pending_state == State.Idle)
+                allocate_ports();
+            else
+            if(_current_state == State.Idle && _pending_state == State.Loaded)
+                free_ports();
+        }
+
+
+        public void set_state_and_wait(State state) throws GLib.Error {
+            set_state(state);
+            wait_for_state_set();
         }
 
 
@@ -574,46 +588,47 @@ namespace Omx {
                 uint32 data1, uint32 data2, void *event_data) {
             switch(event) {
                 case Event.CmdComplete:
-                    if(data1 == Command.StateSet)
+                    if(data1 == Command.StateSet) {
                         _previous_state = _current_state;
                         _current_state = _pending_state = (State)data2;
                         if(_event_func_0 != null)
-                            _event_func_0(data1, data2, event_data);
+                            _event_func_0(this, data1, data2, event_data);
                         _wait_for_state_sem.up();
+                    }
                     break;
                 case Event.Error:
                     var error = (Error)data1;
                     warning("An error was detected: %s\n", error.to_string());
                     if(_event_func_1 != null)
-                        _event_func_1(data1, data2, event_data);
+                        _event_func_1(this, data1, data2, event_data);
                     break;
                 case Event.Mark:
                     if(_event_func_2 != null)
-                        _event_func_2(data1, data2, event_data);
+                        _event_func_2(this, data1, data2, event_data);
                     break;
                 case Event.PortSettingsChanged:
                     if(_event_func_3 != null)
-                        _event_func_3(data1, data2, event_data);
+                        _event_func_3(this, data1, data2, event_data);
                     break;
                 case Event.BufferFlag:
                     if(_event_func_4 != null)
-                        _event_func_4(data1, data2, event_data);
+                        _event_func_4(this, data1, data2, event_data);
                     break;
                 case Event.ResourcesAcquired:
                     if(_event_func_5 != null)
-                        _event_func_5(data1, data2, event_data);
+                        _event_func_5(this, data1, data2, event_data);
                     break;
                 case Event.ComponentResumed:
                     if(_event_func_6 != null)
-                        _event_func_6(data1, data2, event_data);
+                        _event_func_6(this, data1, data2, event_data);
                     break;
                 case Event.DynamicResourcesAvailable:
                     if(_event_func_7 != null)
-                        _event_func_7(data1, data2, event_data);
+                        _event_func_7(this, data1, data2, event_data);
                     break;
                 case Event.PortFormatDetected:
                     if(_event_func_8 != null)
-                        _event_func_8(data1, data2, event_data);
+                        _event_func_8(this, data1, data2, event_data);
                     break;
                 default:
                     break;

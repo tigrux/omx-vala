@@ -1,10 +1,3 @@
-const string AUDIODEC_COMPONENT = "OMX.st.audio_decoder.mp3.mad";
-const int AUDIODEC_ID = 0;
-
-const string AUDIOSINK_COMPONENT = "OMX.st.alsa.alsasink";
-const int AUDIOSINK_ID = 1;
-
-
 int main(string[] args) {
     if(args.length != 2) {
         print("%s <file.mp3>\n", args[0]);
@@ -21,6 +14,11 @@ int main(string[] args) {
     }
 }
 
+const int AUDIODEC_ID = 0;
+const int AUDIOSINK_ID = 1;
+
+const string AUDIODEC_COMPONENT = "OMX.st.audio_decoder.mp3.mad";
+const string AUDIOSINK_COMPONENT = "OMX.st.alsa.alsasink";
 
 public void play(string filename) throws Error {
     var fd = FileStream.open(filename, "rb");
@@ -31,12 +29,12 @@ public void play(string filename) throws Error {
     core.init();
 
     var audiodec =
-        core.get_component(AUDIODEC_COMPONENT, Omx.Index.ParamAudioInit);
+        new Omx.Component(core, AUDIODEC_COMPONENT, Omx.Index.ParamAudioInit);
     audiodec.name = "audiodec";
     audiodec.id = AUDIODEC_ID;
 
     var audiosink =
-        core.get_component(AUDIOSINK_COMPONENT, Omx.Index.ParamAudioInit);
+        new Omx.Component(core, AUDIOSINK_COMPONENT, Omx.Index.ParamAudioInit);
     audiosink.name = "audiosink";
     audiosink.id = AUDIOSINK_ID;
 
@@ -44,13 +42,9 @@ public void play(string filename) throws Error {
     engine.add_component(audiodec);
     engine.add_component(audiosink);
 
-    engine.set_state(Omx.State.Idle);
-    engine.allocate_ports();
-    engine.allocate_buffers();
-    engine.wait_for_state_set();
-
-    engine.set_state(Omx.State.Executing);
-    engine.wait_for_state_set();
+    engine.init();
+    engine.set_state_and_wait(Omx.State.Idle);
+    engine.set_state_and_wait(Omx.State.Executing);
 
     foreach(var component in engine.components) {
         print("Component %s\n", component.name);
@@ -72,7 +66,6 @@ public void play(string filename) throws Error {
                         port.push_buffer(buffer);
                         break;
                     }
-
                     case Omx.Dir.Output: {
                         var buffer = port.pop_buffer();
                         var audiosink_inport = audiosink.get_port(0);
@@ -87,7 +80,6 @@ public void play(string filename) throws Error {
                         break;
                 }
                 break;
-
             case AUDIOSINK_ID:
                 switch(port.definition.dir) {
                     case Omx.Dir.Input:
@@ -99,15 +91,10 @@ public void play(string filename) throws Error {
         }
     }
 
-    engine.set_state(Omx.State.Idle);
-    engine.wait_for_state_set();
-
-    engine.set_state(Omx.State.Loaded);
-    engine.free_ports();
-    engine.wait_for_state_set();
+    engine.set_state_and_wait(Omx.State.Idle);
+    engine.set_state_and_wait(Omx.State.Loaded);
 
     engine.free_handles();
-
     core.deinit();
 }
 

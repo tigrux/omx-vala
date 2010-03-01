@@ -159,26 +159,25 @@ struct _OmxPortClass {
 
 
 
-#define AUDIODEC_COMPONENT "OMX.st.audio_decoder.mp3.mad"
-#define AUDIODEC_ID 0
-#define AUDIOSINK_COMPONENT "OMX.st.alsa.alsasink"
-#define AUDIOSINK_ID 1
 void play (const char* filename, GError** error);
 gint _main (char** args, int args_length1);
+#define AUDIODEC_ID 0
+#define AUDIOSINK_ID 1
+#define AUDIODEC_COMPONENT "OMX.st.audio_decoder.mp3.mad"
+#define AUDIOSINK_COMPONENT "OMX.st.alsa.alsasink"
 GType omx_core_get_type (void);
 OmxCore* omx_core_open (const char* soname);
 void omx_core_init (OmxCore* self, GError** error);
+OmxComponent* omx_component_new (OmxCore* core, const char* component_name, OMX_INDEXTYPE param_init_index);
+OmxComponent* omx_component_construct (GType object_type, OmxCore* core, const char* component_name, OMX_INDEXTYPE param_init_index);
 GType omx_component_get_type (void);
-OmxComponent* omx_core_get_component (OmxCore* self, const char* component_name, OMX_INDEXTYPE param_init_index, GError** error);
 void omx_component_set_name (OmxComponent* self, const char* value);
 OmxEngine* omx_engine_new (void);
 OmxEngine* omx_engine_construct (GType object_type);
 GType omx_engine_get_type (void);
 void omx_engine_add_component (OmxEngine* self, OmxComponent* component);
-void omx_engine_set_state (OmxEngine* self, OMX_STATETYPE state, GError** error);
-void omx_engine_allocate_ports (OmxEngine* self, GError** error);
-void omx_engine_allocate_buffers (OmxEngine* self, GError** error);
-void omx_engine_wait_for_state_set (OmxEngine* self);
+void omx_engine_init (OmxEngine* self, GError** error);
+void omx_engine_set_state_and_wait (OmxEngine* self, OMX_STATETYPE state, GError** error);
 gpointer omx_engine_component_list_ref (gpointer instance);
 void omx_engine_component_list_unref (gpointer instance);
 GParamSpec* omx_engine_param_spec_component_list (const gchar* name, const gchar* nick, const gchar* blurb, GType object_type, GParamFlags flags);
@@ -233,7 +232,6 @@ void omx_buffer_read_from_file (OMX_BUFFERHEADERTYPE* buffer, FILE* fs);
 void omx_port_push_buffer (OmxPort* self, OMX_BUFFERHEADERTYPE* buffer, GError** error);
 OmxPort* omx_component_get_port (OmxComponent* self, guint i);
 void omx_buffer_copy (OMX_BUFFERHEADERTYPE* dest, OMX_BUFFERHEADERTYPE* source);
-void omx_engine_free_ports (OmxEngine* self, GError** error);
 void omx_engine_free_handles (OmxEngine* self, GError** error);
 void omx_core_deinit (OmxCore* self, GError** error);
 
@@ -311,29 +309,16 @@ void play (const char* filename, GError** error) {
 		_g_object_unref0 (core);
 		return;
 	}
-	audiodec = omx_core_get_component (core, AUDIODEC_COMPONENT, OMX_IndexParamAudioInit, &_inner_error_);
-	if (_inner_error_ != NULL) {
-		g_propagate_error (error, _inner_error_);
-		_fclose0 (fd);
-		_g_object_unref0 (core);
-		return;
-	}
+	audiodec = omx_component_new (core, AUDIODEC_COMPONENT, OMX_IndexParamAudioInit);
 	omx_component_set_name (audiodec, "audiodec");
 	audiodec->id = AUDIODEC_ID;
-	audiosink = omx_core_get_component (core, AUDIOSINK_COMPONENT, OMX_IndexParamAudioInit, &_inner_error_);
-	if (_inner_error_ != NULL) {
-		g_propagate_error (error, _inner_error_);
-		_fclose0 (fd);
-		_g_object_unref0 (core);
-		_g_object_unref0 (audiodec);
-		return;
-	}
+	audiosink = omx_component_new (core, AUDIOSINK_COMPONENT, OMX_IndexParamAudioInit);
 	omx_component_set_name (audiosink, "audiosink");
 	audiosink->id = AUDIOSINK_ID;
 	engine = omx_engine_new ();
 	omx_engine_add_component (engine, audiodec);
 	omx_engine_add_component (engine, audiosink);
-	omx_engine_set_state (engine, OMX_StateIdle, &_inner_error_);
+	omx_engine_init (engine, &_inner_error_);
 	if (_inner_error_ != NULL) {
 		g_propagate_error (error, _inner_error_);
 		_fclose0 (fd);
@@ -343,7 +328,7 @@ void play (const char* filename, GError** error) {
 		_g_object_unref0 (engine);
 		return;
 	}
-	omx_engine_allocate_ports (engine, &_inner_error_);
+	omx_engine_set_state_and_wait (engine, OMX_StateIdle, &_inner_error_);
 	if (_inner_error_ != NULL) {
 		g_propagate_error (error, _inner_error_);
 		_fclose0 (fd);
@@ -353,7 +338,7 @@ void play (const char* filename, GError** error) {
 		_g_object_unref0 (engine);
 		return;
 	}
-	omx_engine_allocate_buffers (engine, &_inner_error_);
+	omx_engine_set_state_and_wait (engine, OMX_StateExecuting, &_inner_error_);
 	if (_inner_error_ != NULL) {
 		g_propagate_error (error, _inner_error_);
 		_fclose0 (fd);
@@ -363,18 +348,6 @@ void play (const char* filename, GError** error) {
 		_g_object_unref0 (engine);
 		return;
 	}
-	omx_engine_wait_for_state_set (engine);
-	omx_engine_set_state (engine, OMX_StateExecuting, &_inner_error_);
-	if (_inner_error_ != NULL) {
-		g_propagate_error (error, _inner_error_);
-		_fclose0 (fd);
-		_g_object_unref0 (core);
-		_g_object_unref0 (audiodec);
-		_g_object_unref0 (audiosink);
-		_g_object_unref0 (engine);
-		return;
-	}
-	omx_engine_wait_for_state_set (engine);
 	{
 		OmxEngineComponentListIterator* _component_it;
 		_component_it = omx_engine_component_list_iterator (omx_engine_get_components (engine));
@@ -526,7 +499,7 @@ void play (const char* filename, GError** error) {
 		}
 		_g_object_unref0 (_port_it);
 	}
-	omx_engine_set_state (engine, OMX_StateIdle, &_inner_error_);
+	omx_engine_set_state_and_wait (engine, OMX_StateIdle, &_inner_error_);
 	if (_inner_error_ != NULL) {
 		g_propagate_error (error, _inner_error_);
 		_fclose0 (fd);
@@ -536,8 +509,7 @@ void play (const char* filename, GError** error) {
 		_g_object_unref0 (engine);
 		return;
 	}
-	omx_engine_wait_for_state_set (engine);
-	omx_engine_set_state (engine, OMX_StateLoaded, &_inner_error_);
+	omx_engine_set_state_and_wait (engine, OMX_StateLoaded, &_inner_error_);
 	if (_inner_error_ != NULL) {
 		g_propagate_error (error, _inner_error_);
 		_fclose0 (fd);
@@ -547,17 +519,6 @@ void play (const char* filename, GError** error) {
 		_g_object_unref0 (engine);
 		return;
 	}
-	omx_engine_free_ports (engine, &_inner_error_);
-	if (_inner_error_ != NULL) {
-		g_propagate_error (error, _inner_error_);
-		_fclose0 (fd);
-		_g_object_unref0 (core);
-		_g_object_unref0 (audiodec);
-		_g_object_unref0 (audiosink);
-		_g_object_unref0 (engine);
-		return;
-	}
-	omx_engine_wait_for_state_set (engine);
 	omx_engine_free_handles (engine, &_inner_error_);
 	if (_inner_error_ != NULL) {
 		g_propagate_error (error, _inner_error_);
