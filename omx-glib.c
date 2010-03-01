@@ -591,7 +591,7 @@ enum  {
 	OMX_COMPONENT_PORTS,
 	OMX_COMPONENT_QUEUE,
 	OMX_COMPONENT_CORE,
-	OMX_COMPONENT_STATE,
+	OMX_COMPONENT_CURRENT_STATE,
 	OMX_COMPONENT_PENDING_STATE,
 	OMX_COMPONENT_PREVIOUS_STATE
 };
@@ -617,7 +617,7 @@ guint omx_port_get_n_buffers (OmxPort* self);
 void omx_port_push_buffer (OmxPort* self, OMX_BUFFERHEADERTYPE* buffer, GError** error);
 OMX_BUFFERHEADERTYPE* omx_port_pop_buffer (OmxPort* self);
 void omx_semaphore_down (OmxSemaphore* self);
-OMX_STATETYPE omx_component_do_get_state (OmxComponent* self, GError** error);
+OMX_STATETYPE omx_component_get_state (OmxComponent* self, GError** error);
 void omx_semaphore_up (OmxSemaphore* self);
 static OMX_ERRORTYPE omx_component_buffer_done (OmxComponent* self, OmxPort* port, OMX_BUFFERHEADERTYPE* buffer);
 void omx_port_buffer_done (OmxPort* self, OMX_BUFFERHEADERTYPE* buffer);
@@ -626,7 +626,7 @@ void* omx_component_get_handle (OmxComponent* self);
 OmxComponentPortList* omx_component_get_ports (OmxComponent* self);
 GAsyncQueue* omx_component_get_queue (OmxComponent* self);
 OmxCore* omx_component_get_core (OmxComponent* self);
-guint omx_component_get_state (OmxComponent* self);
+guint omx_component_get_current_state (OmxComponent* self);
 guint omx_component_get_pending_state (OmxComponent* self);
 guint omx_component_get_previous_state (OmxComponent* self);
 OmxSemaphore* omx_semaphore_new (void);
@@ -2318,7 +2318,7 @@ void omx_component_set_state (OmxComponent* self, OMX_STATETYPE state, GError** 
 }
 
 
-OMX_STATETYPE omx_component_do_get_state (OmxComponent* self, GError** error) {
+OMX_STATETYPE omx_component_get_state (OmxComponent* self, GError** error) {
 	OMX_STATETYPE result;
 	GError * _inner_error_;
 	OMX_STATETYPE state = 0;
@@ -2462,7 +2462,7 @@ OmxCore* omx_component_get_core (OmxComponent* self) {
 }
 
 
-guint omx_component_get_state (OmxComponent* self) {
+guint omx_component_get_current_state (OmxComponent* self) {
 	guint result;
 	g_return_val_if_fail (self != NULL, 0U);
 	result = (guint) self->priv->_current_state;
@@ -2763,7 +2763,7 @@ static void omx_component_class_init (OmxComponentClass * klass) {
 	g_object_class_install_property (G_OBJECT_CLASS (klass), OMX_COMPONENT_PORTS, omx_component_param_spec_port_list ("ports", "ports", "ports", OMX_COMPONENT_TYPE_PORT_LIST, G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK | G_PARAM_STATIC_BLURB | G_PARAM_READABLE));
 	g_object_class_install_property (G_OBJECT_CLASS (klass), OMX_COMPONENT_QUEUE, g_param_spec_pointer ("queue", "queue", "queue", G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK | G_PARAM_STATIC_BLURB | G_PARAM_READABLE | G_PARAM_WRITABLE));
 	g_object_class_install_property (G_OBJECT_CLASS (klass), OMX_COMPONENT_CORE, g_param_spec_object ("core", "core", "core", OMX_TYPE_CORE, G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK | G_PARAM_STATIC_BLURB | G_PARAM_READABLE));
-	g_object_class_install_property (G_OBJECT_CLASS (klass), OMX_COMPONENT_STATE, g_param_spec_uint ("state", "state", "state", 0, G_MAXUINT, 0U, G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK | G_PARAM_STATIC_BLURB | G_PARAM_READABLE));
+	g_object_class_install_property (G_OBJECT_CLASS (klass), OMX_COMPONENT_CURRENT_STATE, g_param_spec_uint ("current-state", "current-state", "current-state", 0, G_MAXUINT, 0U, G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK | G_PARAM_STATIC_BLURB | G_PARAM_READABLE));
 	g_object_class_install_property (G_OBJECT_CLASS (klass), OMX_COMPONENT_PENDING_STATE, g_param_spec_uint ("pending-state", "pending-state", "pending-state", 0, G_MAXUINT, 0U, G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK | G_PARAM_STATIC_BLURB | G_PARAM_READABLE));
 	g_object_class_install_property (G_OBJECT_CLASS (klass), OMX_COMPONENT_PREVIOUS_STATE, g_param_spec_uint ("previous-state", "previous-state", "previous-state", 0, G_MAXUINT, 0U, G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK | G_PARAM_STATIC_BLURB | G_PARAM_READABLE));
 }
@@ -2817,8 +2817,8 @@ static void omx_component_get_property (GObject * object, guint property_id, GVa
 		case OMX_COMPONENT_CORE:
 		g_value_set_object (value, omx_component_get_core (self));
 		break;
-		case OMX_COMPONENT_STATE:
-		g_value_set_uint (value, omx_component_get_state (self));
+		case OMX_COMPONENT_CURRENT_STATE:
+		g_value_set_uint (value, omx_component_get_current_state (self));
 		break;
 		case OMX_COMPONENT_PENDING_STATE:
 		g_value_set_uint (value, omx_component_get_pending_state (self));

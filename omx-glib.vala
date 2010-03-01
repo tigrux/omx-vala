@@ -359,7 +359,7 @@ namespace Omx {
         }
 
 
-        public uint state {
+        public uint current_state {
             get {
                 return _current_state;
             }
@@ -496,7 +496,7 @@ namespace Omx {
         }
 
 
-        public State do_get_state() throws GLib.Error {
+        public State get_state() throws GLib.Error {
             State state;
             try_run(
                 _handle.get_state(
