@@ -26,6 +26,13 @@ namespace GOmx {
             Omx.Handle input, uint32 port_input);
 
 
+        public Module module {
+            get {
+                return _module;
+            }
+        }
+
+
         public void init() throws GLib.Error {
             Omx.try_run(_init_func());
         }
@@ -55,6 +62,11 @@ namespace GOmx {
                 Omx.Handle input, uint32 port_input) throws GLib.Error {
             Omx.try_run(
                 _setup_tunnel_func(output, port_output, input, port_input));
+        }
+
+
+
+        private Core() {
         }
 
 
@@ -124,7 +136,7 @@ namespace GOmx {
         }
 
 
-        public Engine() {
+        construct {
             _buffers_queue = new AsyncQueue<Port>();
             _components_list = new List<Component>();
             _component_list = new ComponentList(this);
@@ -227,11 +239,13 @@ namespace GOmx {
 
 
         public class ComponentList: Object {
-            Engine _engine;
+            public Engine engine {
+                get; construct set;
+            }
 
 
             public ComponentList(Engine engine) {
-                _engine = engine;
+                Object(engine: engine);
             }
 
 
@@ -274,11 +288,13 @@ namespace GOmx {
 
 
         public class PortQueue: Object {
-            Engine _engine;
+            public Engine engine {
+                get; construct set;
+            }
 
 
             public PortQueue(Engine engine) {
-                _engine = engine;
+                Object(engine: engine);
             }
 
 
@@ -320,11 +336,8 @@ namespace GOmx {
         Omx.State _previous_state;
         Omx.State _pending_state;
 
-        string _component_name;
-        Omx.Index _param_init_index;
         AsyncQueue<Port> _buffers_queue;
         Semaphore _wait_for_state_sem;
-        Core _core;
         Port[] _ports;
         PortList _port_list;
 
@@ -372,9 +385,12 @@ namespace GOmx {
 
 
         public Core core {
-            get {
-                return _core;
-            }
+            get; construct set;
+        }
+
+
+        public string component_name {
+            get; set construct;
         }
 
 
@@ -384,6 +400,10 @@ namespace GOmx {
             }
         }
 
+
+        public uint init_index {
+            get; set construct;
+        }
 
         public uint pending_state {
             get {
@@ -409,13 +429,9 @@ namespace GOmx {
         }
 
 
-        public Component(
-                Core core,
-                string component_name,
-                Omx.Index param_init_index) {
-            _core = core;
-            name = _component_name = component_name;
-            _param_init_index = param_init_index;
+        public Component(Core core, string comp_name, Omx.Index index) {
+            Object(core: core, component_name: comp_name, init_index: index);
+            name = comp_name;
         }
 
 
@@ -437,7 +453,7 @@ namespace GOmx {
             port_param.init();
             Omx.try_run(
                 _handle.get_parameter(
-                    _param_init_index, port_param));
+                    _init_index, port_param));
             _pending_state = Omx.State.Loaded;
             _current_state = Omx.State.Loaded;
         }
@@ -672,16 +688,8 @@ namespace GOmx {
 
 
         public class PortList: Object {
-            Component _component;
-
-
-            public PortList(Component component) {
-                _component = component;
-            }
-
-
-            public Iterator iterator() {
-                return new Iterator(_component);
+            public Component component {
+                get; construct set;
             }
 
 
@@ -689,6 +697,16 @@ namespace GOmx {
                 get {
                     return _component._ports.length;
                 }
+            }
+
+
+            public PortList(Component component) {
+                Object(component: component);
+            }
+
+
+            public Iterator iterator() {
+                return new Iterator(_component);
             }
 
 
@@ -724,7 +742,6 @@ namespace GOmx {
         Omx.BufferHeader[] _buffers;
         AsyncQueue<Omx.BufferHeader> _buffers_queue;
         BufferList _buffer_list;
-        Component _component;
         bool _eos;
         BufferDoneFunc _buffer_done_func;
 
@@ -737,8 +754,17 @@ namespace GOmx {
 
 
         public Component component {
+            get; construct set;
+        }
+
+
+        public uint index {
             get {
-                return _component;
+                return definition.port_index;
+            }
+            
+            set {
+                definition.port_index = value;
             }
         }
 
@@ -770,9 +796,9 @@ namespace GOmx {
             definition.init();
         }
 
-        public Port(Component parent_component, uint32 port_index) {
-            _component = parent_component;
-            definition.port_index = port_index;
+
+        public Port(Component component, uint32 index) {
+            Object(component: component, index: index);
         }
 
 
@@ -866,11 +892,13 @@ namespace GOmx {
 
 
         public class BufferList: Object {
-            Port _port;
+            public Port port {
+                get; construct set;
+            }
 
 
             public BufferList(Port port) {
-                _port = port;
+                Object(port: port);
             }
 
 
