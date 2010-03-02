@@ -347,6 +347,28 @@ namespace GOmx {
     }
 
 
+    public class ImageComponent: Component {
+        public ImageComponent(Core core, string comp_name) {
+            Object(
+                core: core,
+                component_name: comp_name,
+                init_index: Omx.Index.ParamImageInit,
+                name: comp_name);
+        }
+    }
+
+
+    public class VideoComponent: Component {
+        public VideoComponent(Core core, string comp_name) {
+            Object(
+                core: core,
+                component_name: comp_name,
+                init_index: Omx.Index.ParamVideoInit,
+                name: comp_name);
+        }
+    }
+
+
     public class Component: Object {
         public Omx.PortParam ports_param;
         public uint id;

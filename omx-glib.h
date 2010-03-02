@@ -125,6 +125,28 @@ typedef struct _GOmxAudioComponent GOmxAudioComponent;
 typedef struct _GOmxAudioComponentClass GOmxAudioComponentClass;
 typedef struct _GOmxAudioComponentPrivate GOmxAudioComponentPrivate;
 
+#define G_OMX_TYPE_IMAGE_COMPONENT (g_omx_image_component_get_type ())
+#define G_OMX_IMAGE_COMPONENT(obj) (G_TYPE_CHECK_INSTANCE_CAST ((obj), G_OMX_TYPE_IMAGE_COMPONENT, GOmxImageComponent))
+#define G_OMX_IMAGE_COMPONENT_CLASS(klass) (G_TYPE_CHECK_CLASS_CAST ((klass), G_OMX_TYPE_IMAGE_COMPONENT, GOmxImageComponentClass))
+#define G_OMX_IS_IMAGE_COMPONENT(obj) (G_TYPE_CHECK_INSTANCE_TYPE ((obj), G_OMX_TYPE_IMAGE_COMPONENT))
+#define G_OMX_IS_IMAGE_COMPONENT_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((klass), G_OMX_TYPE_IMAGE_COMPONENT))
+#define G_OMX_IMAGE_COMPONENT_GET_CLASS(obj) (G_TYPE_INSTANCE_GET_CLASS ((obj), G_OMX_TYPE_IMAGE_COMPONENT, GOmxImageComponentClass))
+
+typedef struct _GOmxImageComponent GOmxImageComponent;
+typedef struct _GOmxImageComponentClass GOmxImageComponentClass;
+typedef struct _GOmxImageComponentPrivate GOmxImageComponentPrivate;
+
+#define G_OMX_TYPE_VIDEO_COMPONENT (g_omx_video_component_get_type ())
+#define G_OMX_VIDEO_COMPONENT(obj) (G_TYPE_CHECK_INSTANCE_CAST ((obj), G_OMX_TYPE_VIDEO_COMPONENT, GOmxVideoComponent))
+#define G_OMX_VIDEO_COMPONENT_CLASS(klass) (G_TYPE_CHECK_CLASS_CAST ((klass), G_OMX_TYPE_VIDEO_COMPONENT, GOmxVideoComponentClass))
+#define G_OMX_IS_VIDEO_COMPONENT(obj) (G_TYPE_CHECK_INSTANCE_TYPE ((obj), G_OMX_TYPE_VIDEO_COMPONENT))
+#define G_OMX_IS_VIDEO_COMPONENT_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((klass), G_OMX_TYPE_VIDEO_COMPONENT))
+#define G_OMX_VIDEO_COMPONENT_GET_CLASS(obj) (G_TYPE_INSTANCE_GET_CLASS ((obj), G_OMX_TYPE_VIDEO_COMPONENT, GOmxVideoComponentClass))
+
+typedef struct _GOmxVideoComponent GOmxVideoComponent;
+typedef struct _GOmxVideoComponentClass GOmxVideoComponentClass;
+typedef struct _GOmxVideoComponentPrivate GOmxVideoComponentPrivate;
+
 #define G_OMX_COMPONENT_TYPE_PORT_LIST (g_omx_component_port_list_get_type ())
 #define G_OMX_COMPONENT_PORT_LIST(obj) (G_TYPE_CHECK_INSTANCE_CAST ((obj), G_OMX_COMPONENT_TYPE_PORT_LIST, GOmxComponentPortList))
 #define G_OMX_COMPONENT_PORT_LIST_CLASS(klass) (G_TYPE_CHECK_CLASS_CAST ((klass), G_OMX_COMPONENT_TYPE_PORT_LIST, GOmxComponentPortListClass))
@@ -281,6 +303,24 @@ struct _GOmxAudioComponentClass {
 	GOmxComponentClass parent_class;
 };
 
+struct _GOmxImageComponent {
+	GOmxComponent parent_instance;
+	GOmxImageComponentPrivate * priv;
+};
+
+struct _GOmxImageComponentClass {
+	GOmxComponentClass parent_class;
+};
+
+struct _GOmxVideoComponent {
+	GOmxComponent parent_instance;
+	GOmxVideoComponentPrivate * priv;
+};
+
+struct _GOmxVideoComponentClass {
+	GOmxComponentClass parent_class;
+};
+
 typedef void (*GOmxComponentEventFunc) (GOmxComponent* component, guint data1, guint data2, void* event_data, void* user_data);
 struct _GOmxComponentPortList {
 	GObject parent_instance;
@@ -398,6 +438,12 @@ GOmxPort* g_omx_engine_port_queue_iterator_get (GOmxEnginePortQueueIterator* sel
 GType g_omx_audio_component_get_type (void);
 GOmxAudioComponent* g_omx_audio_component_new (GOmxCore* core, const char* comp_name);
 GOmxAudioComponent* g_omx_audio_component_construct (GType object_type, GOmxCore* core, const char* comp_name);
+GType g_omx_image_component_get_type (void);
+GOmxImageComponent* g_omx_image_component_new (GOmxCore* core, const char* comp_name);
+GOmxImageComponent* g_omx_image_component_construct (GType object_type, GOmxCore* core, const char* comp_name);
+GType g_omx_video_component_get_type (void);
+GOmxVideoComponent* g_omx_video_component_new (GOmxCore* core, const char* comp_name);
+GOmxVideoComponent* g_omx_video_component_construct (GType object_type, GOmxCore* core, const char* comp_name);
 GOmxComponent* g_omx_component_new (GOmxCore* core, const char* comp_name, OMX_INDEXTYPE index);
 GOmxComponent* g_omx_component_construct (GType object_type, GOmxCore* core, const char* comp_name, OMX_INDEXTYPE index);
 guint g_omx_component_get_n_ports (GOmxComponent* self);

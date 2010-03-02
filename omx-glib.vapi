@@ -126,6 +126,10 @@ namespace GOmx {
 		public bool started { get; }
 	}
 	[CCode (cheader_filename = "omx-glib.h")]
+	public class ImageComponent : GOmx.Component {
+		public ImageComponent (GOmx.Core core, string comp_name);
+	}
+	[CCode (cheader_filename = "omx-glib.h")]
 	public class Port : GLib.Object {
 		[CCode (cheader_filename = "omx-glib.h")]
 		public class BufferList : GLib.Object {
@@ -174,6 +178,10 @@ namespace GOmx {
 		public Semaphore ();
 		public void down ();
 		public void up ();
+	}
+	[CCode (cheader_filename = "omx-glib.h")]
+	public class VideoComponent : GOmx.Component {
+		public VideoComponent (GOmx.Core core, string comp_name);
 	}
 	[CCode (cheader_filename = "omx-glib.h")]
 	public static void buffer_copy (Omx.BufferHeader dest, Omx.BufferHeader source);

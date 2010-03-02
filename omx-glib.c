@@ -127,6 +127,28 @@ typedef struct _GOmxAudioComponent GOmxAudioComponent;
 typedef struct _GOmxAudioComponentClass GOmxAudioComponentClass;
 typedef struct _GOmxAudioComponentPrivate GOmxAudioComponentPrivate;
 
+#define G_OMX_TYPE_IMAGE_COMPONENT (g_omx_image_component_get_type ())
+#define G_OMX_IMAGE_COMPONENT(obj) (G_TYPE_CHECK_INSTANCE_CAST ((obj), G_OMX_TYPE_IMAGE_COMPONENT, GOmxImageComponent))
+#define G_OMX_IMAGE_COMPONENT_CLASS(klass) (G_TYPE_CHECK_CLASS_CAST ((klass), G_OMX_TYPE_IMAGE_COMPONENT, GOmxImageComponentClass))
+#define G_OMX_IS_IMAGE_COMPONENT(obj) (G_TYPE_CHECK_INSTANCE_TYPE ((obj), G_OMX_TYPE_IMAGE_COMPONENT))
+#define G_OMX_IS_IMAGE_COMPONENT_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((klass), G_OMX_TYPE_IMAGE_COMPONENT))
+#define G_OMX_IMAGE_COMPONENT_GET_CLASS(obj) (G_TYPE_INSTANCE_GET_CLASS ((obj), G_OMX_TYPE_IMAGE_COMPONENT, GOmxImageComponentClass))
+
+typedef struct _GOmxImageComponent GOmxImageComponent;
+typedef struct _GOmxImageComponentClass GOmxImageComponentClass;
+typedef struct _GOmxImageComponentPrivate GOmxImageComponentPrivate;
+
+#define G_OMX_TYPE_VIDEO_COMPONENT (g_omx_video_component_get_type ())
+#define G_OMX_VIDEO_COMPONENT(obj) (G_TYPE_CHECK_INSTANCE_CAST ((obj), G_OMX_TYPE_VIDEO_COMPONENT, GOmxVideoComponent))
+#define G_OMX_VIDEO_COMPONENT_CLASS(klass) (G_TYPE_CHECK_CLASS_CAST ((klass), G_OMX_TYPE_VIDEO_COMPONENT, GOmxVideoComponentClass))
+#define G_OMX_IS_VIDEO_COMPONENT(obj) (G_TYPE_CHECK_INSTANCE_TYPE ((obj), G_OMX_TYPE_VIDEO_COMPONENT))
+#define G_OMX_IS_VIDEO_COMPONENT_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((klass), G_OMX_TYPE_VIDEO_COMPONENT))
+#define G_OMX_VIDEO_COMPONENT_GET_CLASS(obj) (G_TYPE_INSTANCE_GET_CLASS ((obj), G_OMX_TYPE_VIDEO_COMPONENT, GOmxVideoComponentClass))
+
+typedef struct _GOmxVideoComponent GOmxVideoComponent;
+typedef struct _GOmxVideoComponentClass GOmxVideoComponentClass;
+typedef struct _GOmxVideoComponentPrivate GOmxVideoComponentPrivate;
+
 #define G_OMX_TYPE_SEMAPHORE (g_omx_semaphore_get_type ())
 #define G_OMX_SEMAPHORE(obj) (G_TYPE_CHECK_INSTANCE_CAST ((obj), G_OMX_TYPE_SEMAPHORE, GOmxSemaphore))
 #define G_OMX_SEMAPHORE_CLASS(klass) (G_TYPE_CHECK_CLASS_CAST ((klass), G_OMX_TYPE_SEMAPHORE, GOmxSemaphoreClass))
@@ -336,6 +358,24 @@ struct _GOmxAudioComponentClass {
 	GOmxComponentClass parent_class;
 };
 
+struct _GOmxImageComponent {
+	GOmxComponent parent_instance;
+	GOmxImageComponentPrivate * priv;
+};
+
+struct _GOmxImageComponentClass {
+	GOmxComponentClass parent_class;
+};
+
+struct _GOmxVideoComponent {
+	GOmxComponent parent_instance;
+	GOmxVideoComponentPrivate * priv;
+};
+
+struct _GOmxVideoComponentClass {
+	GOmxComponentClass parent_class;
+};
+
 typedef void (*GOmxComponentEventFunc) (GOmxComponent* component, guint data1, guint data2, void* event_data, void* user_data);
 struct _GOmxComponentPrivate {
 	void* _handle;
@@ -489,6 +529,8 @@ static gpointer g_omx_engine_port_queue_iterator_parent_class = NULL;
 static gpointer g_omx_engine_port_queue_parent_class = NULL;
 static gpointer g_omx_engine_parent_class = NULL;
 static gpointer g_omx_audio_component_parent_class = NULL;
+static gpointer g_omx_image_component_parent_class = NULL;
+static gpointer g_omx_video_component_parent_class = NULL;
 static gpointer g_omx_component_port_list_iterator_parent_class = NULL;
 static gpointer g_omx_component_port_list_parent_class = NULL;
 static gpointer g_omx_component_parent_class = NULL;
@@ -627,6 +669,18 @@ enum  {
 };
 GOmxAudioComponent* g_omx_audio_component_new (GOmxCore* core, const char* comp_name);
 GOmxAudioComponent* g_omx_audio_component_construct (GType object_type, GOmxCore* core, const char* comp_name);
+GType g_omx_image_component_get_type (void);
+enum  {
+	G_OMX_IMAGE_COMPONENT_DUMMY_PROPERTY
+};
+GOmxImageComponent* g_omx_image_component_new (GOmxCore* core, const char* comp_name);
+GOmxImageComponent* g_omx_image_component_construct (GType object_type, GOmxCore* core, const char* comp_name);
+GType g_omx_video_component_get_type (void);
+enum  {
+	G_OMX_VIDEO_COMPONENT_DUMMY_PROPERTY
+};
+GOmxVideoComponent* g_omx_video_component_new (GOmxCore* core, const char* comp_name);
+GOmxVideoComponent* g_omx_video_component_construct (GType object_type, GOmxCore* core, const char* comp_name);
 GType g_omx_semaphore_get_type (void);
 GType g_omx_component_port_list_get_type (void);
 #define G_OMX_COMPONENT_GET_PRIVATE(o) (G_TYPE_INSTANCE_GET_PRIVATE ((o), G_OMX_TYPE_COMPONENT, GOmxComponentPrivate))
@@ -2051,6 +2105,72 @@ GType g_omx_audio_component_get_type (void) {
 }
 
 
+GOmxImageComponent* g_omx_image_component_construct (GType object_type, GOmxCore* core, const char* comp_name) {
+	GOmxImageComponent * self;
+	g_return_val_if_fail (core != NULL, NULL);
+	g_return_val_if_fail (comp_name != NULL, NULL);
+	self = (GOmxImageComponent*) g_object_new (object_type, "core", core, "component-name", comp_name, "init-index", OMX_IndexParamImageInit, "name", comp_name, NULL);
+	return self;
+}
+
+
+GOmxImageComponent* g_omx_image_component_new (GOmxCore* core, const char* comp_name) {
+	return g_omx_image_component_construct (G_OMX_TYPE_IMAGE_COMPONENT, core, comp_name);
+}
+
+
+static void g_omx_image_component_class_init (GOmxImageComponentClass * klass) {
+	g_omx_image_component_parent_class = g_type_class_peek_parent (klass);
+}
+
+
+static void g_omx_image_component_instance_init (GOmxImageComponent * self) {
+}
+
+
+GType g_omx_image_component_get_type (void) {
+	static GType g_omx_image_component_type_id = 0;
+	if (g_omx_image_component_type_id == 0) {
+		static const GTypeInfo g_define_type_info = { sizeof (GOmxImageComponentClass), (GBaseInitFunc) NULL, (GBaseFinalizeFunc) NULL, (GClassInitFunc) g_omx_image_component_class_init, (GClassFinalizeFunc) NULL, NULL, sizeof (GOmxImageComponent), 0, (GInstanceInitFunc) g_omx_image_component_instance_init, NULL };
+		g_omx_image_component_type_id = g_type_register_static (G_OMX_TYPE_COMPONENT, "GOmxImageComponent", &g_define_type_info, 0);
+	}
+	return g_omx_image_component_type_id;
+}
+
+
+GOmxVideoComponent* g_omx_video_component_construct (GType object_type, GOmxCore* core, const char* comp_name) {
+	GOmxVideoComponent * self;
+	g_return_val_if_fail (core != NULL, NULL);
+	g_return_val_if_fail (comp_name != NULL, NULL);
+	self = (GOmxVideoComponent*) g_object_new (object_type, "core", core, "component-name", comp_name, "init-index", OMX_IndexParamVideoInit, "name", comp_name, NULL);
+	return self;
+}
+
+
+GOmxVideoComponent* g_omx_video_component_new (GOmxCore* core, const char* comp_name) {
+	return g_omx_video_component_construct (G_OMX_TYPE_VIDEO_COMPONENT, core, comp_name);
+}
+
+
+static void g_omx_video_component_class_init (GOmxVideoComponentClass * klass) {
+	g_omx_video_component_parent_class = g_type_class_peek_parent (klass);
+}
+
+
+static void g_omx_video_component_instance_init (GOmxVideoComponent * self) {
+}
+
+
+GType g_omx_video_component_get_type (void) {
+	static GType g_omx_video_component_type_id = 0;
+	if (g_omx_video_component_type_id == 0) {
+		static const GTypeInfo g_define_type_info = { sizeof (GOmxVideoComponentClass), (GBaseInitFunc) NULL, (GBaseFinalizeFunc) NULL, (GClassInitFunc) g_omx_video_component_class_init, (GClassFinalizeFunc) NULL, NULL, sizeof (GOmxVideoComponent), 0, (GInstanceInitFunc) g_omx_video_component_instance_init, NULL };
+		g_omx_video_component_type_id = g_type_register_static (G_OMX_TYPE_COMPONENT, "GOmxVideoComponent", &g_define_type_info, 0);
+	}
+	return g_omx_video_component_type_id;
+}
+
+
 static OMX_ERRORTYPE _g_omx_component_event_handler_omx_event_handler_func (void* component, gpointer self, OMX_EVENTTYPE event, guint32 data1, guint32 data2, void* event_data) {
 	return g_omx_component_event_handler (self, component, event, data1, data2, event_data);
 }
@@ -2552,7 +2672,7 @@ static OMX_ERRORTYPE g_omx_component_event_handler (GOmxComponent* self, void* c
 		{
 			OMX_ERRORTYPE _error_;
 			_error_ = (OMX_ERRORTYPE) data1;
-			g_critical ("omx-glib.vala:695: %s", omx_error_to_string (_error_));
+			g_critical ("omx-glib.vala:717: %s", omx_error_to_string (_error_));
 			if (self->priv->_event_func_1 != NULL) {
 				self->priv->_event_func_1 (self, (guint) data1, (guint) data2, event_data, self->priv->_event_func_1_target);
 			}
