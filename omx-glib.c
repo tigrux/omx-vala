@@ -635,14 +635,11 @@ static void g_omx_component_real_allocate_ports (GOmxComponent* self, GError** e
 void g_omx_port_free_buffers (GOmxPort* self, GError** error);
 void g_omx_component_free_ports (GOmxComponent* self, GError** error);
 static void g_omx_component_real_free_ports (GOmxComponent* self, GError** error);
-void g_omx_component_fill_output_buffers (GOmxComponent* self, GError** error);
-void g_omx_component_empty_input_buffers (GOmxComponent* self, GError** error);
-static void g_omx_component_real_prepare_ports (GOmxComponent* self, GError** error);
 guint g_omx_port_get_n_buffers (GOmxPort* self);
 void g_omx_port_push_buffer (GOmxPort* self, OMX_BUFFERHEADERTYPE* buffer, GError** error);
 OMX_BUFFERHEADERTYPE* g_omx_port_pop_buffer (GOmxPort* self);
+static void g_omx_component_real_prepare_ports (GOmxComponent* self, GError** error);
 void g_omx_semaphore_down (GOmxSemaphore* self);
-void* g_omx_component_get_handle (GOmxComponent* self);
 OMX_STATETYPE g_omx_component_get_state (GOmxComponent* self, GError** error);
 void g_omx_component_event_set_function (GOmxComponent* self, OMX_EVENTTYPE event, GOmxComponentEventFunc event_function, void* event_function_target);
 void g_omx_semaphore_up (GOmxSemaphore* self);
@@ -650,6 +647,7 @@ static OMX_ERRORTYPE g_omx_component_buffer_done (GOmxComponent* self, GOmxPort*
 GAsyncQueue* g_omx_port_get_queue (GOmxPort* self);
 void g_omx_port_buffer_done (GOmxPort* self, OMX_BUFFERHEADERTYPE* buffer);
 gboolean g_omx_component_get_started (GOmxComponent* self);
+void* g_omx_component_get_handle (GOmxComponent* self);
 GOmxComponentPortList* g_omx_component_get_ports (GOmxComponent* self);
 GAsyncQueue* g_omx_component_get_queue (GOmxComponent* self);
 GOmxCore* g_omx_component_get_core (GOmxComponent* self);
@@ -1218,7 +1216,7 @@ void g_omx_engine_add_component (GOmxEngine* self, GOmxComponent* component) {
 GOmxComponent* g_omx_engine_get_component (GOmxEngine* self, guint i) {
 	GOmxComponent* result;
 	g_return_val_if_fail (self != NULL, NULL);
-	g_return_if_fail (i < self->priv->_n_components);
+	g_return_val_if_fail (i < self->priv->_n_components, NULL);
 	result = _g_object_ref0 ((GOmxComponent*) g_list_nth_data (self->priv->_components_list, i));
 	return result;
 }
@@ -1253,6 +1251,7 @@ static void g_omx_engine_real_start (GOmxEngine* self, GError** error) {
 
 
 void g_omx_engine_start (GOmxEngine* self, GError** error) {
+	g_return_if_fail (!self->priv->_started);
 	G_OMX_ENGINE_GET_CLASS (self)->start (self, error);
 }
 
@@ -2016,6 +2015,7 @@ static void g_omx_component_real_init (GOmxComponent* self, GError** error) {
 
 
 void g_omx_component_init (GOmxComponent* self, GError** error) {
+	g_return_if_fail (self->priv->_handle == NULL);
 	G_OMX_COMPONENT_GET_CLASS (self)->init (self, error);
 }
 
@@ -2035,6 +2035,7 @@ static void g_omx_component_real_free_handle (GOmxComponent* self, GError** erro
 
 
 void g_omx_component_free_handle (GOmxComponent* self, GError** error) {
+	g_return_if_fail (self->priv->_handle != NULL);
 	G_OMX_COMPONENT_GET_CLASS (self)->free_handle (self, error);
 }
 
@@ -2091,6 +2092,7 @@ static void g_omx_component_real_allocate_ports (GOmxComponent* self, GError** e
 
 
 void g_omx_component_allocate_ports (GOmxComponent* self, GError** error) {
+	g_return_if_fail (self->priv->_ports == NULL);
 	G_OMX_COMPONENT_GET_CLASS (self)->allocate_ports (self, error);
 }
 
@@ -2126,33 +2128,12 @@ static void g_omx_component_real_free_ports (GOmxComponent* self, GError** error
 
 
 void g_omx_component_free_ports (GOmxComponent* self, GError** error) {
+	g_return_if_fail (self->priv->_ports != NULL);
 	G_OMX_COMPONENT_GET_CLASS (self)->free_ports (self, error);
 }
 
 
 static void g_omx_component_real_prepare_ports (GOmxComponent* self, GError** error) {
-	GError * _inner_error_;
-	g_return_if_fail (self != NULL);
-	_inner_error_ = NULL;
-	g_omx_component_fill_output_buffers (self, &_inner_error_);
-	if (_inner_error_ != NULL) {
-		g_propagate_error (error, _inner_error_);
-		return;
-	}
-	g_omx_component_empty_input_buffers (self, &_inner_error_);
-	if (_inner_error_ != NULL) {
-		g_propagate_error (error, _inner_error_);
-		return;
-	}
-}
-
-
-void g_omx_component_prepare_ports (GOmxComponent* self, GError** error) {
-	G_OMX_COMPONENT_GET_CLASS (self)->prepare_ports (self, error);
-}
-
-
-void g_omx_component_fill_output_buffers (GOmxComponent* self, GError** error) {
 	GError * _inner_error_;
 	g_return_if_fail (self != NULL);
 	_inner_error_ = NULL;
@@ -2198,12 +2179,6 @@ void g_omx_component_fill_output_buffers (GOmxComponent* self, GError** error) {
 			}
 		}
 	}
-}
-
-
-void g_omx_component_empty_input_buffers (GOmxComponent* self, GError** error) {
-	g_return_if_fail (self != NULL);
-	g_return_if_fail (self->priv->_ports != NULL);
 	{
 		GOmxPort** port_collection;
 		int port_collection_length1;
@@ -2221,13 +2196,13 @@ void g_omx_component_empty_input_buffers (GOmxComponent* self, GError** error) {
 						guint i;
 						i = (guint) 0;
 						{
-							gboolean _tmp0_;
-							_tmp0_ = TRUE;
+							gboolean _tmp1_;
+							_tmp1_ = TRUE;
 							while (TRUE) {
-								if (!_tmp0_) {
+								if (!_tmp1_) {
 									i++;
 								}
-								_tmp0_ = FALSE;
+								_tmp1_ = FALSE;
 								if (!(i < n_buffers)) {
 									break;
 								}
@@ -2240,6 +2215,12 @@ void g_omx_component_empty_input_buffers (GOmxComponent* self, GError** error) {
 			}
 		}
 	}
+}
+
+
+void g_omx_component_prepare_ports (GOmxComponent* self, GError** error) {
+	g_return_if_fail (self->priv->_ports != NULL);
+	G_OMX_COMPONENT_GET_CLASS (self)->prepare_ports (self, error);
 }
 
 
@@ -2309,7 +2290,7 @@ OMX_STATETYPE g_omx_component_get_state (GOmxComponent* self, GError** error) {
 	OMX_STATETYPE state = 0;
 	g_return_val_if_fail (self != NULL, 0);
 	_inner_error_ = NULL;
-	g_return_val_if_fail (g_omx_component_get_handle (self) != NULL, OMX_StateInvalid);
+	g_return_val_if_fail (self->priv->_handle != NULL, 0);
 	omx_try_run (OMX_GetState (self->priv->_handle, &state), __FILE__, __FUNCTION__, __LINE__, &_inner_error_);
 	if (_inner_error_ != NULL) {
 		g_propagate_error (error, _inner_error_);

@@ -33,33 +33,38 @@ namespace GOmx {
         }
 
 
-        public void init() throws GLib.Error {
+        public void init()
+        throws GLib.Error {
             Omx.try_run(_init_func());
         }
 
 
-        public void deinit() throws GLib.Error {
+        public void deinit()
+        throws GLib.Error {
             Omx.try_run(_deinit_func());
         }
 
 
         public void get_handle(
                 out Omx.Handle component, string component_name,
-                void *app_data, Omx.Callback callbacks) throws GLib.Error {
+                void *app_data, Omx.Callback callbacks)
+        throws GLib.Error {
             Omx.try_run(
                 _get_handle_func(
                     out component, component_name, app_data, callbacks));
         }
 
 
-        public void free_handle(Omx.Handle handle) throws GLib.Error {
+        public void free_handle(Omx.Handle handle)
+        throws GLib.Error {
             Omx.try_run(_free_handle_func(handle));
         }
 
 
         public void setup_tunnel(
                 Omx.Handle output, uint32 port_output,
-                Omx.Handle input, uint32 port_input) throws GLib.Error {
+                Omx.Handle input, uint32 port_input)
+        throws GLib.Error {
             Omx.try_run(
                 _setup_tunnel_func(output, port_output, input, port_input));
         }
@@ -152,14 +157,14 @@ namespace GOmx {
         }
 
 
-        public Component get_component(uint i) {
-            return_if_fail(i < _n_components);
+        public Component get_component(uint i)
+        requires(i < _n_components) {
             return _components_list.nth_data(i);
         }
 
 
-        public virtual void start() throws GLib.Error {
-            return_if_fail(!_started);
+        public virtual void start()
+        throws GLib.Error requires(!_started) {
             foreach(var component in _components_list) {
                 component.prepare_ports();
                 break;
@@ -168,20 +173,22 @@ namespace GOmx {
         }
 
 
-        public virtual void init() throws GLib.Error {
+        public virtual void init()
+        throws GLib.Error {
             foreach(var component in _components_list)
                 component.init();
         }
 
 
-        public virtual void set_state(Omx.State state) throws GLib.Error {
+        public virtual void set_state(Omx.State state)
+        throws GLib.Error {
             foreach(var component in _components_list)
                 component.set_state(state);
         }
 
 
-        public virtual void set_state_and_wait(
-                Omx.State state) throws GLib.Error {
+        public virtual void set_state_and_wait(Omx.State state)
+        throws GLib.Error {
             foreach(var component in _components_list)
                 component.set_state_and_wait(state);
         }
@@ -193,7 +200,8 @@ namespace GOmx {
         }
 
 
-        public virtual void free_handles() throws GLib.Error {
+        public virtual void free_handles()
+        throws GLib.Error {
             foreach(var component in _components_list)
                 component.free_handle();
         }
@@ -445,14 +453,14 @@ namespace GOmx {
         }
 
 
-        public Port get_port(uint i) {
-            return_val_if_fail(i<ports_param.ports, null);
+        public Port get_port(uint i)
+        requires(i < ports_param.ports) {
             return _ports[i];
         }
 
 
-        public virtual void init() throws GLib.Error {
-            return_if_fail(_handle == null);
+        public virtual void init()
+        throws GLib.Error requires(_handle == null) {
             _core.get_handle(
                 out _handle, _component_name,
                 this, callbacks);
@@ -466,15 +474,15 @@ namespace GOmx {
         }
 
 
-        public virtual void free_handle() throws GLib.Error {
-            return_if_fail(_handle != null);
+        public virtual void free_handle()
+        throws GLib.Error requires(_handle != null) {
             _core.free_handle(_handle);
             _handle = null;
         }
 
 
-        protected virtual void allocate_ports() throws GLib.Error {
-            return_if_fail(_ports == null);
+        protected virtual void allocate_ports()
+        throws GLib.Error requires(_ports == null) {
             uint n_ports = ports_param.ports;
             _ports = new Port[n_ports];
             for(uint i = 0; i<n_ports; i++) {
@@ -488,41 +496,28 @@ namespace GOmx {
         }
 
 
-        protected virtual void free_ports() throws GLib.Error {
-            return_if_fail(_ports != null);
+        protected virtual void free_ports()
+        throws GLib.Error requires(_ports != null) {
             foreach(var port in _ports)
                 port.free_buffers();
             _ports = null;
         }
 
 
-        public virtual void prepare_ports() throws GLib.Error {
-            fill_output_buffers();
-            empty_input_buffers();
-        }
-
-
-        protected void fill_output_buffers() throws GLib.Error {
-            return_if_fail(_ports != null);
-            foreach(var port in _ports) {
+        public virtual void prepare_ports()
+        throws GLib.Error requires(_ports != null) {
+            foreach(var port in _ports)
                 if(port.definition.dir == Omx.Dir.Output) {
                     var n_buffers = port.get_n_buffers();
                     for(uint i=0; i<n_buffers; i++)
                         port.push_buffer(port.pop_buffer());
                 }
-            }
-        }
-
-
-        protected void empty_input_buffers() throws GLib.Error {
-            return_if_fail(_ports != null);
-            foreach(var port in _ports) {
+            foreach(var port in _ports)
                 if(port.definition.dir == Omx.Dir.Input) {
                     uint n_buffers = port.get_n_buffers();
                     for(uint i=0; i<n_buffers; i++)
                         _buffers_queue.push(port);
                 }
-            }
         }
 
 
@@ -531,8 +526,8 @@ namespace GOmx {
         }
 
 
-        public void set_state(Omx.State state) throws GLib.Error {
-            return_if_fail(_handle != null);
+        public void set_state(Omx.State state)
+        throws GLib.Error requires(_handle != null) {
             _pending_state = state;
             Omx.try_run(
                 _handle.send_command(
@@ -547,14 +542,15 @@ namespace GOmx {
         }
 
 
-        public void set_state_and_wait(Omx.State state) throws GLib.Error {
+        public void set_state_and_wait(Omx.State state)
+        throws GLib.Error {
             set_state(state);
             wait_for_state_set();
         }
 
 
-        public Omx.State get_state() throws GLib.Error {
-            return_val_if_fail(handle != null, Omx.State.Invalid);
+        public Omx.State get_state()
+        throws GLib.Error requires(_handle != null) {
             Omx.State state;
             Omx.try_run(
                 _handle.get_state(
@@ -811,15 +807,16 @@ namespace GOmx {
         }
 
 
-        public void init() throws GLib.Error {
+        public void init()
+        throws GLib.Error {
             Omx.try_run(
                 _component.handle.get_parameter(
                     Omx.Index.ParamPortDefinition, definition));
         }
 
 
-        public void allocate_buffers() throws GLib.Error {
-            return_if_fail(_buffers == null);
+        public void allocate_buffers()
+        throws GLib.Error requires(_buffers == null) {
             uint n_buffers = get_n_buffers();
             _buffers = new Omx.BufferHeader[n_buffers];
             for(uint i=0; i<n_buffers; i++) {
@@ -832,16 +829,16 @@ namespace GOmx {
         }
 
 
-        public void setup_tunnel_with(Port port) throws GLib.Error {
-            return_if_fail(_component != null);
+        public void setup_tunnel_with(Port port)
+        throws GLib.Error requires(_component != null) {
             _component.core.setup_tunnel(
                 _component.handle, index,
                 port._component.handle, port.index);
         }
 
 
-        public void use_buffers_of(Port port) throws GLib.Error {
-            return_if_fail(_component != null);
+        public void use_buffers_of(Port port)
+        throws GLib.Error requires(_component != null) {
             uint n_buffers = get_n_buffers();
             _buffers = new Omx.BufferHeader[n_buffers];
             for(uint i=0; i<n_buffers; i++) {
@@ -856,8 +853,8 @@ namespace GOmx {
         }
 
 
-        public weak Omx.BufferHeader get_buffer(uint i) {
-            return_val_if_fail(i < definition.buffer_count_actual, null);
+        public weak Omx.BufferHeader get_buffer(uint i)
+        requires(i < definition.buffer_count_actual) {
             return _buffers[i];
         }
 
@@ -867,8 +864,8 @@ namespace GOmx {
         }
 
 
-        public void free_buffers() throws GLib.Error {
-            return_if_fail(_buffers != null);
+        public void free_buffers()
+        throws GLib.Error requires(_buffers != null) {
             foreach(var buffer in _buffers)
                 Omx.try_run(
                     _component.handle.free_buffer(
@@ -885,8 +882,8 @@ namespace GOmx {
         }
 
 
-        public void push_buffer(Omx.BufferHeader buffer) throws GLib.Error {
-            return_if_fail(_component != null);
+        public void push_buffer(Omx.BufferHeader buffer)
+        throws GLib.Error requires(_component != null) {
             switch(definition.dir) {
                 case Omx.Dir.Input:
                     _component.handle.empty_this_buffer(buffer);
@@ -1005,8 +1002,8 @@ namespace GOmx {
 
     public void buffer_copy(
             Omx.BufferHeader dest,
-            Omx.BufferHeader source) {
-        return_if_fail(dest.buffer.length <= source.buffer.length);
+            Omx.BufferHeader source)
+    requires(dest.buffer.length <= source.buffer.length) {
         dest.offset = source.offset;
         dest.length = source.length;
         Memory.copy(dest.buffer, source.buffer, source.length);
@@ -1015,8 +1012,8 @@ namespace GOmx {
 
     public void buffer_copy_len(
             Omx.BufferHeader dest,
-            Omx.BufferHeader source) {
-        return_if_fail(dest.buffer.length <= source.buffer.length);
+            Omx.BufferHeader source)
+    requires(dest.buffer.length <= source.buffer.length) {
         dest.offset = source.offset;
         dest.length = source.length;
     }

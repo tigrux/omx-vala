@@ -24,9 +24,7 @@ namespace GOmx {
 		public Omx.PortParam ports_param;
 		public Component (GOmx.Core core, string comp_name, Omx.Index index);
 		protected virtual void allocate_ports () throws GLib.Error;
-		protected void empty_input_buffers () throws GLib.Error;
 		public void event_set_function (Omx.Event event, GOmx.Component.EventFunc event_function);
-		protected void fill_output_buffers () throws GLib.Error;
 		public virtual void free_handle () throws GLib.Error;
 		protected virtual void free_ports () throws GLib.Error;
 		public uint get_n_ports ();
