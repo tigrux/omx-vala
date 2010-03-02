@@ -1066,17 +1066,17 @@ namespace GOmx {
     public void buffer_copy(
             Omx.BufferHeader dest,
             Omx.BufferHeader source) {
-        Memory.copy(dest.buffer, source.buffer, source.filled_len);
-        dest.filled_len = source.filled_len;
         dest.offset = source.offset;
+        dest.length = source.length;
+        Memory.copy(dest.buffer, source.buffer, source.length);
     }
 
 
     public void buffer_copy_len(
             Omx.BufferHeader dest,
             Omx.BufferHeader source) {
-        dest.filled_len = source.filled_len;
         dest.offset = source.offset;
+        dest.length = source.length;
     }
 
 
@@ -1084,7 +1084,7 @@ namespace GOmx {
             Omx.BufferHeader buffer,
             FileStream fs) {
         buffer.offset = 0;
-        buffer.filled_len = fs.read(buffer.buffer);
+        buffer.length = fs.read(buffer.buffer);
         if(fs.eof())
             buffer.set_eos();
     }

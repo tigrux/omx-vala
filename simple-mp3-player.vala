@@ -142,7 +142,7 @@ void allocate_buffers() throws Error {
 
 void read_buffer_from_fd(Omx.BufferHeader buffer) {
     buffer.offset = 0;
-    buffer.filled_len = fd.read(buffer.buffer);
+    buffer.length = fd.read(buffer.buffer);
 }
 
 void move_buffers() throws Error {

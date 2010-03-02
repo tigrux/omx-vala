@@ -3959,17 +3959,17 @@ void g_omx_buffer_set_eos (OMX_BUFFERHEADERTYPE* buffer) {
 void g_omx_buffer_copy (OMX_BUFFERHEADERTYPE* dest, OMX_BUFFERHEADERTYPE* source) {
 	g_return_if_fail (dest != NULL);
 	g_return_if_fail (source != NULL);
-	memcpy (dest->pBuffer, source->pBuffer, source->nFilledLen);
-	dest->nFilledLen = source->nFilledLen;
 	dest->nOffset = source->nOffset;
+	dest->nFilledLen = source->nFilledLen;
+	memcpy (dest->pBuffer, source->pBuffer, source->nFilledLen);
 }
 
 
 void g_omx_buffer_copy_len (OMX_BUFFERHEADERTYPE* dest, OMX_BUFFERHEADERTYPE* source) {
 	g_return_if_fail (dest != NULL);
 	g_return_if_fail (source != NULL);
-	dest->nFilledLen = source->nFilledLen;
 	dest->nOffset = source->nOffset;
+	dest->nFilledLen = source->nFilledLen;
 }
 
 

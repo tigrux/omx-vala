@@ -223,11 +223,8 @@ namespace Omx {
         [CCode (cname="pBuffer",array_length_cname = "nAllocLen")]
         public uint8[] buffer;
 
-        [CCode (cname="nAllocLen")]
-        public size_t alloc_len;
-
         [CCode (cname="nFilledLen")]
-        public size_t filled_len;
+        public size_t length;
 
         [CCode (cname="nOffset")]
         public size_t offset;
