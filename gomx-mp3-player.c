@@ -190,7 +190,7 @@ void play (const char* filename, GError** error) {
 	}
 	{
 		GOmxEnginePortQueueIterator* _port_it;
-		_port_it = g_omx_engine_port_queue_iterator (g_omx_engine_get_ports (engine));
+		_port_it = g_omx_engine_port_queue_iterator (g_omx_engine_get_ports_with_buffer_done (engine));
 		while (TRUE) {
 			GOmxPort* port;
 			if (!g_omx_engine_port_queue_iterator_next (_port_it)) {

@@ -336,7 +336,7 @@ GOmxEngineIterator* g_omx_engine_iterator (GOmxEngine* self);
 GType g_omx_engine_component_list_get_type (void);
 GOmxEngineComponentList* g_omx_engine_get_components (GOmxEngine* self);
 GType g_omx_engine_port_queue_get_type (void);
-GOmxEnginePortQueue* g_omx_engine_get_ports (GOmxEngine* self);
+GOmxEnginePortQueue* g_omx_engine_get_ports_with_buffer_done (GOmxEngine* self);
 GOmxEngineIterator* g_omx_engine_iterator_new (GOmxEngine* engine);
 GOmxEngineIterator* g_omx_engine_iterator_construct (GType object_type, GOmxEngine* engine);
 gboolean g_omx_engine_iterator_next (GOmxEngineIterator* self);

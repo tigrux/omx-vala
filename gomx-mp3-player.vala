@@ -56,7 +56,7 @@ public void play(string filename) throws Error {
     }
 
     engine.start();
-    foreach(var port in engine.ports) {
+    foreach(var port in engine.ports_with_buffer_done) {
         switch(port.component.id) {
             case AUDIODEC_ID:
                 switch(port.definition.dir) {

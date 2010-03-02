@@ -480,7 +480,7 @@ GType g_omx_engine_port_queue_get_type (void);
 enum  {
 	G_OMX_ENGINE_DUMMY_PROPERTY,
 	G_OMX_ENGINE_COMPONENTS,
-	G_OMX_ENGINE_PORTS
+	G_OMX_ENGINE_PORTS_WITH_BUFFER_DONE
 };
 static void _g_list_free_g_object_unref (GList* self);
 GOmxEngineComponentList* g_omx_engine_component_list_new (GOmxEngine* engine);
@@ -516,7 +516,7 @@ GOmxEngineIterator* g_omx_engine_iterator_construct (GType object_type, GOmxEngi
 GType g_omx_engine_iterator_get_type (void);
 GOmxEngineIterator* g_omx_engine_iterator (GOmxEngine* self);
 GOmxEngineComponentList* g_omx_engine_get_components (GOmxEngine* self);
-GOmxEnginePortQueue* g_omx_engine_get_ports (GOmxEngine* self);
+GOmxEnginePortQueue* g_omx_engine_get_ports_with_buffer_done (GOmxEngine* self);
 #define G_OMX_ENGINE_ITERATOR_GET_PRIVATE(o) (G_TYPE_INSTANCE_GET_PRIVATE ((o), G_OMX_ENGINE_TYPE_ITERATOR, GOmxEngineIteratorPrivate))
 enum  {
 	G_OMX_ENGINE_ITERATOR_DUMMY_PROPERTY
@@ -1419,7 +1419,7 @@ GOmxEngineComponentList* g_omx_engine_get_components (GOmxEngine* self) {
 }
 
 
-GOmxEnginePortQueue* g_omx_engine_get_ports (GOmxEngine* self) {
+GOmxEnginePortQueue* g_omx_engine_get_ports_with_buffer_done (GOmxEngine* self) {
 	GOmxEnginePortQueue* result;
 	g_return_val_if_fail (self != NULL, NULL);
 	result = self->priv->_port_queue;
@@ -1770,7 +1770,7 @@ static void g_omx_engine_class_init (GOmxEngineClass * klass) {
 	G_OBJECT_CLASS (klass)->get_property = g_omx_engine_get_property;
 	G_OBJECT_CLASS (klass)->finalize = g_omx_engine_finalize;
 	g_object_class_install_property (G_OBJECT_CLASS (klass), G_OMX_ENGINE_COMPONENTS, g_param_spec_object ("components", "components", "components", G_OMX_ENGINE_TYPE_COMPONENT_LIST, G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK | G_PARAM_STATIC_BLURB | G_PARAM_READABLE));
-	g_object_class_install_property (G_OBJECT_CLASS (klass), G_OMX_ENGINE_PORTS, g_param_spec_object ("ports", "ports", "ports", G_OMX_ENGINE_TYPE_PORT_QUEUE, G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK | G_PARAM_STATIC_BLURB | G_PARAM_READABLE));
+	g_object_class_install_property (G_OBJECT_CLASS (klass), G_OMX_ENGINE_PORTS_WITH_BUFFER_DONE, g_param_spec_object ("ports-with-buffer-done", "ports-with-buffer-done", "ports-with-buffer-done", G_OMX_ENGINE_TYPE_PORT_QUEUE, G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK | G_PARAM_STATIC_BLURB | G_PARAM_READABLE));
 }
 
 
@@ -1807,8 +1807,8 @@ static void g_omx_engine_get_property (GObject * object, guint property_id, GVal
 		case G_OMX_ENGINE_COMPONENTS:
 		g_value_set_object (value, g_omx_engine_get_components (self));
 		break;
-		case G_OMX_ENGINE_PORTS:
-		g_value_set_object (value, g_omx_engine_get_ports (self));
+		case G_OMX_ENGINE_PORTS_WITH_BUFFER_DONE:
+		g_value_set_object (value, g_omx_engine_get_ports_with_buffer_done (self));
 		break;
 		default:
 		G_OBJECT_WARN_INVALID_PROPERTY_ID (object, property_id, pspec);

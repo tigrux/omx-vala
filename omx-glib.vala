@@ -120,7 +120,7 @@ namespace GOmx {
         }
 
 
-        public PortQueue ports {
+        public PortQueue ports_with_buffer_done {
             get {
                 return _port_queue;
             }

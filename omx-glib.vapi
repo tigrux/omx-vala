@@ -113,7 +113,7 @@ namespace GOmx {
 		public void start () throws GLib.Error;
 		public void wait_for_state_set ();
 		public GOmx.Engine.ComponentList components { get; }
-		public GOmx.Engine.PortQueue ports { get; }
+		public GOmx.Engine.PortQueue ports_with_buffer_done { get; }
 	}
 	[CCode (cheader_filename = "omx-glib.h")]
 	public class Port : GLib.Object {
