@@ -752,6 +752,8 @@ enum  {
 };
 static GObject * g_omx_semaphore_constructor (GType type, guint n_construct_properties, GObjectConstructParam * construct_properties);
 static void g_omx_semaphore_finalize (GObject* obj);
+gboolean g_omx_buffer_is_eos (OMX_BUFFERHEADERTYPE* buffer);
+void g_omx_buffer_set_eos (OMX_BUFFERHEADERTYPE* buffer);
 void g_omx_buffer_copy (OMX_BUFFERHEADERTYPE* dest, OMX_BUFFERHEADERTYPE* source);
 void g_omx_buffer_copy_len (OMX_BUFFERHEADERTYPE* dest, OMX_BUFFERHEADERTYPE* source);
 void g_omx_buffer_read_from_file (OMX_BUFFERHEADERTYPE* buffer, FILE* fs);
@@ -3775,6 +3777,26 @@ GType g_omx_semaphore_get_type (void) {
 }
 
 
+gboolean g_omx_buffer_is_eos (OMX_BUFFERHEADERTYPE* buffer) {
+	gboolean result;
+	g_return_val_if_fail (buffer != NULL, FALSE);
+	result = omx_buffer_header_get_eos (buffer);
+	return result;
+}
+
+
+static void omx_buffer_header_set_eos (OMX_BUFFERHEADERTYPE* self) {
+	g_return_if_fail (self != NULL);
+	self->nFlags = self->nFlags | ((guint32) OMX_BUFFERFLAG_EOS);
+}
+
+
+void g_omx_buffer_set_eos (OMX_BUFFERHEADERTYPE* buffer) {
+	g_return_if_fail (buffer != NULL);
+	omx_buffer_header_set_eos (buffer);
+}
+
+
 void g_omx_buffer_copy (OMX_BUFFERHEADERTYPE* dest, OMX_BUFFERHEADERTYPE* source) {
 	g_return_if_fail (dest != NULL);
 	g_return_if_fail (source != NULL);
@@ -3789,12 +3811,6 @@ void g_omx_buffer_copy_len (OMX_BUFFERHEADERTYPE* dest, OMX_BUFFERHEADERTYPE* so
 	g_return_if_fail (source != NULL);
 	dest->nFilledLen = source->nFilledLen;
 	dest->nOffset = source->nOffset;
-}
-
-
-static void omx_buffer_header_set_eos (OMX_BUFFERHEADERTYPE* self) {
-	g_return_if_fail (self != NULL);
-	self->nFlags = self->nFlags | ((guint32) OMX_BUFFERFLAG_EOS);
 }
 
 

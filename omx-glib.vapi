@@ -168,5 +168,9 @@ namespace GOmx {
 	[CCode (cheader_filename = "omx-glib.h")]
 	public static void buffer_copy_len (Omx.BufferHeader dest, Omx.BufferHeader source);
 	[CCode (cheader_filename = "omx-glib.h")]
+	public static bool buffer_is_eos (Omx.BufferHeader buffer);
+	[CCode (cheader_filename = "omx-glib.h")]
 	public static void buffer_read_from_file (Omx.BufferHeader buffer, GLib.FileStream fs);
+	[CCode (cheader_filename = "omx-glib.h")]
+	public static void buffer_set_eos (Omx.BufferHeader buffer);
 }

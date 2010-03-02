@@ -463,6 +463,8 @@ void g_omx_semaphore_up (GOmxSemaphore* self);
 void g_omx_semaphore_down (GOmxSemaphore* self);
 GOmxSemaphore* g_omx_semaphore_new (void);
 GOmxSemaphore* g_omx_semaphore_construct (GType object_type);
+gboolean g_omx_buffer_is_eos (OMX_BUFFERHEADERTYPE* buffer);
+void g_omx_buffer_set_eos (OMX_BUFFERHEADERTYPE* buffer);
 void g_omx_buffer_copy (OMX_BUFFERHEADERTYPE* dest, OMX_BUFFERHEADERTYPE* source);
 void g_omx_buffer_copy_len (OMX_BUFFERHEADERTYPE* dest, OMX_BUFFERHEADERTYPE* source);
 void g_omx_buffer_read_from_file (OMX_BUFFERHEADERTYPE* buffer, FILE* fs);

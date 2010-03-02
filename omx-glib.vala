@@ -972,6 +972,16 @@ namespace GOmx {
 
 
 
+    public bool buffer_is_eos(Omx.BufferHeader buffer) {
+        return buffer.eos;
+    }
+
+
+    public void buffer_set_eos(Omx.BufferHeader buffer) {
+        buffer.set_eos();
+    }
+
+
     public void buffer_copy(
             Omx.BufferHeader dest,
             Omx.BufferHeader source) {
