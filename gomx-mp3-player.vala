@@ -14,11 +14,13 @@ int main(string[] args) {
     }
 }
 
+
 const int AUDIODEC_ID = 0;
 const int AUDIOSINK_ID = 1;
 
 const string AUDIODEC_COMPONENT = "OMX.st.audio_decoder.mp3.mad";
 const string AUDIOSINK_COMPONENT = "OMX.st.alsa.alsasink";
+
 
 public void play(string filename) throws Error {
     var fd = FileStream.open(filename, "rb");
@@ -46,14 +48,6 @@ public void play(string filename) throws Error {
     engine.set_state_and_wait(Omx.State.Idle);
     engine.set_state_and_wait(Omx.State.Executing);
 
-    foreach(var component in engine.components) {
-        print("Component %s\n", component.name);
-        foreach(var port in component.ports) {
-            print("\tPort %s\n", port.name);
-            foreach(var buffer in port.buffers)
-                print("\t\tBuffer %p\n", buffer);
-        }
-    }
 
     engine.start();
     foreach(var port in engine.ports_with_buffer_done) {
@@ -68,10 +62,10 @@ public void play(string filename) throws Error {
                     }
                     case Omx.Dir.Output: {
                         var buffer = port.pop_buffer();
-                        var audiosink_inport = audiosink.get_port(0);
-                        var alsa_buffer = audiosink_inport.pop_buffer();
-                        GOmx.buffer_copy(alsa_buffer, buffer);
-                        audiosink_inport.push_buffer(alsa_buffer);
+                        var audiosink_inport = audiosink.ports[0];
+                        var audiosink_buffer = audiosink_inport.pop_buffer();
+                        GOmx.buffer_copy(audiosink_buffer, buffer);
+                        audiosink_inport.push_buffer(audiosink_buffer);
                         port.push_buffer(buffer);
                         break;
                     }

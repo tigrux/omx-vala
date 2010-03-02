@@ -137,47 +137,6 @@ void play (const char* filename, GError** error) {
 		_g_object_unref0 (engine);
 		return;
 	}
-	{
-		GOmxEngineComponentListIterator* _component_it;
-		_component_it = g_omx_engine_component_list_iterator (g_omx_engine_get_components (engine));
-		while (TRUE) {
-			GOmxComponent* component;
-			if (!g_omx_engine_component_list_iterator_next (_component_it)) {
-				break;
-			}
-			component = g_omx_engine_component_list_iterator_get (_component_it);
-			g_print ("Component %s\n", g_omx_component_get_name (component));
-			{
-				GOmxComponentPortListIterator* _port_it;
-				_port_it = g_omx_component_port_list_iterator (g_omx_component_get_ports (component));
-				while (TRUE) {
-					GOmxPort* port;
-					if (!g_omx_component_port_list_iterator_next (_port_it)) {
-						break;
-					}
-					port = g_omx_component_port_list_iterator_get (_port_it);
-					g_print ("\tPort %s\n", g_omx_port_get_name (port));
-					{
-						GOmxPortBufferListIterator* _buffer_it;
-						_buffer_it = g_omx_port_buffer_list_iterator (g_omx_port_get_buffers (port));
-						while (TRUE) {
-							OMX_BUFFERHEADERTYPE* buffer;
-							if (!g_omx_port_buffer_list_iterator_next (_buffer_it)) {
-								break;
-							}
-							buffer = g_omx_port_buffer_list_iterator_get (_buffer_it);
-							g_print ("\t\tBuffer %p\n", buffer);
-						}
-						_g_object_unref0 (_buffer_it);
-					}
-					_g_object_unref0 (port);
-				}
-				_g_object_unref0 (_port_it);
-			}
-			_g_object_unref0 (component);
-		}
-		_g_object_unref0 (_component_it);
-	}
 	g_omx_engine_start (engine, &_inner_error_);
 	if (_inner_error_ != NULL) {
 		g_propagate_error (error, _inner_error_);
@@ -227,12 +186,12 @@ void play (const char* filename, GError** error) {
 							{
 								OMX_BUFFERHEADERTYPE* buffer;
 								GOmxPort* audiosink_inport;
-								OMX_BUFFERHEADERTYPE* alsa_buffer;
+								OMX_BUFFERHEADERTYPE* audiosink_buffer;
 								buffer = g_omx_port_pop_buffer (port);
-								audiosink_inport = g_omx_component_get_port (audiosink, (guint) 0);
-								alsa_buffer = g_omx_port_pop_buffer (audiosink_inport);
-								g_omx_buffer_copy (alsa_buffer, buffer);
-								g_omx_port_push_buffer (audiosink_inport, alsa_buffer, &_inner_error_);
+								audiosink_inport = g_omx_component_port_list_get (g_omx_component_get_ports (audiosink), (guint) 0);
+								audiosink_buffer = g_omx_port_pop_buffer (audiosink_inport);
+								g_omx_buffer_copy (audiosink_buffer, buffer);
+								g_omx_port_push_buffer (audiosink_inport, audiosink_buffer, &_inner_error_);
 								if (_inner_error_ != NULL) {
 									g_propagate_error (error, _inner_error_);
 									_g_object_unref0 (audiosink_inport);
