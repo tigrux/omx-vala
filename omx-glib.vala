@@ -105,14 +105,6 @@ namespace GOmx {
         PortQueue _port_queue;
 
 
-        public Engine() {
-            _buffers_queue = new AsyncQueue<Port>();
-            _components_list = new List<Component>();
-            _component_list = new ComponentList(this);
-            _port_queue = new PortQueue(this);
-        }
-
-
         public ComponentList components {
             get {
                 return _component_list;
@@ -127,14 +119,22 @@ namespace GOmx {
         }
 
 
-        public void add_component(Component component) {
-            component.queue = _buffers_queue;
-            _components_list.append(component);
+        public uint get_n_components() {
+            return _components_list.length();
         }
 
 
-        public uint get_n_components() {
-            return _components_list.length();
+        public Engine() {
+            _buffers_queue = new AsyncQueue<Port>();
+            _components_list = new List<Component>();
+            _component_list = new ComponentList(this);
+            _port_queue = new PortQueue(this);
+        }
+
+
+        public void add_component(Component component) {
+            component.queue = _buffers_queue;
+            _components_list.append(component);
         }
 
 
@@ -143,7 +143,7 @@ namespace GOmx {
         }
 
 
-        public void start() throws GLib.Error {
+        public virtual void start() throws GLib.Error {
             foreach(var component in _components_list) {
                 component.prepare_ports();
                 break;
@@ -151,49 +151,50 @@ namespace GOmx {
         }
 
 
-        public void init() throws GLib.Error {
+        public virtual void init() throws GLib.Error {
             foreach(var component in _components_list)
                 component.init();
         }
 
 
-        public void set_state(Omx.State state) throws GLib.Error {
+        public virtual void set_state(Omx.State state) throws GLib.Error {
             foreach(var component in _components_list)
                 component.set_state(state);
         }
 
 
-        public void set_state_and_wait(Omx.State state) throws GLib.Error {
+        public virtual void set_state_and_wait(
+                Omx.State state) throws GLib.Error {
             foreach(var component in _components_list)
                 component.set_state_and_wait(state);
         }
 
 
-        public void wait_for_state_set() {
+        public virtual void wait_for_state_set() {
             foreach(var component in _components_list)
                 component.wait_for_state_set();
         }
 
 
-        public void allocate_ports() throws GLib.Error {
+        public virtual void allocate_ports() throws GLib.Error {
             foreach(var component in _components_list)
                 component.allocate_ports();
         }
 
 
-        public void allocate_buffers() throws GLib.Error {
+        public virtual void allocate_buffers() throws GLib.Error {
             foreach(var component in _components_list)
                 component.allocate_buffers();
         }
 
 
-        public void free_ports() throws GLib.Error {
+        public virtual void free_ports() throws GLib.Error {
             foreach(var component in _components_list)
                 component.free_ports();
         }
 
 
-        public void free_handles() throws GLib.Error {
+        public virtual void free_handles() throws GLib.Error {
             foreach(var component in _components_list)
                 component.free_handle();
         }
@@ -418,7 +419,17 @@ namespace GOmx {
         }
 
 
-        public void init() throws GLib.Error {
+        public uint get_n_ports() {
+            return port_param.ports - port_param.start_port_number;
+        }
+
+
+        public Port get_port(uint i) {
+            return _ports[i];
+        }
+
+
+        public virtual void init() throws GLib.Error {
             _core.get_handle(
                 out _handle, _component_name,
                 this, callbacks);
@@ -432,23 +443,13 @@ namespace GOmx {
         }
 
 
-        public void free_handle() throws GLib.Error {
+        public virtual void free_handle() throws GLib.Error {
             _core.free_handle(_handle);
             _handle = null;
         }
 
 
-        public uint get_n_ports() {
-            return port_param.ports - port_param.start_port_number;
-        }
-
-
-        public Port get_port(uint i) {
-            return _ports[i];
-        }
-
-
-        public void allocate_ports() throws GLib.Error {
+        public virtual void allocate_ports() throws GLib.Error {
             uint n_ports = get_n_ports();
             _ports = new Port[n_ports];
             for(uint i = 0; i<n_ports; i++) {
@@ -461,20 +462,20 @@ namespace GOmx {
         }
 
 
-        public void allocate_buffers() throws GLib.Error {
+        public virtual void allocate_buffers() throws GLib.Error {
             foreach(var port in _ports)
                 port.allocate_buffers();
         }
 
 
-        public void free_ports() throws GLib.Error {
+        public virtual void free_ports() throws GLib.Error {
             foreach(var port in _ports)
                 port.free_buffers();
             _ports = null;
         }
 
 
-        public void prepare_ports() throws GLib.Error {
+        public virtual void prepare_ports() throws GLib.Error {
             fill_output_buffers();
             empty_input_buffers();
         }
@@ -484,7 +485,7 @@ namespace GOmx {
             foreach(var port in _ports) {
                 if(port.definition.dir == Omx.Dir.Output) {
                     var n_buffers = port.get_n_buffers();
-                    for(int i=0; i<n_buffers; i++)
+                    for(uint i=0; i<n_buffers; i++)
                         port.push_buffer(port.pop_buffer());
                 }
             }
@@ -655,7 +656,6 @@ namespace GOmx {
                 Omx.Handle component,
                 Omx.BufferHeader buffer) {
             var port = get_port(buffer.output_port_index);
-            port.buffer_done(buffer);
             return buffer_done(port, buffer);
         }
 
@@ -665,6 +665,7 @@ namespace GOmx {
                 Omx.BufferHeader buffer) {
             port.queue.push(buffer);
             _buffers_queue.push(port);
+            port.buffer_done(buffer);
             return Omx.Error.None;
         }
 

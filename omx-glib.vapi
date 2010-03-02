@@ -22,18 +22,18 @@ namespace GOmx {
 		public int id;
 		public Omx.PortParam port_param;
 		public Component (GOmx.Core core, string component_name, Omx.Index param_init_index);
-		public void allocate_buffers () throws GLib.Error;
-		public void allocate_ports () throws GLib.Error;
+		public virtual void allocate_buffers () throws GLib.Error;
+		public virtual void allocate_ports () throws GLib.Error;
 		public void empty_input_buffers () throws GLib.Error;
 		public void event_set_function (Omx.Event event, GOmx.Component.EventFunc event_function);
 		public void fill_output_buffers () throws GLib.Error;
-		public void free_handle () throws GLib.Error;
-		public void free_ports () throws GLib.Error;
+		public virtual void free_handle () throws GLib.Error;
+		public virtual void free_ports () throws GLib.Error;
 		public uint get_n_ports ();
 		public GOmx.Port get_port (uint i);
 		public Omx.State get_state () throws GLib.Error;
-		public void init () throws GLib.Error;
-		public void prepare_ports () throws GLib.Error;
+		public virtual void init () throws GLib.Error;
+		public virtual void prepare_ports () throws GLib.Error;
 		public void set_state (Omx.State state) throws GLib.Error;
 		public void set_state_and_wait (Omx.State state) throws GLib.Error;
 		public void wait_for_state_set ();
@@ -100,18 +100,18 @@ namespace GOmx {
 		}
 		public Engine ();
 		public void add_component (GOmx.Component component);
-		public void allocate_buffers () throws GLib.Error;
-		public void allocate_ports () throws GLib.Error;
-		public void free_handles () throws GLib.Error;
-		public void free_ports () throws GLib.Error;
+		public virtual void allocate_buffers () throws GLib.Error;
+		public virtual void allocate_ports () throws GLib.Error;
+		public virtual void free_handles () throws GLib.Error;
+		public virtual void free_ports () throws GLib.Error;
 		public GOmx.Component get_component (uint i);
 		public uint get_n_components ();
-		public void init () throws GLib.Error;
+		public virtual void init () throws GLib.Error;
 		public GOmx.Engine.Iterator iterator ();
-		public void set_state (Omx.State state) throws GLib.Error;
-		public void set_state_and_wait (Omx.State state) throws GLib.Error;
-		public void start () throws GLib.Error;
-		public void wait_for_state_set ();
+		public virtual void set_state (Omx.State state) throws GLib.Error;
+		public virtual void set_state_and_wait (Omx.State state) throws GLib.Error;
+		public virtual void start () throws GLib.Error;
+		public virtual void wait_for_state_set ();
 		public GOmx.Engine.ComponentList components { get; }
 		public GOmx.Engine.PortQueue ports_with_buffer_done { get; }
 	}
