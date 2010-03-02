@@ -507,7 +507,7 @@ namespace GOmx {
 
 
         public uint get_n_ports() {
-            return port_param.ports - port_param.start_port_number;
+            return port_param.ports;
         }
 
 
@@ -542,7 +542,7 @@ namespace GOmx {
             uint n_ports = get_n_ports();
             _ports = new Port[n_ports];
             for(uint i = 0; i<n_ports; i++) {
-                var port = new Port(this, i);
+                var port = new Port(this, i+port_param.start_port_number);
                 port.init();
                 port.name = "%s_port%u".printf(name, i);
                 if(!_no_allocate_buffers)

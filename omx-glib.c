@@ -2203,7 +2203,7 @@ GOmxComponent* g_omx_component_new (GOmxCore* core, const char* comp_name, OMX_I
 guint g_omx_component_get_n_ports (GOmxComponent* self) {
 	guint result;
 	g_return_val_if_fail (self != NULL, 0U);
-	result = (guint) (self->port_param.nPorts - self->port_param.nStartPortNumber);
+	result = (guint) self->port_param.nPorts;
 	return result;
 }
 
@@ -2287,7 +2287,7 @@ static void g_omx_component_real_allocate_ports (GOmxComponent* self, GError** e
 				if (!(i < n_ports)) {
 					break;
 				}
-				port = g_omx_port_new (self, (guint32) i);
+				port = g_omx_port_new (self, (guint32) (i + self->port_param.nStartPortNumber));
 				g_omx_port_init (port, &_inner_error_);
 				if (_inner_error_ != NULL) {
 					g_propagate_error (error, _inner_error_);
