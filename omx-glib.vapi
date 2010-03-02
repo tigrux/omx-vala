@@ -118,8 +118,14 @@ namespace GOmx {
 		public virtual void set_state_and_wait (Omx.State state) throws GLib.Error;
 		public virtual void start () throws GLib.Error;
 		public virtual void wait_for_state_set ();
+		public bool buffer_allocated { get; }
 		public GOmx.Engine.ComponentList components { get; }
+		public bool handles_freed { get; }
+		public bool initted { get; }
+		public bool ports_allocated { get; }
+		public bool ports_freed { get; }
 		public GOmx.Engine.PortQueue ports_with_buffer_done { get; }
+		public bool started { get; }
 	}
 	[CCode (cheader_filename = "omx-glib.h")]
 	public class Port : GLib.Object {

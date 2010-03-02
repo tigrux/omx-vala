@@ -115,6 +115,55 @@ namespace GOmx {
         ComponentList _component_list;
         PortQueue _port_queue;
 
+        bool _started;
+        bool _initted;
+        bool _ports_allocated;
+        bool _buffer_allocated;
+        bool _ports_freed;
+        bool _handles_freed;
+
+
+        public bool started {
+            get {
+                return _started;
+            }
+        }
+
+
+        public bool initted {
+            get {
+                return _initted;
+            }
+        }
+
+
+        public bool ports_allocated {
+            get {
+                return _ports_allocated;
+            }
+        }
+
+
+        public bool buffer_allocated {
+            get {
+                return _buffer_allocated;
+            }
+        }
+
+
+        public bool ports_freed {
+            get {
+                return _ports_freed;
+            }
+        }
+
+
+        public bool handles_freed {
+            get {
+                return _handles_freed;
+            }
+        }
+
 
         public ComponentList components {
             get {
@@ -155,16 +204,22 @@ namespace GOmx {
 
 
         public virtual void start() throws GLib.Error {
+            if(_started)
+                return;
             foreach(var component in _components_list) {
                 component.prepare_ports();
                 break;
             }
+            _started = true;
         }
 
 
         public virtual void init() throws GLib.Error {
+            if(_initted)
+                return;
             foreach(var component in _components_list)
                 component.init();
+            _initted = true;
         }
 
 
@@ -188,26 +243,38 @@ namespace GOmx {
 
 
         public virtual void allocate_ports() throws GLib.Error {
+            if(_ports_allocated)
+                return;
             foreach(var component in _components_list)
                 component.allocate_ports();
+            _ports_allocated = true;
         }
 
 
         public virtual void allocate_buffers() throws GLib.Error {
+            if(_buffer_allocated)
+                return;
             foreach(var component in _components_list)
                 component.allocate_buffers();
+            _buffer_allocated = true;
         }
 
 
         public virtual void free_ports() throws GLib.Error {
+            if(_ports_freed)
+                return;
             foreach(var component in _components_list)
                 component.free_ports();
+            _ports_freed = true;
         }
 
 
         public virtual void free_handles() throws GLib.Error {
+            if(_handles_freed)
+                return;
             foreach(var component in _components_list)
                 component.free_handle();
+            _handles_freed = true;
         }
 
 
@@ -464,6 +531,8 @@ namespace GOmx {
 
 
         public virtual void free_handle() throws GLib.Error {
+            if(_handle == null)
+                return;
             _core.free_handle(_handle);
             _handle = null;
         }
