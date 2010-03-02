@@ -430,6 +430,7 @@ GOmxPort* g_omx_port_new (GOmxComponent* component, guint32 index);
 GOmxPort* g_omx_port_construct (GType object_type, GOmxComponent* component, guint32 index);
 void g_omx_port_init (GOmxPort* self, GError** error);
 void g_omx_port_allocate_buffers (GOmxPort* self, GError** error);
+void g_omx_port_setup_tunnel_with (GOmxPort* self, GOmxPort* port, GError** error);
 void g_omx_port_use_buffers_of (GOmxPort* self, GOmxPort* port, GError** error);
 OMX_BUFFERHEADERTYPE* g_omx_port_get_buffer (GOmxPort* self, guint i);
 guint g_omx_port_get_n_buffers (GOmxPort* self);

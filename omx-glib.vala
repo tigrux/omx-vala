@@ -65,7 +65,6 @@ namespace GOmx {
         }
 
 
-
         private Core() {
         }
 
@@ -825,6 +824,13 @@ namespace GOmx {
                         this, definition.buffer_size));
                 _buffers_queue.push(_buffers[i]);
             }
+        }
+
+
+        public void setup_tunnel_with(Port port) throws GLib.Error {
+            component.core.setup_tunnel(
+                component.handle, index,
+                port.component.handle, port.index);
         }
 
 

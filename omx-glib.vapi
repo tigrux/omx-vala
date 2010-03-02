@@ -150,6 +150,7 @@ namespace GOmx {
 		public Omx.BufferHeader pop_buffer ();
 		public void push_buffer (Omx.BufferHeader buffer) throws GLib.Error;
 		public void set_buffer_done_function (GOmx.Port.BufferDoneFunc buffer_done_func);
+		public void setup_tunnel_with (GOmx.Port port) throws GLib.Error;
 		public void use_buffers_of (GOmx.Port port) throws GLib.Error;
 		public GOmx.Port.BufferList buffers { get; }
 		public GOmx.Component component { get; set construct; }

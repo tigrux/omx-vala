@@ -711,13 +711,14 @@ enum  {
 	G_OMX_PORT_QUEUE,
 	G_OMX_PORT_BUFFERS
 };
+GOmxComponent* g_omx_port_get_component (GOmxPort* self);
+guint g_omx_port_get_index (GOmxPort* self);
+void g_omx_port_setup_tunnel_with (GOmxPort* self, GOmxPort* port, GError** error);
 OMX_BUFFERHEADERTYPE* g_omx_port_get_buffer (GOmxPort* self, guint i);
 void g_omx_port_use_buffers_of (GOmxPort* self, GOmxPort* port, GError** error);
-GOmxComponent* g_omx_port_get_component (GOmxPort* self);
 void g_omx_port_set_buffer_done_function (GOmxPort* self, GOmxPortBufferDoneFunc buffer_done_func, void* buffer_done_func_target);
 const char* g_omx_port_get_name (GOmxPort* self);
 void g_omx_port_set_component (GOmxPort* self, GOmxComponent* value);
-guint g_omx_port_get_index (GOmxPort* self);
 void g_omx_port_set_index (GOmxPort* self, guint value);
 GOmxPortBufferList* g_omx_port_get_buffers (GOmxPort* self);
 GOmxPortBufferList* g_omx_port_buffer_list_new (GOmxPort* port);
@@ -3211,6 +3212,19 @@ void g_omx_port_allocate_buffers (GOmxPort* self, GError** error) {
 				g_async_queue_push (self->priv->_buffers_queue, self->priv->_buffers[i]);
 			}
 		}
+	}
+}
+
+
+void g_omx_port_setup_tunnel_with (GOmxPort* self, GOmxPort* port, GError** error) {
+	GError * _inner_error_;
+	g_return_if_fail (self != NULL);
+	g_return_if_fail (port != NULL);
+	_inner_error_ = NULL;
+	g_omx_core_setup_tunnel (g_omx_component_get_core (self->priv->_component), g_omx_component_get_handle (self->priv->_component), (guint32) g_omx_port_get_index (self), g_omx_component_get_handle (port->priv->_component), (guint32) g_omx_port_get_index (port), &_inner_error_);
+	if (_inner_error_ != NULL) {
+		g_propagate_error (error, _inner_error_);
+		return;
 	}
 }
 
