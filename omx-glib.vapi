@@ -23,13 +23,12 @@ namespace GOmx {
 		public int id;
 		public Omx.PortParam ports_param;
 		public Component (GOmx.Core core, string comp_name, Omx.Index index);
-		public virtual void allocate_buffers () throws GLib.Error;
-		public virtual void allocate_ports () throws GLib.Error;
-		public void empty_input_buffers () throws GLib.Error;
+		protected virtual void allocate_ports () throws GLib.Error;
+		protected void empty_input_buffers () throws GLib.Error;
 		public void event_set_function (Omx.Event event, GOmx.Component.EventFunc event_function);
-		public void fill_output_buffers () throws GLib.Error;
+		protected void fill_output_buffers () throws GLib.Error;
 		public virtual void free_handle () throws GLib.Error;
-		public virtual void free_ports () throws GLib.Error;
+		protected virtual void free_ports () throws GLib.Error;
 		public uint get_n_ports ();
 		public GOmx.Port get_port (uint i);
 		public Omx.State get_state () throws GLib.Error;
@@ -107,10 +106,7 @@ namespace GOmx {
 		}
 		public Engine ();
 		public void add_component (GOmx.Component component);
-		public virtual void allocate_buffers () throws GLib.Error;
-		public virtual void allocate_ports () throws GLib.Error;
 		public virtual void free_handles () throws GLib.Error;
-		public virtual void free_ports () throws GLib.Error;
 		public GOmx.Component get_component (uint i);
 		public uint get_n_components ();
 		public virtual void init () throws GLib.Error;

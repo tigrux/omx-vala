@@ -193,24 +193,6 @@ namespace GOmx {
         }
 
 
-        public virtual void allocate_ports() throws GLib.Error {
-            foreach(var component in _components_list)
-                component.allocate_ports();
-        }
-
-
-        public virtual void allocate_buffers() throws GLib.Error {
-            foreach(var component in _components_list)
-                component.allocate_buffers();
-        }
-
-
-        public virtual void free_ports() throws GLib.Error {
-            foreach(var component in _components_list)
-                component.free_ports();
-        }
-
-
         public virtual void free_handles() throws GLib.Error {
             foreach(var component in _components_list)
                 component.free_handle();
@@ -491,7 +473,7 @@ namespace GOmx {
         }
 
 
-        public virtual void allocate_ports() throws GLib.Error {
+        protected virtual void allocate_ports() throws GLib.Error {
             return_if_fail(_ports == null);
             uint n_ports = ports_param.ports;
             _ports = new Port[n_ports];
@@ -506,14 +488,7 @@ namespace GOmx {
         }
 
 
-        public virtual void allocate_buffers() throws GLib.Error {
-            return_if_fail(_ports != null);
-            foreach(var port in _ports)
-                port.allocate_buffers();
-        }
-
-
-        public virtual void free_ports() throws GLib.Error {
+        protected virtual void free_ports() throws GLib.Error {
             return_if_fail(_ports != null);
             foreach(var port in _ports)
                 port.free_buffers();
@@ -527,7 +502,7 @@ namespace GOmx {
         }
 
 
-        public void fill_output_buffers() throws GLib.Error {
+        protected void fill_output_buffers() throws GLib.Error {
             return_if_fail(_ports != null);
             foreach(var port in _ports) {
                 if(port.definition.dir == Omx.Dir.Output) {
@@ -539,7 +514,7 @@ namespace GOmx {
         }
 
 
-        public void empty_input_buffers() throws GLib.Error {
+        protected void empty_input_buffers() throws GLib.Error {
             return_if_fail(_ports != null);
             foreach(var port in _ports) {
                 if(port.definition.dir == Omx.Dir.Input) {

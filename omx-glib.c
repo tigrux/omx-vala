@@ -220,9 +220,6 @@ struct _GOmxEngineClass {
 	void (*set_state) (GOmxEngine* self, OMX_STATETYPE state, GError** error);
 	void (*set_state_and_wait) (GOmxEngine* self, OMX_STATETYPE state, GError** error);
 	void (*wait_for_state_set) (GOmxEngine* self);
-	void (*allocate_ports) (GOmxEngine* self, GError** error);
-	void (*allocate_buffers) (GOmxEngine* self, GError** error);
-	void (*free_ports) (GOmxEngine* self, GError** error);
 	void (*free_handles) (GOmxEngine* self, GError** error);
 };
 
@@ -314,7 +311,6 @@ struct _GOmxComponentClass {
 	void (*init) (GOmxComponent* self, GError** error);
 	void (*free_handle) (GOmxComponent* self, GError** error);
 	void (*allocate_ports) (GOmxComponent* self, GError** error);
-	void (*allocate_buffers) (GOmxComponent* self, GError** error);
 	void (*free_ports) (GOmxComponent* self, GError** error);
 	void (*prepare_ports) (GOmxComponent* self, GError** error);
 };
@@ -525,15 +521,6 @@ static void g_omx_engine_real_set_state_and_wait (GOmxEngine* self, OMX_STATETYP
 void g_omx_component_wait_for_state_set (GOmxComponent* self);
 void g_omx_engine_wait_for_state_set (GOmxEngine* self);
 static void g_omx_engine_real_wait_for_state_set (GOmxEngine* self);
-void g_omx_component_allocate_ports (GOmxComponent* self, GError** error);
-void g_omx_engine_allocate_ports (GOmxEngine* self, GError** error);
-static void g_omx_engine_real_allocate_ports (GOmxEngine* self, GError** error);
-void g_omx_component_allocate_buffers (GOmxComponent* self, GError** error);
-void g_omx_engine_allocate_buffers (GOmxEngine* self, GError** error);
-static void g_omx_engine_real_allocate_buffers (GOmxEngine* self, GError** error);
-void g_omx_component_free_ports (GOmxComponent* self, GError** error);
-void g_omx_engine_free_ports (GOmxEngine* self, GError** error);
-static void g_omx_engine_real_free_ports (GOmxEngine* self, GError** error);
 void g_omx_component_free_handle (GOmxComponent* self, GError** error);
 void g_omx_engine_free_handles (GOmxEngine* self, GError** error);
 static void g_omx_engine_real_free_handles (GOmxEngine* self, GError** error);
@@ -643,9 +630,10 @@ void g_omx_port_init (GOmxPort* self, GError** error);
 const char* g_omx_component_get_name (GOmxComponent* self);
 void g_omx_port_set_name (GOmxPort* self, const char* value);
 void g_omx_port_allocate_buffers (GOmxPort* self, GError** error);
+void g_omx_component_allocate_ports (GOmxComponent* self, GError** error);
 static void g_omx_component_real_allocate_ports (GOmxComponent* self, GError** error);
-static void g_omx_component_real_allocate_buffers (GOmxComponent* self, GError** error);
 void g_omx_port_free_buffers (GOmxPort* self, GError** error);
+void g_omx_component_free_ports (GOmxComponent* self, GError** error);
 static void g_omx_component_real_free_ports (GOmxComponent* self, GError** error);
 void g_omx_component_fill_output_buffers (GOmxComponent* self, GError** error);
 void g_omx_component_empty_input_buffers (GOmxComponent* self, GError** error);
@@ -1382,96 +1370,6 @@ void g_omx_engine_wait_for_state_set (GOmxEngine* self) {
 }
 
 
-static void g_omx_engine_real_allocate_ports (GOmxEngine* self, GError** error) {
-	GError * _inner_error_;
-	g_return_if_fail (self != NULL);
-	_inner_error_ = NULL;
-	{
-		GList* component_collection;
-		GList* component_it;
-		component_collection = self->priv->_components_list;
-		for (component_it = component_collection; component_it != NULL; component_it = component_it->next) {
-			GOmxComponent* component;
-			component = _g_object_ref0 ((GOmxComponent*) component_it->data);
-			{
-				g_omx_component_allocate_ports (component, &_inner_error_);
-				if (_inner_error_ != NULL) {
-					g_propagate_error (error, _inner_error_);
-					_g_object_unref0 (component);
-					return;
-				}
-				_g_object_unref0 (component);
-			}
-		}
-	}
-}
-
-
-void g_omx_engine_allocate_ports (GOmxEngine* self, GError** error) {
-	G_OMX_ENGINE_GET_CLASS (self)->allocate_ports (self, error);
-}
-
-
-static void g_omx_engine_real_allocate_buffers (GOmxEngine* self, GError** error) {
-	GError * _inner_error_;
-	g_return_if_fail (self != NULL);
-	_inner_error_ = NULL;
-	{
-		GList* component_collection;
-		GList* component_it;
-		component_collection = self->priv->_components_list;
-		for (component_it = component_collection; component_it != NULL; component_it = component_it->next) {
-			GOmxComponent* component;
-			component = _g_object_ref0 ((GOmxComponent*) component_it->data);
-			{
-				g_omx_component_allocate_buffers (component, &_inner_error_);
-				if (_inner_error_ != NULL) {
-					g_propagate_error (error, _inner_error_);
-					_g_object_unref0 (component);
-					return;
-				}
-				_g_object_unref0 (component);
-			}
-		}
-	}
-}
-
-
-void g_omx_engine_allocate_buffers (GOmxEngine* self, GError** error) {
-	G_OMX_ENGINE_GET_CLASS (self)->allocate_buffers (self, error);
-}
-
-
-static void g_omx_engine_real_free_ports (GOmxEngine* self, GError** error) {
-	GError * _inner_error_;
-	g_return_if_fail (self != NULL);
-	_inner_error_ = NULL;
-	{
-		GList* component_collection;
-		GList* component_it;
-		component_collection = self->priv->_components_list;
-		for (component_it = component_collection; component_it != NULL; component_it = component_it->next) {
-			GOmxComponent* component;
-			component = _g_object_ref0 ((GOmxComponent*) component_it->data);
-			{
-				g_omx_component_free_ports (component, &_inner_error_);
-				if (_inner_error_ != NULL) {
-					g_propagate_error (error, _inner_error_);
-					_g_object_unref0 (component);
-					return;
-				}
-				_g_object_unref0 (component);
-			}
-		}
-	}
-}
-
-
-void g_omx_engine_free_ports (GOmxEngine* self, GError** error) {
-	G_OMX_ENGINE_GET_CLASS (self)->free_ports (self, error);
-}
-
-
 static void g_omx_engine_real_free_handles (GOmxEngine* self, GError** error) {
 	GError * _inner_error_;
 	g_return_if_fail (self != NULL);
@@ -1993,9 +1891,6 @@ static void g_omx_engine_class_init (GOmxEngineClass * klass) {
 	G_OMX_ENGINE_CLASS (klass)->set_state = g_omx_engine_real_set_state;
 	G_OMX_ENGINE_CLASS (klass)->set_state_and_wait = g_omx_engine_real_set_state_and_wait;
 	G_OMX_ENGINE_CLASS (klass)->wait_for_state_set = g_omx_engine_real_wait_for_state_set;
-	G_OMX_ENGINE_CLASS (klass)->allocate_ports = g_omx_engine_real_allocate_ports;
-	G_OMX_ENGINE_CLASS (klass)->allocate_buffers = g_omx_engine_real_allocate_buffers;
-	G_OMX_ENGINE_CLASS (klass)->free_ports = g_omx_engine_real_free_ports;
 	G_OMX_ENGINE_CLASS (klass)->free_handles = g_omx_engine_real_free_handles;
 	G_OBJECT_CLASS (klass)->get_property = g_omx_engine_get_property;
 	G_OBJECT_CLASS (klass)->constructor = g_omx_engine_constructor;
@@ -2197,39 +2092,6 @@ static void g_omx_component_real_allocate_ports (GOmxComponent* self, GError** e
 
 void g_omx_component_allocate_ports (GOmxComponent* self, GError** error) {
 	G_OMX_COMPONENT_GET_CLASS (self)->allocate_ports (self, error);
-}
-
-
-static void g_omx_component_real_allocate_buffers (GOmxComponent* self, GError** error) {
-	GError * _inner_error_;
-	g_return_if_fail (self != NULL);
-	_inner_error_ = NULL;
-	g_return_if_fail (self->priv->_ports != NULL);
-	{
-		GOmxPort** port_collection;
-		int port_collection_length1;
-		int port_it;
-		port_collection = self->priv->_ports;
-		port_collection_length1 = self->priv->_ports_length1;
-		for (port_it = 0; port_it < self->priv->_ports_length1; port_it = port_it + 1) {
-			GOmxPort* port;
-			port = _g_object_ref0 (port_collection[port_it]);
-			{
-				g_omx_port_allocate_buffers (port, &_inner_error_);
-				if (_inner_error_ != NULL) {
-					g_propagate_error (error, _inner_error_);
-					_g_object_unref0 (port);
-					return;
-				}
-				_g_object_unref0 (port);
-			}
-		}
-	}
-}
-
-
-void g_omx_component_allocate_buffers (GOmxComponent* self, GError** error) {
-	G_OMX_COMPONENT_GET_CLASS (self)->allocate_buffers (self, error);
 }
 
 
@@ -3012,7 +2874,6 @@ static void g_omx_component_class_init (GOmxComponentClass * klass) {
 	G_OMX_COMPONENT_CLASS (klass)->init = g_omx_component_real_init;
 	G_OMX_COMPONENT_CLASS (klass)->free_handle = g_omx_component_real_free_handle;
 	G_OMX_COMPONENT_CLASS (klass)->allocate_ports = g_omx_component_real_allocate_ports;
-	G_OMX_COMPONENT_CLASS (klass)->allocate_buffers = g_omx_component_real_allocate_buffers;
 	G_OMX_COMPONENT_CLASS (klass)->free_ports = g_omx_component_real_free_ports;
 	G_OMX_COMPONENT_CLASS (klass)->prepare_ports = g_omx_component_real_prepare_ports;
 	G_OBJECT_CLASS (klass)->get_property = g_omx_component_get_property;
