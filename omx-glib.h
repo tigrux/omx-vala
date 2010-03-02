@@ -250,7 +250,7 @@ struct _GOmxEnginePortQueueIteratorClass {
 struct _GOmxComponent {
 	GObject parent_instance;
 	GOmxComponentPrivate * priv;
-	OMX_PORT_PARAM_TYPE port_param;
+	OMX_PORT_PARAM_TYPE ports_param;
 	gint id;
 };
 
@@ -349,11 +349,6 @@ GOmxEngineIterator* g_omx_engine_iterator (GOmxEngine* self);
 GOmxEngine* g_omx_engine_new (void);
 GOmxEngine* g_omx_engine_construct (GType object_type);
 gboolean g_omx_engine_get_started (GOmxEngine* self);
-gboolean g_omx_engine_get_initted (GOmxEngine* self);
-gboolean g_omx_engine_get_ports_allocated (GOmxEngine* self);
-gboolean g_omx_engine_get_buffer_allocated (GOmxEngine* self);
-gboolean g_omx_engine_get_ports_freed (GOmxEngine* self);
-gboolean g_omx_engine_get_handles_freed (GOmxEngine* self);
 GType g_omx_engine_component_list_get_type (void);
 GOmxEngineComponentList* g_omx_engine_get_components (GOmxEngine* self);
 GType g_omx_engine_port_queue_get_type (void);
@@ -402,6 +397,7 @@ void g_omx_component_set_state (GOmxComponent* self, OMX_STATETYPE state, GError
 void g_omx_component_set_state_and_wait (GOmxComponent* self, OMX_STATETYPE state, GError** error);
 OMX_STATETYPE g_omx_component_get_state (GOmxComponent* self, GError** error);
 void g_omx_component_event_set_function (GOmxComponent* self, OMX_EVENTTYPE event, GOmxComponentEventFunc event_function, void* event_function_target);
+gboolean g_omx_component_get_started (GOmxComponent* self);
 const char* g_omx_component_get_name (GOmxComponent* self);
 void g_omx_component_set_name (GOmxComponent* self, const char* value);
 void* g_omx_component_get_handle (GOmxComponent* self);

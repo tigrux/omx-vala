@@ -21,7 +21,7 @@ namespace GOmx {
 		[CCode (cheader_filename = "omx-glib.h", instance_pos = -2)]
 		public delegate void EventFunc (GOmx.Component component, uint data1, uint data2, void* event_data);
 		public int id;
-		public Omx.PortParam port_param;
+		public Omx.PortParam ports_param;
 		public Component (GOmx.Core core, string comp_name, Omx.Index index);
 		public virtual void allocate_buffers () throws GLib.Error;
 		public virtual void allocate_ports () throws GLib.Error;
@@ -49,6 +49,7 @@ namespace GOmx {
 		public GOmx.Component.PortList ports { get; }
 		public uint previous_state { get; }
 		public GLib.AsyncQueue<GOmx.Port> queue { get; set; }
+		public bool started { get; }
 	}
 	[CCode (cheader_filename = "omx-glib.h")]
 	public class Core : GLib.Object {
@@ -118,12 +119,7 @@ namespace GOmx {
 		public virtual void set_state_and_wait (Omx.State state) throws GLib.Error;
 		public virtual void start () throws GLib.Error;
 		public virtual void wait_for_state_set ();
-		public bool buffer_allocated { get; }
 		public GOmx.Engine.ComponentList components { get; }
-		public bool handles_freed { get; }
-		public bool initted { get; }
-		public bool ports_allocated { get; }
-		public bool ports_freed { get; }
 		public GOmx.Engine.PortQueue ports_with_buffer_done { get; }
 		public bool started { get; }
 	}

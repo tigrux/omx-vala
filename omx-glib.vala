@@ -73,33 +73,27 @@ namespace GOmx {
             var core = new Core();
 
             var module = Module.open(soname, ModuleFlags.BIND_LAZY);
-            if(module == null)
-                return null;
+            return_val_if_fail(module != null, null);
 
             void *symbol;
             module.symbol ("OMX_Init", out symbol);
-            if(symbol == null)
-                return null;
+            return_val_if_fail(symbol != null, null);
             core._init_func = (InitFunc)symbol;
 
             module.symbol ("OMX_Deinit", out symbol);
-            if(symbol == null)
-                return null;
+            return_val_if_fail(symbol != null, null);
             core._deinit_func = (DeinitFunc)symbol;
 
             module.symbol ("OMX_GetHandle", out symbol);
-            if(symbol == null)
-                return null;
+            return_val_if_fail(symbol != null, null);
             core._get_handle_func = (GetHandleFunc)symbol;
 
             module.symbol ("OMX_FreeHandle", out symbol);
-            if(symbol == null)
-                return null;
+            return_val_if_fail(symbol != null, null);
             core._free_handle_func = (FreeHandleFunc)symbol;
 
             module.symbol ("OMX_SetupTunnel", out symbol);
-            if(symbol == null)
-                return null;
+            return_val_if_fail(symbol != null, null);
             core._setup_tunnel_func = (SetupTunnelFunc)symbol;
 
             core._module = (owned)module;
@@ -114,53 +108,12 @@ namespace GOmx {
         List<Component> _components_list;
         ComponentList _component_list;
         PortQueue _port_queue;
-
         bool _started;
-        bool _initted;
-        bool _ports_allocated;
-        bool _buffer_allocated;
-        bool _ports_freed;
-        bool _handles_freed;
-
+        uint _n_components;
 
         public bool started {
             get {
                 return _started;
-            }
-        }
-
-
-        public bool initted {
-            get {
-                return _initted;
-            }
-        }
-
-
-        public bool ports_allocated {
-            get {
-                return _ports_allocated;
-            }
-        }
-
-
-        public bool buffer_allocated {
-            get {
-                return _buffer_allocated;
-            }
-        }
-
-
-        public bool ports_freed {
-            get {
-                return _ports_freed;
-            }
-        }
-
-
-        public bool handles_freed {
-            get {
-                return _handles_freed;
             }
         }
 
@@ -180,7 +133,7 @@ namespace GOmx {
 
 
         public uint get_n_components() {
-            return _components_list.length();
+            return _n_components;
         }
 
 
@@ -195,17 +148,18 @@ namespace GOmx {
         public void add_component(Component component) {
             component.queue = _buffers_queue;
             _components_list.append(component);
+            _n_components++;
         }
 
 
         public Component get_component(uint i) {
+            return_if_fail(i < _n_components);
             return _components_list.nth_data(i);
         }
 
 
         public virtual void start() throws GLib.Error {
-            if(_started)
-                return;
+            return_if_fail(!_started);
             foreach(var component in _components_list) {
                 component.prepare_ports();
                 break;
@@ -215,11 +169,8 @@ namespace GOmx {
 
 
         public virtual void init() throws GLib.Error {
-            if(_initted)
-                return;
             foreach(var component in _components_list)
                 component.init();
-            _initted = true;
         }
 
 
@@ -243,38 +194,26 @@ namespace GOmx {
 
 
         public virtual void allocate_ports() throws GLib.Error {
-            if(_ports_allocated)
-                return;
             foreach(var component in _components_list)
                 component.allocate_ports();
-            _ports_allocated = true;
         }
 
 
         public virtual void allocate_buffers() throws GLib.Error {
-            if(_buffer_allocated)
-                return;
             foreach(var component in _components_list)
                 component.allocate_buffers();
-            _buffer_allocated = true;
         }
 
 
         public virtual void free_ports() throws GLib.Error {
-            if(_ports_freed)
-                return;
             foreach(var component in _components_list)
                 component.free_ports();
-            _ports_freed = true;
         }
 
 
         public virtual void free_handles() throws GLib.Error {
-            if(_handles_freed)
-                return;
             foreach(var component in _components_list)
                 component.free_handle();
-            _handles_freed = true;
         }
 
 
@@ -322,7 +261,7 @@ namespace GOmx {
 
             public uint length {
                 get {
-                    return _engine.get_n_components();
+                    return _engine._n_components;
                 }
             }
 
@@ -378,13 +317,16 @@ namespace GOmx {
                 }
 
                 public bool next() {
+                    if(_eos_found)
+                        _started = false;
                     return !_eos_found;
                 }
 
                 public new Port get() {
                     var port = _buffers_queue.pop();
-                    if(port.eos)
+                    if(port.eos) {
                         _eos_found = true;
+                    }
                     return port;
                 }
             }
@@ -394,7 +336,7 @@ namespace GOmx {
 
 
     public class Component: Object {
-        public Omx.PortParam port_param;
+        public Omx.PortParam ports_param;
         public int id;
         Omx.Handle _handle;
 
@@ -419,6 +361,15 @@ namespace GOmx {
         EventFunc _event_func_6;
         EventFunc _event_func_7;
         EventFunc _event_func_8;
+
+        bool _started;
+
+
+        public bool started {
+            get {
+                return _started;
+            }
+        }
 
 
         public string name {
@@ -471,6 +422,7 @@ namespace GOmx {
             get; set construct;
         }
 
+
         public uint pending_state {
             get {
                 return _pending_state;
@@ -507,42 +459,44 @@ namespace GOmx {
 
 
         public uint get_n_ports() {
-            return port_param.ports;
+            return ports_param.ports;
         }
 
 
         public Port get_port(uint i) {
+            return_val_if_fail(i<ports_param.ports, null);
             return _ports[i];
         }
 
 
         public virtual void init() throws GLib.Error {
+            return_if_fail(_handle == null);
             _core.get_handle(
                 out _handle, _component_name,
                 this, callbacks);
 
-            port_param.init();
+            ports_param.init();
             Omx.try_run(
                 _handle.get_parameter(
-                    _init_index, port_param));
+                    _init_index, ports_param));
             _pending_state = Omx.State.Loaded;
             _current_state = Omx.State.Loaded;
         }
 
 
         public virtual void free_handle() throws GLib.Error {
-            if(_handle == null)
-                return;
+            return_if_fail(_handle != null);
             _core.free_handle(_handle);
             _handle = null;
         }
 
 
         public virtual void allocate_ports() throws GLib.Error {
-            uint n_ports = get_n_ports();
+            return_if_fail(_ports == null);
+            uint n_ports = ports_param.ports;
             _ports = new Port[n_ports];
             for(uint i = 0; i<n_ports; i++) {
-                var port = new Port(this, i+port_param.start_port_number);
+                var port = new Port(this, i+ports_param.start_port_number);
                 port.init();
                 port.name = "%s_port%u".printf(name, i);
                 if(!_no_allocate_buffers)
@@ -553,12 +507,14 @@ namespace GOmx {
 
 
         public virtual void allocate_buffers() throws GLib.Error {
+            return_if_fail(_ports != null);
             foreach(var port in _ports)
                 port.allocate_buffers();
         }
 
 
         public virtual void free_ports() throws GLib.Error {
+            return_if_fail(_ports != null);
             foreach(var port in _ports)
                 port.free_buffers();
             _ports = null;
@@ -572,6 +528,7 @@ namespace GOmx {
 
 
         public void fill_output_buffers() throws GLib.Error {
+            return_if_fail(_ports != null);
             foreach(var port in _ports) {
                 if(port.definition.dir == Omx.Dir.Output) {
                     var n_buffers = port.get_n_buffers();
@@ -583,6 +540,7 @@ namespace GOmx {
 
 
         public void empty_input_buffers() throws GLib.Error {
+            return_if_fail(_ports != null);
             foreach(var port in _ports) {
                 if(port.definition.dir == Omx.Dir.Input) {
                     uint n_buffers = port.get_n_buffers();
@@ -599,6 +557,7 @@ namespace GOmx {
 
 
         public void set_state(Omx.State state) throws GLib.Error {
+            return_if_fail(_handle != null);
             _pending_state = state;
             Omx.try_run(
                 _handle.send_command(
@@ -620,6 +579,7 @@ namespace GOmx {
 
 
         public Omx.State get_state() throws GLib.Error {
+            return_val_if_fail(handle != null, Omx.State.Invalid);
             Omx.State state;
             Omx.try_run(
                 _handle.get_state(
@@ -884,6 +844,7 @@ namespace GOmx {
 
 
         public void allocate_buffers() throws GLib.Error {
+            return_if_fail(_buffers == null);
             uint n_buffers = get_n_buffers();
             _buffers = new Omx.BufferHeader[n_buffers];
             for(uint i=0; i<n_buffers; i++) {
@@ -897,13 +858,15 @@ namespace GOmx {
 
 
         public void setup_tunnel_with(Port port) throws GLib.Error {
-            component.core.setup_tunnel(
-                component.handle, index,
-                port.component.handle, port.index);
+            return_if_fail(_component != null);
+            _component.core.setup_tunnel(
+                _component.handle, index,
+                port._component.handle, port.index);
         }
 
 
         public void use_buffers_of(Port port) throws GLib.Error {
+            return_if_fail(_component != null);
             uint n_buffers = get_n_buffers();
             _buffers = new Omx.BufferHeader[n_buffers];
             for(uint i=0; i<n_buffers; i++) {
@@ -919,6 +882,7 @@ namespace GOmx {
 
 
         public weak Omx.BufferHeader get_buffer(uint i) {
+            return_val_if_fail(i < definition.buffer_count_actual, null);
             return _buffers[i];
         }
 
@@ -929,6 +893,7 @@ namespace GOmx {
 
 
         public void free_buffers() throws GLib.Error {
+            return_if_fail(_buffers != null);
             foreach(var buffer in _buffers)
                 Omx.try_run(
                     _component.handle.free_buffer(
@@ -946,13 +911,13 @@ namespace GOmx {
 
 
         public void push_buffer(Omx.BufferHeader buffer) throws GLib.Error {
-            var handle = component.handle;
+            return_if_fail(_component != null);
             switch(definition.dir) {
                 case Omx.Dir.Input:
-                    handle.empty_this_buffer(buffer);
+                    _component.handle.empty_this_buffer(buffer);
                     break;
                 case Omx.Dir.Output:
-                    handle.fill_this_buffer(buffer);
+                    _component.handle.fill_this_buffer(buffer);
                     break;
                 default:
                     break;
@@ -1066,6 +1031,7 @@ namespace GOmx {
     public void buffer_copy(
             Omx.BufferHeader dest,
             Omx.BufferHeader source) {
+        return_if_fail(dest.buffer.length <= source.buffer.length);
         dest.offset = source.offset;
         dest.length = source.length;
         Memory.copy(dest.buffer, source.buffer, source.length);
@@ -1075,6 +1041,7 @@ namespace GOmx {
     public void buffer_copy_len(
             Omx.BufferHeader dest,
             Omx.BufferHeader source) {
+        return_if_fail(dest.buffer.length <= source.buffer.length);
         dest.offset = source.offset;
         dest.length = source.length;
     }
