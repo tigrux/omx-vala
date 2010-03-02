@@ -30,26 +30,21 @@ public void play(string filename) throws Error {
     var core = GOmx.Core.open("libomxil-bellagio.so.0");
     core.init();
 
-    var audiodec =
-        new GOmx.Component(core, AUDIODEC_COMPONENT, Omx.Index.ParamAudioInit);
+    var audiodec = new GOmx.AudioComponent(core, AUDIODEC_COMPONENT);
     audiodec.name = "audiodec";
-    audiodec.id = AUDIODEC_ID;
 
-    var audiosink =
-        new GOmx.Component(core, AUDIOSINK_COMPONENT, Omx.Index.ParamAudioInit);
+    var audiosink = new GOmx.AudioComponent(core, AUDIOSINK_COMPONENT);
     audiosink.name = "audiosink";
-    audiosink.id = AUDIOSINK_ID;
 
     var engine = new GOmx.Engine();
-    engine.add_component(audiodec);
-    engine.add_component(audiosink);
+    engine.add_component(AUDIODEC_ID, audiodec);
+    engine.add_component(AUDIOSINK_ID, audiosink);
 
     engine.init();
     engine.set_state_and_wait(Omx.State.Idle);
     engine.set_state_and_wait(Omx.State.Executing);
 
-
-    engine.start();
+    engine.begin_transfer();
     foreach(var port in engine.ports_with_buffer_done) {
         switch(port.component.id) {
             case AUDIODEC_ID:
@@ -84,7 +79,6 @@ public void play(string filename) throws Error {
                 break;
         }
     }
-
     engine.set_state_and_wait(Omx.State.Idle);
     engine.set_state_and_wait(Omx.State.Loaded);
 

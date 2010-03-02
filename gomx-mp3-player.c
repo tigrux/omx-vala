@@ -76,8 +76,8 @@ void play (const char* filename, GError** error) {
 	GError * _inner_error_;
 	FILE* fd;
 	GOmxCore* core;
-	GOmxComponent* audiodec;
-	GOmxComponent* audiosink;
+	GOmxAudioComponent* audiodec;
+	GOmxAudioComponent* audiosink;
 	GOmxEngine* engine;
 	g_return_if_fail (filename != NULL);
 	_inner_error_ = NULL;
@@ -98,15 +98,13 @@ void play (const char* filename, GError** error) {
 		_g_object_unref0 (core);
 		return;
 	}
-	audiodec = g_omx_component_new (core, AUDIODEC_COMPONENT, OMX_IndexParamAudioInit);
-	g_omx_component_set_name (audiodec, "audiodec");
-	audiodec->id = AUDIODEC_ID;
-	audiosink = g_omx_component_new (core, AUDIOSINK_COMPONENT, OMX_IndexParamAudioInit);
-	g_omx_component_set_name (audiosink, "audiosink");
-	audiosink->id = AUDIOSINK_ID;
+	audiodec = g_omx_audio_component_new (core, AUDIODEC_COMPONENT);
+	g_omx_component_set_name ((GOmxComponent*) audiodec, "audiodec");
+	audiosink = g_omx_audio_component_new (core, AUDIOSINK_COMPONENT);
+	g_omx_component_set_name ((GOmxComponent*) audiosink, "audiosink");
 	engine = g_omx_engine_new ();
-	g_omx_engine_add_component (engine, audiodec);
-	g_omx_engine_add_component (engine, audiosink);
+	g_omx_engine_add_component (engine, (guint) AUDIODEC_ID, (GOmxComponent*) audiodec);
+	g_omx_engine_add_component (engine, (guint) AUDIOSINK_ID, (GOmxComponent*) audiosink);
 	g_omx_engine_init (engine, &_inner_error_);
 	if (_inner_error_ != NULL) {
 		g_propagate_error (error, _inner_error_);
@@ -137,7 +135,7 @@ void play (const char* filename, GError** error) {
 		_g_object_unref0 (engine);
 		return;
 	}
-	g_omx_engine_start (engine, &_inner_error_);
+	g_omx_engine_begin_transfer (engine, &_inner_error_);
 	if (_inner_error_ != NULL) {
 		g_propagate_error (error, _inner_error_);
 		_fclose0 (fd);
@@ -188,7 +186,7 @@ void play (const char* filename, GError** error) {
 								GOmxPort* audiosink_inport;
 								OMX_BUFFERHEADERTYPE* audiosink_buffer;
 								buffer = g_omx_port_pop_buffer (port);
-								audiosink_inport = g_omx_component_port_list_get (g_omx_component_get_ports (audiosink), (guint) 0);
+								audiosink_inport = g_omx_component_port_list_get (g_omx_component_get_ports ((GOmxComponent*) audiosink), (guint) 0);
 								audiosink_buffer = g_omx_port_pop_buffer (audiosink_inport);
 								g_omx_buffer_copy (audiosink_buffer, buffer);
 								g_omx_port_push_buffer (audiosink_inport, audiosink_buffer, &_inner_error_);
