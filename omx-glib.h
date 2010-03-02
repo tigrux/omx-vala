@@ -412,6 +412,8 @@ guint g_omx_component_get_init_index (GOmxComponent* self);
 void g_omx_component_set_init_index (GOmxComponent* self, guint value);
 guint g_omx_component_get_pending_state (GOmxComponent* self);
 guint g_omx_component_get_previous_state (GOmxComponent* self);
+gboolean g_omx_component_get_no_allocate_buffers (GOmxComponent* self);
+void g_omx_component_set_no_allocate_buffers (GOmxComponent* self, gboolean value);
 GOmxComponentPortList* g_omx_component_port_list_new (GOmxComponent* component);
 GOmxComponentPortList* g_omx_component_port_list_construct (GType object_type, GOmxComponent* component);
 GType g_omx_component_port_list_iterator_get_type (void);

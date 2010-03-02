@@ -360,6 +360,7 @@ struct _GOmxComponentPrivate {
 	GOmxCore* _core;
 	char* _component_name;
 	guint _init_index;
+	gboolean _no_allocate_buffers;
 };
 
 struct _GOmxPort {
@@ -614,7 +615,8 @@ enum  {
 	G_OMX_COMPONENT_CURRENT_STATE,
 	G_OMX_COMPONENT_INIT_INDEX,
 	G_OMX_COMPONENT_PENDING_STATE,
-	G_OMX_COMPONENT_PREVIOUS_STATE
+	G_OMX_COMPONENT_PREVIOUS_STATE,
+	G_OMX_COMPONENT_NO_ALLOCATE_BUFFERS
 };
 static OMX_ERRORTYPE g_omx_component_event_handler (GOmxComponent* self, void* component, OMX_EVENTTYPE event, guint32 data1, guint32 data2, void* event_data);
 static OMX_ERRORTYPE _g_omx_component_event_handler_omx_event_handler_func (void* component, gpointer self, OMX_EVENTTYPE event, guint32 data1, guint32 data2, void* event_data);
@@ -664,6 +666,8 @@ guint g_omx_component_get_init_index (GOmxComponent* self);
 void g_omx_component_set_init_index (GOmxComponent* self, guint value);
 guint g_omx_component_get_pending_state (GOmxComponent* self);
 guint g_omx_component_get_previous_state (GOmxComponent* self);
+gboolean g_omx_component_get_no_allocate_buffers (GOmxComponent* self);
+void g_omx_component_set_no_allocate_buffers (GOmxComponent* self, gboolean value);
 GOmxSemaphore* g_omx_semaphore_new (void);
 GOmxSemaphore* g_omx_semaphore_construct (GType object_type);
 GOmxComponentPortList* g_omx_component_port_list_new (GOmxComponent* component);
@@ -2174,11 +2178,13 @@ static void g_omx_component_real_allocate_ports (GOmxComponent* self, GError** e
 				}
 				g_omx_port_set_name (port, _tmp2_ = g_strdup_printf ("%s_port%u", self->priv->_name, i));
 				_g_free0 (_tmp2_);
-				g_omx_port_allocate_buffers (port, &_inner_error_);
-				if (_inner_error_ != NULL) {
-					g_propagate_error (error, _inner_error_);
-					_g_object_unref0 (port);
-					return;
+				if (!self->priv->_no_allocate_buffers) {
+					g_omx_port_allocate_buffers (port, &_inner_error_);
+					if (_inner_error_ != NULL) {
+						g_propagate_error (error, _inner_error_);
+						_g_object_unref0 (port);
+						return;
+					}
 				}
 				self->priv->_ports[i] = (_tmp3_ = _g_object_ref0 (port), _g_object_unref0 (self->priv->_ports[i]), _tmp3_);
 				_g_object_unref0 (port);
@@ -2769,6 +2775,21 @@ guint g_omx_component_get_previous_state (GOmxComponent* self) {
 }
 
 
+gboolean g_omx_component_get_no_allocate_buffers (GOmxComponent* self) {
+	gboolean result;
+	g_return_val_if_fail (self != NULL, FALSE);
+	result = self->priv->_no_allocate_buffers;
+	return result;
+}
+
+
+void g_omx_component_set_no_allocate_buffers (GOmxComponent* self, gboolean value) {
+	g_return_if_fail (self != NULL);
+	self->priv->_no_allocate_buffers = value;
+	g_object_notify ((GObject *) self, "no-allocate-buffers");
+}
+
+
 static GObject * g_omx_component_constructor (GType type, guint n_construct_properties, GObjectConstructParam * construct_properties) {
 	GObject * obj;
 	GObjectClass * parent_class;
@@ -2993,6 +3014,7 @@ static void g_omx_component_class_init (GOmxComponentClass * klass) {
 	g_object_class_install_property (G_OBJECT_CLASS (klass), G_OMX_COMPONENT_INIT_INDEX, g_param_spec_uint ("init-index", "init-index", "init-index", 0, G_MAXUINT, 0U, G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK | G_PARAM_STATIC_BLURB | G_PARAM_READABLE | G_PARAM_WRITABLE | G_PARAM_CONSTRUCT));
 	g_object_class_install_property (G_OBJECT_CLASS (klass), G_OMX_COMPONENT_PENDING_STATE, g_param_spec_uint ("pending-state", "pending-state", "pending-state", 0, G_MAXUINT, 0U, G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK | G_PARAM_STATIC_BLURB | G_PARAM_READABLE));
 	g_object_class_install_property (G_OBJECT_CLASS (klass), G_OMX_COMPONENT_PREVIOUS_STATE, g_param_spec_uint ("previous-state", "previous-state", "previous-state", 0, G_MAXUINT, 0U, G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK | G_PARAM_STATIC_BLURB | G_PARAM_READABLE));
+	g_object_class_install_property (G_OBJECT_CLASS (klass), G_OMX_COMPONENT_NO_ALLOCATE_BUFFERS, g_param_spec_boolean ("no-allocate-buffers", "no-allocate-buffers", "no-allocate-buffers", FALSE, G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK | G_PARAM_STATIC_BLURB | G_PARAM_READABLE | G_PARAM_WRITABLE));
 }
 
 
@@ -3095,6 +3117,9 @@ static void g_omx_component_get_property (GObject * object, guint property_id, G
 		case G_OMX_COMPONENT_PREVIOUS_STATE:
 		g_value_set_uint (value, g_omx_component_get_previous_state (self));
 		break;
+		case G_OMX_COMPONENT_NO_ALLOCATE_BUFFERS:
+		g_value_set_boolean (value, g_omx_component_get_no_allocate_buffers (self));
+		break;
 		default:
 		G_OBJECT_WARN_INVALID_PROPERTY_ID (object, property_id, pspec);
 		break;
@@ -3120,6 +3145,9 @@ static void g_omx_component_set_property (GObject * object, guint property_id, c
 		break;
 		case G_OMX_COMPONENT_INIT_INDEX:
 		g_omx_component_set_init_index (self, g_value_get_uint (value));
+		break;
+		case G_OMX_COMPONENT_NO_ALLOCATE_BUFFERS:
+		g_omx_component_set_no_allocate_buffers (self, g_value_get_boolean (value));
 		break;
 		default:
 		G_OBJECT_WARN_INVALID_PROPERTY_ID (object, property_id, pspec);

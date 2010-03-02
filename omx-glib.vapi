@@ -44,6 +44,7 @@ namespace GOmx {
 		public Omx.Handle handle { get; }
 		public uint init_index { get; set construct; }
 		public string name { get; set; }
+		public bool no_allocate_buffers { get; set; }
 		public uint pending_state { get; }
 		public GOmx.Component.PortList ports { get; }
 		public uint previous_state { get; }

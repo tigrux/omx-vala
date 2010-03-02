@@ -419,6 +419,11 @@ namespace GOmx {
         }
 
 
+        public bool no_allocate_buffers {
+            get; set;
+        }
+
+
         construct {
             _buffers_queue = new AsyncQueue<Port>();
             _wait_for_state_sem = new Semaphore();
@@ -472,7 +477,8 @@ namespace GOmx {
                 var port = new Port(this, i);
                 port.init();
                 port.name = "%s_port%u".printf(name, i);
-                port.allocate_buffers();
+                if(!_no_allocate_buffers)
+                    port.allocate_buffers();
                 _ports[i] = port;
             }
         }
