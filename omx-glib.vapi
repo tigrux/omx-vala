@@ -52,7 +52,7 @@ namespace GOmx {
 		public uint pending_state { get; }
 		public GOmx.Component.PortList ports { get; }
 		public uint previous_state { get; }
-		public GLib.AsyncQueue<GOmx.Port> queue { get; set; }
+		public GLib.AsyncQueue<GOmx.Port>? queue { get; set; }
 		public bool started { get; }
 	}
 	[CCode (cheader_filename = "omx-glib.h")]
@@ -67,7 +67,7 @@ namespace GOmx {
 		public delegate Omx.Error InitFunc ();
 		[CCode (cheader_filename = "omx-glib.h", instance_pos = -2)]
 		public delegate Omx.Error SetupTunnelFunc (Omx.Handle output, uint32 port_output, Omx.Handle input, uint32 port_input);
-		protected Core ();
+		public Core ();
 		public void deinit () throws GLib.Error;
 		public void free_handle (Omx.Handle handle) throws GLib.Error;
 		public void get_handle (out Omx.Handle component, string component_name, void* app_data, Omx.Callback callbacks) throws GLib.Error;
@@ -152,6 +152,7 @@ namespace GOmx {
 		public Port (GOmx.Component component, uint32 index);
 		public void allocate_buffers () throws GLib.Error;
 		public void buffer_done (Omx.BufferHeader buffer);
+		public void buffers_begin_transfer () throws GLib.Error;
 		public void disable () throws GLib.Error;
 		public void enable () throws GLib.Error;
 		public void flush () throws GLib.Error;
