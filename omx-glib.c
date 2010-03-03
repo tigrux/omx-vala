@@ -1961,63 +1961,54 @@ static void g_omx_component_real_allocate_ports (GOmxComponent* self, GError** e
 	guint32 start_port;
 	guint32 last_port;
 	GOmxPortArray* _tmp0_;
+	guint i;
 	g_return_if_fail (self != NULL);
 	_inner_error_ = NULL;
 	g_return_if_fail (self->priv->_ports == NULL);
 	start_port = self->ports_param.nStartPortNumber;
 	last_port = start_port + self->ports_param.nPorts;
 	self->priv->_ports = (_tmp0_ = g_omx_port_array_new ((guint) self->ports_param.nPorts, (guint) start_port), _g_object_unref0 (self->priv->_ports), _tmp0_);
-	{
-		guint i;
-		i = (guint) start_port;
-		{
-			gboolean _tmp1_;
-			_tmp1_ = TRUE;
-			while (TRUE) {
-				GOmxPort* port;
-				char* _tmp2_;
-				if (!_tmp1_) {
-					i++;
-				}
-				_tmp1_ = FALSE;
-				if (!(i < last_port)) {
-					break;
-				}
-				port = g_omx_port_new (self, (guint32) i);
-				g_omx_port_init (port, &_inner_error_);
-				if (_inner_error_ != NULL) {
-					if (_inner_error_->domain == G_OMX_ERROR) {
-						g_propagate_error (error, _inner_error_);
-						_g_object_unref0 (port);
-						return;
-					} else {
-						_g_object_unref0 (port);
-						g_critical ("file %s: line %d: uncaught error: %s (%s, %d)", __FILE__, __LINE__, _inner_error_->message, g_quark_to_string (_inner_error_->domain), _inner_error_->code);
-						g_clear_error (&_inner_error_);
-						return;
-					}
-				}
-				g_omx_port_set_name (port, _tmp2_ = g_strdup_printf ("%s_port%u", self->priv->_name, i));
-				_g_free0 (_tmp2_);
-				if (!self->priv->_no_allocate_buffers) {
-					g_omx_port_allocate_buffers (port, &_inner_error_);
-					if (_inner_error_ != NULL) {
-						if (_inner_error_->domain == G_OMX_ERROR) {
-							g_propagate_error (error, _inner_error_);
-							_g_object_unref0 (port);
-							return;
-						} else {
-							_g_object_unref0 (port);
-							g_critical ("file %s: line %d: uncaught error: %s (%s, %d)", __FILE__, __LINE__, _inner_error_->message, g_quark_to_string (_inner_error_->domain), _inner_error_->code);
-							g_clear_error (&_inner_error_);
-							return;
-						}
-					}
-				}
-				g_omx_port_array_set (self->priv->_ports, i, port);
+	i = (guint) start_port;
+	while (TRUE) {
+		GOmxPort* port;
+		char* _tmp1_;
+		if (!(i < last_port)) {
+			break;
+		}
+		port = g_omx_port_new (self, (guint32) i);
+		g_omx_port_init (port, &_inner_error_);
+		if (_inner_error_ != NULL) {
+			if (_inner_error_->domain == G_OMX_ERROR) {
+				g_propagate_error (error, _inner_error_);
 				_g_object_unref0 (port);
+				return;
+			} else {
+				_g_object_unref0 (port);
+				g_critical ("file %s: line %d: uncaught error: %s (%s, %d)", __FILE__, __LINE__, _inner_error_->message, g_quark_to_string (_inner_error_->domain), _inner_error_->code);
+				g_clear_error (&_inner_error_);
+				return;
 			}
 		}
+		g_omx_port_set_name (port, _tmp1_ = g_strdup_printf ("%s_port%u", self->priv->_name, i));
+		_g_free0 (_tmp1_);
+		if (!self->priv->_no_allocate_buffers) {
+			g_omx_port_allocate_buffers (port, &_inner_error_);
+			if (_inner_error_ != NULL) {
+				if (_inner_error_->domain == G_OMX_ERROR) {
+					g_propagate_error (error, _inner_error_);
+					_g_object_unref0 (port);
+					return;
+				} else {
+					_g_object_unref0 (port);
+					g_critical ("file %s: line %d: uncaught error: %s (%s, %d)", __FILE__, __LINE__, _inner_error_->message, g_quark_to_string (_inner_error_->domain), _inner_error_->code);
+					g_clear_error (&_inner_error_);
+					return;
+				}
+			}
+		}
+		g_omx_port_array_set (self->priv->_ports, i, port);
+		i++;
+		_g_object_unref0 (port);
 	}
 }
 
@@ -2217,6 +2208,7 @@ OMX_ERRORTYPE g_omx_component_can_set_state (GOmxComponent* self, OMX_STATETYPE 
 	OMX_STATETYPE* _tmp0_ = NULL;
 	OMX_STATETYPE* transitions;
 	guint length;
+	guint i;
 	g_return_val_if_fail (self != NULL, 0);
 	if (self->priv->_current_state == next_state) {
 		result = OMX_ErrorSameState;
@@ -2224,29 +2216,19 @@ OMX_ERRORTYPE g_omx_component_can_set_state (GOmxComponent* self, OMX_STATETYPE 
 	}
 	transitions = (_tmp1_ = (_tmp0_ = g_new0 (OMX_STATETYPE, 16 * 2), _tmp0_[0] = OMX_StateLoaded, _tmp0_[1] = OMX_StateWaitForResources, _tmp0_[2] = OMX_StateLoaded, _tmp0_[3] = OMX_StateIdle, _tmp0_[4] = OMX_StateLoaded, _tmp0_[5] = OMX_StateInvalid, _tmp0_[6] = OMX_StateWaitForResources, _tmp0_[7] = OMX_StateLoaded, _tmp0_[8] = OMX_StateWaitForResources, _tmp0_[9] = OMX_StateInvalid, _tmp0_[10] = OMX_StateWaitForResources, _tmp0_[11] = OMX_StateIdle, _tmp0_[12] = OMX_StateIdle, _tmp0_[13] = OMX_StateLoaded, _tmp0_[14] = OMX_StateIdle, _tmp0_[15] = OMX_StateInvalid, _tmp0_[16] = OMX_StateIdle, _tmp0_[17] = OMX_StatePause, _tmp0_[18] = OMX_StateIdle, _tmp0_[19] = OMX_StateExecuting, _tmp0_[20] = OMX_StatePause, _tmp0_[21] = OMX_StateInvalid, _tmp0_[22] = OMX_StatePause, _tmp0_[23] = OMX_StateIdle, _tmp0_[24] = OMX_StatePause, _tmp0_[25] = OMX_StateExecuting, _tmp0_[26] = OMX_StateExecuting, _tmp0_[27] = OMX_StateIdle, _tmp0_[28] = OMX_StateExecuting, _tmp0_[29] = OMX_StatePause, _tmp0_[30] = OMX_StateExecuting, _tmp0_[31] = OMX_StateInvalid, _tmp0_), transitions_length1 = 16, transitions_length2 = 2, _tmp1_);
 	length = (guint) transitions_length1;
-	{
-		guint i;
-		i = (guint) 0;
-		{
-			gboolean _tmp2_;
-			_tmp2_ = TRUE;
-			while (TRUE) {
-				if (!_tmp2_) {
-					i++;
-				}
-				_tmp2_ = FALSE;
-				if (!(i < length)) {
-					break;
-				}
-				if (transitions[(i * transitions_length2) + 0] == self->priv->_current_state) {
-					if (transitions[(i * transitions_length2) + 1] == next_state) {
-						result = OMX_ErrorNone;
-						transitions = (g_free (transitions), NULL);
-						return result;
-					}
-				}
+	i = (guint) 0;
+	while (TRUE) {
+		if (!(i < length)) {
+			break;
+		}
+		if (transitions[(i * transitions_length2) + 0] == self->priv->_current_state) {
+			if (transitions[(i * transitions_length2) + 1] == next_state) {
+				result = OMX_ErrorNone;
+				transitions = (g_free (transitions), NULL);
+				return result;
 			}
 		}
+		i++;
 	}
 	result = OMX_ErrorIncorrectStateTransition;
 	transitions = (g_free (transitions), NULL);
@@ -2599,7 +2581,7 @@ static OMX_ERRORTYPE g_omx_component_event_handler (GOmxComponent* self, void* c
 		{
 			OMX_ERRORTYPE _error_;
 			_error_ = (OMX_ERRORTYPE) data1;
-			g_critical ("omx-glib.vala:678: %s", omx_error_to_string (_error_));
+			g_critical ("omx-glib.vala:683: %s", omx_error_to_string (_error_));
 			if (self->priv->_event_func_1 != NULL) {
 				self->priv->_event_func_1 (self, (guint) data1, (guint) data2, event_data, self->priv->_event_func_1_target);
 			}
@@ -3296,40 +3278,31 @@ void g_omx_port_allocate_buffers (GOmxPort* self, GError** error) {
 	guint n_buffers;
 	OMX_BUFFERHEADERTYPE** _tmp0_;
 	GAsyncQueue* _tmp1_;
+	guint i;
 	g_return_if_fail (self != NULL);
 	_inner_error_ = NULL;
 	g_return_if_fail (self->priv->_buffers == NULL);
 	n_buffers = (guint) self->definition.nBufferCountActual;
 	self->priv->_buffers = (_tmp0_ = g_new0 (OMX_BUFFERHEADERTYPE*, n_buffers + 1), self->priv->_buffers = (g_free (self->priv->_buffers), NULL), self->priv->_buffers_length1 = n_buffers, self->priv->_buffers_size = self->priv->_buffers_length1, _tmp0_);
 	self->priv->_buffers_queue = (_tmp1_ = g_async_queue_new (), _g_async_queue_unref0 (self->priv->_buffers_queue), _tmp1_);
-	{
-		guint i;
-		i = (guint) 0;
-		{
-			gboolean _tmp2_;
-			_tmp2_ = TRUE;
-			while (TRUE) {
-				if (!_tmp2_) {
-					i++;
-				}
-				_tmp2_ = FALSE;
-				if (!(i < n_buffers)) {
-					break;
-				}
-				g_omx_try_run (OMX_AllocateBuffer (g_omx_component_get_handle (self->priv->_component), &self->priv->_buffers[i], (guint) self->definition.nPortIndex, self, (guint) self->definition.nBufferSize), &_inner_error_);
-				if (_inner_error_ != NULL) {
-					if (_inner_error_->domain == G_OMX_ERROR) {
-						g_propagate_error (error, _inner_error_);
-						return;
-					} else {
-						g_critical ("file %s: line %d: uncaught error: %s (%s, %d)", __FILE__, __LINE__, _inner_error_->message, g_quark_to_string (_inner_error_->domain), _inner_error_->code);
-						g_clear_error (&_inner_error_);
-						return;
-					}
-				}
-				g_async_queue_push (self->priv->_buffers_queue, self->priv->_buffers[i]);
+	i = (guint) 0;
+	while (TRUE) {
+		if (!(i < n_buffers)) {
+			break;
+		}
+		g_omx_try_run (OMX_AllocateBuffer (g_omx_component_get_handle (self->priv->_component), &self->priv->_buffers[i], (guint) self->definition.nPortIndex, self, (guint) self->definition.nBufferSize), &_inner_error_);
+		if (_inner_error_ != NULL) {
+			if (_inner_error_->domain == G_OMX_ERROR) {
+				g_propagate_error (error, _inner_error_);
+				return;
+			} else {
+				g_critical ("file %s: line %d: uncaught error: %s (%s, %d)", __FILE__, __LINE__, _inner_error_->message, g_quark_to_string (_inner_error_->domain), _inner_error_->code);
+				g_clear_error (&_inner_error_);
+				return;
 			}
 		}
+		g_async_queue_push (self->priv->_buffers_queue, self->priv->_buffers[i]);
+		i++;
 	}
 }
 
@@ -3360,42 +3333,33 @@ void g_omx_port_use_buffers_of_port (GOmxPort* self, GOmxPort* port, GError** er
 	GError * _inner_error_;
 	guint n_buffers;
 	OMX_BUFFERHEADERTYPE** _tmp0_;
+	guint i;
 	g_return_if_fail (self != NULL);
 	g_return_if_fail (port != NULL);
 	_inner_error_ = NULL;
 	g_return_if_fail (self->priv->_component != NULL);
 	n_buffers = (guint) self->definition.nBufferCountActual;
 	self->priv->_buffers = (_tmp0_ = g_new0 (OMX_BUFFERHEADERTYPE*, n_buffers + 1), self->priv->_buffers = (g_free (self->priv->_buffers), NULL), self->priv->_buffers_length1 = n_buffers, self->priv->_buffers_size = self->priv->_buffers_length1, _tmp0_);
-	{
-		guint i;
-		i = (guint) 0;
-		{
-			gboolean _tmp1_;
-			_tmp1_ = TRUE;
-			while (TRUE) {
-				OMX_BUFFERHEADERTYPE* buffer_used;
-				if (!_tmp1_) {
-					i++;
-				}
-				_tmp1_ = FALSE;
-				if (!(i < n_buffers)) {
-					break;
-				}
-				buffer_used = port->priv->_buffers[i];
-				g_omx_try_run (OMX_UseBuffer (g_omx_component_get_handle (self->priv->_component), &self->priv->_buffers[i], (guint) self->definition.nPortIndex, self->priv->_component, (guint) self->definition.nBufferSize, buffer_used->pBuffer), &_inner_error_);
-				if (_inner_error_ != NULL) {
-					if (_inner_error_->domain == G_OMX_ERROR) {
-						g_propagate_error (error, _inner_error_);
-						return;
-					} else {
-						g_critical ("file %s: line %d: uncaught error: %s (%s, %d)", __FILE__, __LINE__, _inner_error_->message, g_quark_to_string (_inner_error_->domain), _inner_error_->code);
-						g_clear_error (&_inner_error_);
-						return;
-					}
-				}
-				g_async_queue_push (self->priv->_buffers_queue, self->priv->_buffers[i]);
+	i = (guint) 0;
+	while (TRUE) {
+		OMX_BUFFERHEADERTYPE* buffer_used;
+		if (!(i < n_buffers)) {
+			break;
+		}
+		buffer_used = port->priv->_buffers[i];
+		g_omx_try_run (OMX_UseBuffer (g_omx_component_get_handle (self->priv->_component), &self->priv->_buffers[i], (guint) self->definition.nPortIndex, self->priv->_component, (guint) self->definition.nBufferSize, buffer_used->pBuffer), &_inner_error_);
+		if (_inner_error_ != NULL) {
+			if (_inner_error_->domain == G_OMX_ERROR) {
+				g_propagate_error (error, _inner_error_);
+				return;
+			} else {
+				g_critical ("file %s: line %d: uncaught error: %s (%s, %d)", __FILE__, __LINE__, _inner_error_->message, g_quark_to_string (_inner_error_->domain), _inner_error_->code);
+				g_clear_error (&_inner_error_);
+				return;
 			}
 		}
+		g_async_queue_push (self->priv->_buffers_queue, self->priv->_buffers[i]);
+		i++;
 	}
 }
 
@@ -3404,39 +3368,43 @@ void g_omx_port_use_buffers_of_array (GOmxPort* self, guint8** array, int array_
 	GError * _inner_error_;
 	guint n_buffers;
 	OMX_BUFFERHEADERTYPE** _tmp0_;
+	guint i;
 	g_return_if_fail (self != NULL);
 	_inner_error_ = NULL;
 	g_return_if_fail (self->priv->_component != NULL);
 	n_buffers = (guint) self->definition.nBufferCountActual;
-	self->priv->_buffers = (_tmp0_ = g_new0 (OMX_BUFFERHEADERTYPE*, n_buffers + 1), self->priv->_buffers = (g_free (self->priv->_buffers), NULL), self->priv->_buffers_length1 = n_buffers, self->priv->_buffers_size = self->priv->_buffers_length1, _tmp0_);
-	{
-		guint i;
-		i = (guint) 0;
+	if (array_length1 != n_buffers) {
+		_inner_error_ = g_error_new_literal (G_OMX_ERROR, G_OMX_ERROR_InsufficientResources, "The given array does not have enough items");
 		{
-			gboolean _tmp1_;
-			_tmp1_ = TRUE;
-			while (TRUE) {
-				if (!_tmp1_) {
-					i++;
-				}
-				_tmp1_ = FALSE;
-				if (!(i < n_buffers)) {
-					break;
-				}
-				g_omx_try_run (OMX_UseBuffer (g_omx_component_get_handle (self->priv->_component), &self->priv->_buffers[i], (guint) self->definition.nPortIndex, self->priv->_component, (guint) self->definition.nBufferSize, array[i]), &_inner_error_);
-				if (_inner_error_ != NULL) {
-					if (_inner_error_->domain == G_OMX_ERROR) {
-						g_propagate_error (error, _inner_error_);
-						return;
-					} else {
-						g_critical ("file %s: line %d: uncaught error: %s (%s, %d)", __FILE__, __LINE__, _inner_error_->message, g_quark_to_string (_inner_error_->domain), _inner_error_->code);
-						g_clear_error (&_inner_error_);
-						return;
-					}
-				}
-				g_async_queue_push (self->priv->_buffers_queue, self->priv->_buffers[i]);
+			if (_inner_error_->domain == G_OMX_ERROR) {
+				g_propagate_error (error, _inner_error_);
+				return;
+			} else {
+				g_critical ("file %s: line %d: uncaught error: %s (%s, %d)", __FILE__, __LINE__, _inner_error_->message, g_quark_to_string (_inner_error_->domain), _inner_error_->code);
+				g_clear_error (&_inner_error_);
+				return;
 			}
 		}
+	}
+	self->priv->_buffers = (_tmp0_ = g_new0 (OMX_BUFFERHEADERTYPE*, n_buffers + 1), self->priv->_buffers = (g_free (self->priv->_buffers), NULL), self->priv->_buffers_length1 = n_buffers, self->priv->_buffers_size = self->priv->_buffers_length1, _tmp0_);
+	i = (guint) 0;
+	while (TRUE) {
+		if (!(i < n_buffers)) {
+			break;
+		}
+		g_omx_try_run (OMX_UseBuffer (g_omx_component_get_handle (self->priv->_component), &self->priv->_buffers[i], (guint) self->definition.nPortIndex, self->priv->_component, (guint) self->definition.nBufferSize, array[i]), &_inner_error_);
+		if (_inner_error_ != NULL) {
+			if (_inner_error_->domain == G_OMX_ERROR) {
+				g_propagate_error (error, _inner_error_);
+				return;
+			} else {
+				g_critical ("file %s: line %d: uncaught error: %s (%s, %d)", __FILE__, __LINE__, _inner_error_->message, g_quark_to_string (_inner_error_->domain), _inner_error_->code);
+				g_clear_error (&_inner_error_);
+				return;
+			}
+		}
+		g_async_queue_push (self->priv->_buffers_queue, self->priv->_buffers[i]);
+		i++;
 	}
 }
 
@@ -3724,69 +3692,25 @@ void g_omx_port_buffers_begin_transfer (GOmxPort* self, GError** error) {
 	switch (self->definition.eDir) {
 		case OMX_DirOutput:
 		{
-			{
-				guint n_buffers;
-				n_buffers = g_omx_port_get_n_buffers (self);
-				{
-					guint i;
-					i = (guint) 0;
-					{
-						gboolean _tmp0_;
-						_tmp0_ = TRUE;
-						while (TRUE) {
-							if (!_tmp0_) {
-								i++;
-							}
-							_tmp0_ = FALSE;
-							if (!(i < n_buffers)) {
-								break;
-							}
-							g_omx_port_push_buffer (self, g_omx_port_pop_buffer (self), &_inner_error_);
-							if (_inner_error_ != NULL) {
-								if (_inner_error_->domain == G_OMX_ERROR) {
-									g_propagate_error (error, _inner_error_);
-									return;
-								} else {
-									g_critical ("file %s: line %d: uncaught error: %s (%s, %d)", __FILE__, __LINE__, _inner_error_->message, g_quark_to_string (_inner_error_->domain), _inner_error_->code);
-									g_clear_error (&_inner_error_);
-									return;
-								}
-							}
-							break;
-						}
-					}
+			g_omx_port_push_buffer (self, g_omx_port_pop_buffer (self), &_inner_error_);
+			if (_inner_error_ != NULL) {
+				if (_inner_error_->domain == G_OMX_ERROR) {
+					g_propagate_error (error, _inner_error_);
+					return;
+				} else {
+					g_critical ("file %s: line %d: uncaught error: %s (%s, %d)", __FILE__, __LINE__, _inner_error_->message, g_quark_to_string (_inner_error_->domain), _inner_error_->code);
+					g_clear_error (&_inner_error_);
+					return;
 				}
-				break;
 			}
+			break;
 		}
 		case OMX_DirInput:
 		{
-			{
-				guint n_buffers;
-				n_buffers = g_omx_port_get_n_buffers (self);
-				{
-					guint i;
-					i = (guint) 0;
-					{
-						gboolean _tmp1_;
-						_tmp1_ = TRUE;
-						while (TRUE) {
-							if (!_tmp1_) {
-								i++;
-							}
-							_tmp1_ = FALSE;
-							if (!(i < n_buffers)) {
-								break;
-							}
-							if (g_omx_component_get_queue (self->priv->_component) != NULL) {
-								g_async_queue_push (g_omx_component_get_queue (self->priv->_component), _g_object_ref0 (self));
-							}
-							break;
-						}
-					}
-				}
-				break;
+			if (g_omx_component_get_queue (self->priv->_component) != NULL) {
+				g_async_queue_push (g_omx_component_get_queue (self->priv->_component), _g_object_ref0 (self));
 			}
+			break;
 		}
 		default:
 		{

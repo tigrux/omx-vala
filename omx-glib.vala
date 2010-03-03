@@ -493,13 +493,15 @@ namespace GOmx {
             var last_port = start_port +  ports_param.ports;
 
             _ports = new PortArray(ports_param.ports, start_port);
-            for(uint i=start_port; i<last_port; i++) {
+            uint i = start_port;
+            while(i < last_port) {
                 var port = new Port(this, i);
                 port.init();
                 port.name = "%s_port%u".printf(name, i);
                 if(!_no_allocate_buffers)
                     port.allocate_buffers();
                 _ports[i] = port;
+                i++;
             }
         }
 
@@ -572,10 +574,13 @@ namespace GOmx {
                 {Omx.State.Executing, Omx.State.Invalid}
             };
             uint length = transitions.length[0];
-            for(uint i=0; i<length; i++)
+            uint i = 0;
+            while(i < length) {
                 if(transitions[i,0] == _current_state)
                    if(transitions[i,1] == next_state)
                        return Omx.Error.None;
+                i++;
+            }
             return Omx.Error.IncorrectStateTransition;
         }
 
@@ -910,12 +915,14 @@ namespace GOmx {
             uint n_buffers = definition.buffer_count_actual;
             _buffers = new Omx.BufferHeader[n_buffers];
             _buffers_queue = new AsyncQueue<Omx.BufferHeader>();
-            for(uint i=0; i<n_buffers; i++) {
+            uint i = 0;
+            while(i < n_buffers) {
                 try_run(
                     _component.handle.allocate_buffer(
                         out _buffers[i], definition.port_index,
                         this, definition.buffer_size));
                 _buffers_queue.push(_buffers[i]);
+                i++;
             }
         }
 
@@ -933,7 +940,8 @@ namespace GOmx {
         throws Error requires(_component != null) {
             uint n_buffers = definition.buffer_count_actual;
             _buffers = new Omx.BufferHeader[n_buffers];
-            for(uint i=0; i<n_buffers; i++) {
+            uint i = 0;
+            while(i < n_buffers) {
                 var buffer_used = port._buffers[i];
                 try_run(
                     _component.handle.use_buffer(
@@ -941,6 +949,7 @@ namespace GOmx {
                         _component, definition.buffer_size,
                         buffer_used.buffer));
                 _buffers_queue.push(_buffers[i]);
+                i++;
             }
         }
 
@@ -948,14 +957,20 @@ namespace GOmx {
         public void use_buffers_of_array(uint8[][] array)
         throws Error requires(_component != null) {
             uint n_buffers = definition.buffer_count_actual;
+            if(array.length != n_buffers)
+                throw new GOmx.Error.InsufficientResources(
+                    "The given array does not have enough items");
+
             _buffers = new Omx.BufferHeader[n_buffers];
-            for(uint i=0; i<n_buffers; i++) {
+            uint i = 0;
+            while(i < n_buffers) {
                 try_run(
                     _component.handle.use_buffer(
                         out _buffers[i], definition.port_index,
                         _component, definition.buffer_size,
                         array[i]));
                 _buffers_queue.push(_buffers[i]);
+                i++;
             }
         }
 
@@ -1045,23 +1060,13 @@ namespace GOmx {
         public void buffers_begin_transfer()
         throws Error {
             switch(definition.dir) {
-                case Omx.Dir.Output: {
-                    var n_buffers = get_n_buffers();
-                    for(uint i=0; i<n_buffers; i++) {
-                        push_buffer(pop_buffer());
-                        break;
-                    }
+                case Omx.Dir.Output:
+                    push_buffer(pop_buffer());
                     break;
-                }
-                case Omx.Dir.Input: {
-                    uint n_buffers = get_n_buffers();
-                    for(uint i=0; i<n_buffers; i++) {
-                        if(_component.queue != null)
-                            _component.queue.push(this);
-                        break;
-                    }
+                case Omx.Dir.Input:
+                    if(_component.queue != null)
+                        _component.queue.push(this);
                     break;
-                }
                 default:
                     break;
             }
