@@ -873,192 +873,192 @@ static const char* omx_error_to_string (OMX_ERRORTYPE self) {
 	switch (self) {
 		case OMX_ErrorNone:
 		{
-			result = "Omx.Error.None";
+			result = "The function returned successfully";
 			return result;
 		}
 		case OMX_ErrorInsufficientResources:
 		{
-			result = "Omx.Error.InsufficientResources";
+			result = "There were insufficient resources to perform the requested operation";
 			return result;
 		}
 		case OMX_ErrorUndefined:
 		{
-			result = "Omx.Error.Undefined";
+			result = "There was an error but the cause of the error could not be determined";
 			return result;
 		}
 		case OMX_ErrorInvalidComponentName:
 		{
-			result = "Omx.Error.InvalidComponentName";
+			result = "The component name string was invalid";
 			return result;
 		}
 		case OMX_ErrorComponentNotFound:
 		{
-			result = "Omx.Error.ComponentNotFound";
+			result = "No component with the specified name string was found";
 			return result;
 		}
 		case OMX_ErrorInvalidComponent:
 		{
-			result = "Omx.Error.InvalidComponent";
+			result = "The component name string was invalid";
 			return result;
 		}
 		case OMX_ErrorBadParameter:
 		{
-			result = "Omx.Error.BadParameter";
+			result = "One or more parameters were invalid";
 			return result;
 		}
 		case OMX_ErrorNotImplemented:
 		{
-			result = "Omx.Error.NotImplemented";
+			result = "The requested function is not implemented";
 			return result;
 		}
 		case OMX_ErrorUnderflow:
 		{
-			result = "Omx.Error.Underflow";
+			result = "The buffer was emptied before the next buffer was ready";
 			return result;
 		}
 		case OMX_ErrorOverflow:
 		{
-			result = "Omx.Error.Overflow";
+			result = "The buffer was not available when it was needed";
 			return result;
 		}
 		case OMX_ErrorHardware:
 		{
-			result = "Omx.Error.Hardware";
+			result = "The hardware failed to respond as expected";
 			return result;
 		}
 		case OMX_ErrorInvalidState:
 		{
-			result = "Omx.Error.InvalidState";
+			result = "The component is in the OMX_StateInvalid state";
 			return result;
 		}
 		case OMX_ErrorStreamCorrupt:
 		{
-			result = "Omx.Error.StreamCorrupt";
+			result = "The stream is found to be corrupt. OMX IL components processing coded data (typically decoders) may have the ability to detect corruption in the data stream. Also they may have the ability to detect missing frames and perform error concealment. Such components should report these errors to the client using this error code on a frame basis. Note that the components will in most cases continue normal operation";
 			return result;
 		}
 		case OMX_ErrorPortsNotCompatible:
 		{
-			result = "Omx.Error.PortsNotCompatible";
+			result = "Ports being set up for tunneled communication are incompatible";
 			return result;
 		}
 		case OMX_ErrorResourcesLost:
 		{
-			result = "Omx.Error.ResourcesLost";
+			result = "Resources allocated to a component in the OMX_StateIdle state have been lost, which has resulted in the component returning to the OMX_StateLoaded state.";
 			return result;
 		}
 		case OMX_ErrorNoMore:
 		{
-			result = "Omx.Error.NoMore";
+			result = "No more indices can be enumerated";
 			return result;
 		}
 		case OMX_ErrorVersionMismatch:
 		{
-			result = "Omx.Error.VersionMismatch";
+			result = "The component detected a version mismatch";
 			return result;
 		}
 		case OMX_ErrorNotReady:
 		{
-			result = "Omx.Error.NotReady";
+			result = "The component is not ready to return data at this time";
 			return result;
 		}
 		case OMX_ErrorTimeout:
 		{
-			result = "Omx.Error.Timeout";
+			result = "A timeout occurred where the component was unable to process the call in a reasonable amount of time. This could be due to an infinite loop, or busy hardware";
 			return result;
 		}
 		case OMX_ErrorSameState:
 		{
-			result = "Omx.Error.SameState";
+			result = "The component tried to transition into the state that it is currently in";
 			return result;
 		}
 		case OMX_ErrorResourcesPreempted:
 		{
-			result = "Omx.Error.ResourcesPreempted";
+			result = "Resources allocated to a component in the OMX_StateExecuting or OMX_StatePause states have been pre-empted, causing the component to return to the OMX_StateIdle state";
 			return result;
 		}
 		case OMX_ErrorPortUnresponsiveDuringAllocation:
 		{
-			result = "Omx.Error.PortUnresponsiveDuringAllocation";
+			result = "The non-supplier port deemed that it had waited an unusually long time for the supplier port to send it an allocated buffer via an OMX_UseBuffer call. A non-supplier port sends this error to the IL client via the EventHandler callback during the allocation of buffers on a transition from the LOADED to the IDLE state or on a port enable";
 			return result;
 		}
 		case OMX_ErrorPortUnresponsiveDuringDeallocation:
 		{
-			result = "Omx.Error.PortUnresponsiveDuringDeallocation";
+			result = "The non-supplier port deemed that it had waited an unusually long time for the supplier port to request the de-allocation of a buffer header via a OMX_FreeBuffer call. A non- supplier port sends this error to the IL client via the EventHandler callback during the de-allocation of buffers on a transition from the IDLE to LOADED state or on a port disablement";
 			return result;
 		}
 		case OMX_ErrorPortUnresponsiveDuringStop:
 		{
-			result = "Omx.Error.PortUnresponsiveDuringStop";
+			result = "The supplier port deemed that it had waited an unusually long time for the non-supplier port to return a buffer via an EmptyThisBuffer or FillThisBuffer call. A supplier port sent this error to the IL client via the EventHandler callback during the disabling of a port, either on a transition from the IDLE to LOADED state or on a port disablement";
 			return result;
 		}
 		case OMX_ErrorIncorrectStateTransition:
 		{
-			result = "Omx.Error.IncorrectStateTransition";
+			result = "A state transition was attempted that is not allowed.";
 			return result;
 		}
 		case OMX_ErrorIncorrectStateOperation:
 		{
-			result = "Omx.Error.IncorrectStateOperation";
+			result = "A command or method was attempted that is not allowed during the present state";
 			return result;
 		}
 		case OMX_ErrorUnsupportedSetting:
 		{
-			result = "Omx.Error.UnsupportedSetting";
+			result = "One or more values encapsulated in the parameter or configuration structure are unsupported";
 			return result;
 		}
 		case OMX_ErrorUnsupportedIndex:
 		{
-			result = "Omx.Error.UnsupportedIndex";
+			result = "The parameter or configuration indicated by the given index is unsupported";
 			return result;
 		}
 		case OMX_ErrorBadPortIndex:
 		{
-			result = "Omx.Error.BadPortIndex";
+			result = "The port index that was supplied is incorrect";
 			return result;
 		}
 		case OMX_ErrorPortUnpopulated:
 		{
-			result = "Omx.Error.PortUnpopulated";
+			result = "The port has lost one or more of its buffers and is thus unpopulated";
 			return result;
 		}
 		case OMX_ErrorComponentSuspended:
 		{
-			result = "Omx.Error.ComponentSuspended";
+			result = "Component suspended due to temporary loss of resources";
 			return result;
 		}
 		case OMX_ErrorDynamicResourcesUnavailable:
 		{
-			result = "Omx.Error.DynamicResourcesUnavailable";
+			result = "Component suspended due to inability to acquire dynamic resources";
 			return result;
 		}
 		case OMX_ErrorMbErrorsInFrame:
 		{
-			result = "Omx.Error.MbErrorsInFrame";
+			result = "Errors detected in frame";
 			return result;
 		}
 		case OMX_ErrorFormatNotDetected:
 		{
-			result = "Omx.Error.FormatNotDetected";
+			result = "OMX IL components performing parsing when reading input buffers or content pipes have the ability to check correct formatting of input data. Such components should report this error to the client (in the form of an OMX_EventError event passed via the EventHandler callback) when it cannot parse or determine the format of the given datastream. This reporting is performed only once in case of file parsing error. In other cases, it is performed on every data unit (e.g. frame) formatting error.";
 			return result;
 		}
 		case OMX_ErrorContentPipeOpenFailed:
 		{
-			result = "Omx.Error.ContentPipeOpenFailed";
+			result = "Opening the Content Pipe failed";
 			return result;
 		}
 		case OMX_ErrorContentPipeCreationFailed:
 		{
-			result = "Omx.Error.ContentPipeCreationFailed";
+			result = "Creating the Content Pipe failed";
 			return result;
 		}
 		case OMX_ErrorSeperateTablesUsed:
 		{
-			result = "Omx.Error.SeperateTablesUsed";
+			result = "Attempting to query for single Chroma table when separate quantization tables are used for the Chroma (Cb and Cr) coefficients";
 			return result;
 		}
 		case OMX_ErrorTunnelingUnsupported:
 		{
-			result = "Omx.Error.TunnelingUnsupported";
+			result = "Tunneling is not supported by the component";
 			return result;
 		}
 		default:

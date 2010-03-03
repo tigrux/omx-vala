@@ -14,15 +14,15 @@ namespace Omx {
         public weak string to_string() {
             switch(this) {
                 case StateSet:
-                    return "Omx.Command.StateSet";
+                    return "Change the component state";
                 case Flush:
-                    return "Omx.Command.Flush";
+                    return "Flush the queue(s) of buffers on a port of a component";
                 case PortDisable:
-                    return "Omx.Command.PortDisable";
+                    return "Disable a port on a component";
                 case PortEnable:
-                    return "Omx.Command.PortEnable";
+                    return "Enable a port on a component";
                 case MarkBuffer:
-                    return "Omx.Command.MarkBuffer";
+                    return "Mark a buffer and specify which other component will raise the event mark received";
                 default:
                     return "(unknown)";
             }
@@ -41,17 +41,17 @@ namespace Omx {
         public weak string to_string() {
             switch(this) {
                 case Invalid:
-                    return "Omx.State.Invalid";
+                    return "Component is corrupt or has encountered an error from which it cannot recover";
                 case Loaded:
-                    return "Omx.State.Loaded";
+                    return "Component has been loaded but has no resources allocated";
                 case Idle:
-                    return "Omx.State.Idle";
+                    return "Component has all resources but has not transferred any buffers or begun processing data";
                 case Executing:
-                    return "Omx.State.Executing";
+                    return "Component is transferring buffers and is processing data (if data is available)";
                 case Pause:
-                    return "Omx.State.Pause";
+                    return "Component data processing has been paused but may be resumed from the point it was paused";
                 case WaitForResources:
-                    return "Omx.State.WaitForResources";
+                    return "Component is waiting for a resource to become available";
                 default:
                     return "(unknown)";
             }
@@ -102,81 +102,81 @@ namespace Omx {
         public weak string to_string() {
             switch(this) {
                 case None:
-                    return "Omx.Error.None";
+                    return "The function returned successfully";
                 case InsufficientResources:
-                    return "Omx.Error.InsufficientResources";
+                    return "There were insufficient resources to perform the requested operation";
                 case Undefined:
-                    return "Omx.Error.Undefined";
+                    return "There was an error but the cause of the error could not be determined";
                 case InvalidComponentName:
-                    return "Omx.Error.InvalidComponentName";
+                    return "The component name string was invalid";
                 case ComponentNotFound:
-                    return "Omx.Error.ComponentNotFound";
+                    return "No component with the specified name string was found";
                 case InvalidComponent:
-                    return "Omx.Error.InvalidComponent";
+                    return "The component name string was invalid";
                 case BadParameter:
-                    return "Omx.Error.BadParameter";
+                    return "One or more parameters were invalid";
                 case NotImplemented:
-                    return "Omx.Error.NotImplemented";
+                    return "The requested function is not implemented";
                 case Underflow:
-                    return "Omx.Error.Underflow";
+                    return "The buffer was emptied before the next buffer was ready";
                 case Overflow:
-                    return "Omx.Error.Overflow";
+                    return "The buffer was not available when it was needed";
                 case Hardware:
-                    return "Omx.Error.Hardware";
+                    return "The hardware failed to respond as expected";
                 case InvalidState:
-                    return "Omx.Error.InvalidState";
+                    return "The component is in the OMX_StateInvalid state";
                 case StreamCorrupt:
-                    return "Omx.Error.StreamCorrupt";
+                    return "The stream is found to be corrupt. OMX IL components processing coded data (typically decoders) may have the ability to detect corruption in the data stream. Also they may have the ability to detect missing frames and perform error concealment. Such components should report these errors to the client using this error code on a frame basis. Note that the components will in most cases continue normal operation";
                 case PortsNotCompatible:
-                    return "Omx.Error.PortsNotCompatible";
+                    return "Ports being set up for tunneled communication are incompatible";
                 case ResourcesLost:
-                    return "Omx.Error.ResourcesLost";
+                    return "Resources allocated to a component in the OMX_StateIdle state have been lost, which has resulted in the component returning to the OMX_StateLoaded state.";
                 case NoMore:
-                    return "Omx.Error.NoMore";
+                    return "No more indices can be enumerated";
                 case VersionMismatch:
-                    return "Omx.Error.VersionMismatch";
+                    return "The component detected a version mismatch";
                 case NotReady:
-                    return "Omx.Error.NotReady";
+                    return "The component is not ready to return data at this time";
                 case Timeout:
-                    return "Omx.Error.Timeout";
+                    return "A timeout occurred where the component was unable to process the call in a reasonable amount of time. This could be due to an infinite loop, or busy hardware";
                 case SameState:
-                    return "Omx.Error.SameState";
+                    return "The component tried to transition into the state that it is currently in";
                 case ResourcesPreempted:
-                    return "Omx.Error.ResourcesPreempted";
+                    return "Resources allocated to a component in the OMX_StateExecuting or OMX_StatePause states have been pre-empted, causing the component to return to the OMX_StateIdle state";
                 case PortUnresponsiveDuringAllocation:
-                    return "Omx.Error.PortUnresponsiveDuringAllocation";
+                    return "The non-supplier port deemed that it had waited an unusually long time for the supplier port to send it an allocated buffer via an OMX_UseBuffer call. A non-supplier port sends this error to the IL client via the EventHandler callback during the allocation of buffers on a transition from the LOADED to the IDLE state or on a port enable";
                 case PortUnresponsiveDuringDeallocation:
-                    return "Omx.Error.PortUnresponsiveDuringDeallocation";
+                    return "The non-supplier port deemed that it had waited an unusually long time for the supplier port to request the de-allocation of a buffer header via a OMX_FreeBuffer call. A non- supplier port sends this error to the IL client via the EventHandler callback during the de-allocation of buffers on a transition from the IDLE to LOADED state or on a port disablement";
                 case PortUnresponsiveDuringStop:
-                    return "Omx.Error.PortUnresponsiveDuringStop";
+                    return "The supplier port deemed that it had waited an unusually long time for the non-supplier port to return a buffer via an EmptyThisBuffer or FillThisBuffer call. A supplier port sent this error to the IL client via the EventHandler callback during the disabling of a port, either on a transition from the IDLE to LOADED state or on a port disablement";
                 case IncorrectStateTransition:
-                    return "Omx.Error.IncorrectStateTransition";
+                    return "A state transition was attempted that is not allowed.";
                 case IncorrectStateOperation:
-                    return "Omx.Error.IncorrectStateOperation";
+                    return "A command or method was attempted that is not allowed during the present state";
                 case UnsupportedSetting:
-                    return "Omx.Error.UnsupportedSetting";
+                    return "One or more values encapsulated in the parameter or configuration structure are unsupported";
                 case UnsupportedIndex:
-                    return "Omx.Error.UnsupportedIndex";
+                    return "The parameter or configuration indicated by the given index is unsupported";
                 case BadPortIndex:
-                    return "Omx.Error.BadPortIndex";
+                    return "The port index that was supplied is incorrect";
                 case PortUnpopulated:
-                    return "Omx.Error.PortUnpopulated";
+                    return "The port has lost one or more of its buffers and is thus unpopulated";
                 case ComponentSuspended:
-                    return "Omx.Error.ComponentSuspended";
+                    return "Component suspended due to temporary loss of resources";
                 case DynamicResourcesUnavailable:
-                    return "Omx.Error.DynamicResourcesUnavailable";
+                    return "Component suspended due to inability to acquire dynamic resources";
                 case MbErrorsInFrame:
-                    return "Omx.Error.MbErrorsInFrame";
+                    return "Errors detected in frame";
                 case FormatNotDetected:
-                    return "Omx.Error.FormatNotDetected";
+                    return "OMX IL components performing parsing when reading input buffers or content pipes have the ability to check correct formatting of input data. Such components should report this error to the client (in the form of an OMX_EventError event passed via the EventHandler callback) when it cannot parse or determine the format of the given datastream. This reporting is performed only once in case of file parsing error. In other cases, it is performed on every data unit (e.g. frame) formatting error.";
                 case ContentPipeOpenFailed:
-                    return "Omx.Error.ContentPipeOpenFailed";
+                    return "Opening the Content Pipe failed";
                 case ContentPipeCreationFailed:
-                    return "Omx.Error.ContentPipeCreationFailed";
+                    return "Creating the Content Pipe failed";
                 case SeperateTablesUsed:
-                    return "Omx.Error.SeperateTablesUsed";
+                    return "Attempting to query for single Chroma table when separate quantization tables are used for the Chroma (Cb and Cr) coefficients";
                 case TunnelingUnsupported:
-                    return "Omx.Error.TunnelingUnsupported";
+                    return "Tunneling is not supported by the component";
                 default:
                     return "(unknown)";
             }
@@ -297,23 +297,23 @@ namespace Omx {
         public weak string to_string() {
             switch(this) {
                 case CmdComplete:
-                    return "Omx.Event.CmdComplete";
+                    return "Component has completed the execution of a command";
                 case Error:
-                    return "Omx.Event.Error";
+                    return "Component has detected an error condition";
                 case Mark:
-                    return "Omx.Event.Mark";
+                    return "A buffer mark has reached the target component, and the IL client has received this event with the private data pointer of the mark";
                 case PortSettingsChanged:
-                    return "Omx.Event.PortSettingsChanged";
+                    return "Component has changed port settings. For example, the component has changed port settings resulting from bit stream parsing";
                 case BufferFlag:
-                    return "Omx.Event.BufferFlag";
+                    return "The event that a component sends when it detects the end of a stream";
                 case ResourcesAcquired:
-                    return "Omx.Event.ResourcesAcquired";
+                    return "The component has been granted resources and is transitioning from the OMX_StateWaitForResources state to the OMX_StateIdle state";
                 case ComponentResumed:
-                    return "Omx.Event.ComponentResumed";
+                    return "The component has been resumed (i.e. no longer suspended) due to reacquisition of resources";
                 case DynamicResourcesAvailable:
-                    return "Omx.Event.DynamicResourcesAvailable";
+                    return "The component has acquired previously unavailable dynamic resources";
                 case PortFormatDetected:
-                    return "Omx.Event.PortFormatDetected";
+                    return "Component has successfully recognized a format and determined that it can support it";
                 default:
                     return "(unknown)";
             }
