@@ -1794,30 +1794,10 @@ namespace Omx {
         public uint32 version;
     }
 
-    [CCode (cname="__LINE__")]
-    uint __LINE__;
-
-    [CCode (cname="__FILE__")]
-    string __FILE__;
-
-    [CCode (cname="__FUNCTION__")]
-    string __FUNCTION__;
-
-    GLib.Quark error_domain() {
-        return GLib.Quark.from_string("Omx.Error");
-    }
-
-    public void try_run(
-            Error err,
-            string file=__FILE__,
-            string function=__FUNCTION__,
-            int line=__LINE__) throws GLib.Error {
+    public void try_run(Error err) throws GLib.Error {
         if(err != Omx.Error.None) {
-            var e = new GLib.Error(
-                       error_domain(), err,
-                       "%s (0x%x) in function %s at %s:%d",
-                       err.to_string(), err, function, file, line);
-            throw e;
+            var domain = GLib.Quark.from_string("OMX_ERRORTYPE-quark");
+            throw new  GLib.Error(domain, err, err.to_string());
         }
     }
 }

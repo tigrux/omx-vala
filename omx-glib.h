@@ -212,6 +212,47 @@ struct _GOmxCoreClass {
 	GObjectClass parent_class;
 };
 
+typedef enum  {
+	G_OMX_ERROR_None,
+	G_OMX_ERROR_InsufficientResources,
+	G_OMX_ERROR_Undefined,
+	G_OMX_ERROR_InvalidComponentName,
+	G_OMX_ERROR_ComponentNotFound,
+	G_OMX_ERROR_InvalidComponent,
+	G_OMX_ERROR_BadParameter,
+	G_OMX_ERROR_NotImplemented,
+	G_OMX_ERROR_Underflow,
+	G_OMX_ERROR_Overflow,
+	G_OMX_ERROR_Hardware,
+	G_OMX_ERROR_InvalidState,
+	G_OMX_ERROR_StreamCorrupt,
+	G_OMX_ERROR_PortsNotCompatible,
+	G_OMX_ERROR_ResourcesLost,
+	G_OMX_ERROR_NoMore,
+	G_OMX_ERROR_VersionMismatch,
+	G_OMX_ERROR_NotReady,
+	G_OMX_ERROR_Timeout,
+	G_OMX_ERROR_SameState,
+	G_OMX_ERROR_ResourcesPreempted,
+	G_OMX_ERROR_PortUnresponsiveDuringAllocation,
+	G_OMX_ERROR_PortUnresponsiveDuringDeallocation,
+	G_OMX_ERROR_PortUnresponsiveDuringStop,
+	G_OMX_ERROR_IncorrectStateTransition,
+	G_OMX_ERROR_IncorrectStateOperation,
+	G_OMX_ERROR_UnsupportedSetting,
+	G_OMX_ERROR_UnsupportedIndex,
+	G_OMX_ERROR_BadPortIndex,
+	G_OMX_ERROR_PortUnpopulated,
+	G_OMX_ERROR_ComponentSuspended,
+	G_OMX_ERROR_DynamicResourcesUnavailable,
+	G_OMX_ERROR_MbErrorsInFrame,
+	G_OMX_ERROR_FormatNotDetected,
+	G_OMX_ERROR_ContentPipeOpenFailed,
+	G_OMX_ERROR_ContentPipeCreationFailed,
+	G_OMX_ERROR_SeperateTablesUsed,
+	G_OMX_ERROR_TunnelingUnsupported
+} GOmxError;
+#define G_OMX_ERROR g_omx_error_quark ()
 typedef OMX_ERRORTYPE (*GOmxCoreInitFunc) (void* user_data);
 typedef OMX_ERRORTYPE (*GOmxCoreDeinitFunc) (void* user_data);
 typedef OMX_ERRORTYPE (*GOmxCoreGetHandleFunc) (void** component, const char* component_name, void* app_data, OMX_CALLBACKTYPE* callbacks, void* user_data);
@@ -380,6 +421,7 @@ struct _GOmxSemaphoreClass {
 
 
 GType g_omx_core_get_type (void);
+GQuark g_omx_error_quark (void);
 void g_omx_core_init (GOmxCore* self, GError** error);
 void g_omx_core_deinit (GOmxCore* self, GError** error);
 void g_omx_core_get_handle (GOmxCore* self, void** component, const char* component_name, void* app_data, OMX_CALLBACKTYPE* callbacks, GError** error);
@@ -546,6 +588,11 @@ void g_omx_buffer_set_eos (OMX_BUFFERHEADERTYPE* buffer);
 void g_omx_buffer_copy (OMX_BUFFERHEADERTYPE* dest, OMX_BUFFERHEADERTYPE* source);
 void g_omx_buffer_copy_len (OMX_BUFFERHEADERTYPE* dest, OMX_BUFFERHEADERTYPE* source);
 void g_omx_buffer_read_from_file (OMX_BUFFERHEADERTYPE* buffer, FILE* fs);
+const char* g_omx_command_to_string (OMX_COMMANDTYPE command);
+const char* g_omx_state_to_string (OMX_STATETYPE state);
+const char* g_omx_event_to_string (OMX_EVENTTYPE event);
+const char* g_omx_error_to_string (OMX_ERRORTYPE _error_);
+void g_omx_try_run (OMX_ERRORTYPE e, GError** error);
 
 
 G_END_DECLS

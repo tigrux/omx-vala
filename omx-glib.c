@@ -24,7 +24,6 @@ typedef struct _GOmxCore GOmxCore;
 typedef struct _GOmxCoreClass GOmxCoreClass;
 typedef struct _GOmxCorePrivate GOmxCorePrivate;
 #define _g_module_close0(var) ((var == NULL) ? NULL : (var = (g_module_close (var), NULL)))
-#define _g_error_free0(var) ((var == NULL) ? NULL : (var = (g_error_free (var), NULL)))
 #define _g_object_unref0(var) ((var == NULL) ? NULL : (var = (g_object_unref (var), NULL)))
 
 #define G_OMX_TYPE_ENGINE (g_omx_engine_get_type ())
@@ -207,6 +206,7 @@ typedef struct _GOmxPortBufferListIteratorPrivate GOmxPortBufferListIteratorPriv
 typedef struct _GOmxSemaphorePrivate GOmxSemaphorePrivate;
 #define _g_cond_free0(var) ((var == NULL) ? NULL : (var = (g_cond_free (var), NULL)))
 #define _g_mutex_free0(var) ((var == NULL) ? NULL : (var = (g_mutex_free (var), NULL)))
+#define _g_error_free0(var) ((var == NULL) ? NULL : (var = (g_error_free (var), NULL)))
 
 struct _GOmxCore {
 	GObject parent_instance;
@@ -241,6 +241,47 @@ struct _GOmxCorePrivate {
 	GDestroyNotify _setup_tunnel_func_target_destroy_notify;
 };
 
+typedef enum  {
+	G_OMX_ERROR_None,
+	G_OMX_ERROR_InsufficientResources,
+	G_OMX_ERROR_Undefined,
+	G_OMX_ERROR_InvalidComponentName,
+	G_OMX_ERROR_ComponentNotFound,
+	G_OMX_ERROR_InvalidComponent,
+	G_OMX_ERROR_BadParameter,
+	G_OMX_ERROR_NotImplemented,
+	G_OMX_ERROR_Underflow,
+	G_OMX_ERROR_Overflow,
+	G_OMX_ERROR_Hardware,
+	G_OMX_ERROR_InvalidState,
+	G_OMX_ERROR_StreamCorrupt,
+	G_OMX_ERROR_PortsNotCompatible,
+	G_OMX_ERROR_ResourcesLost,
+	G_OMX_ERROR_NoMore,
+	G_OMX_ERROR_VersionMismatch,
+	G_OMX_ERROR_NotReady,
+	G_OMX_ERROR_Timeout,
+	G_OMX_ERROR_SameState,
+	G_OMX_ERROR_ResourcesPreempted,
+	G_OMX_ERROR_PortUnresponsiveDuringAllocation,
+	G_OMX_ERROR_PortUnresponsiveDuringDeallocation,
+	G_OMX_ERROR_PortUnresponsiveDuringStop,
+	G_OMX_ERROR_IncorrectStateTransition,
+	G_OMX_ERROR_IncorrectStateOperation,
+	G_OMX_ERROR_UnsupportedSetting,
+	G_OMX_ERROR_UnsupportedIndex,
+	G_OMX_ERROR_BadPortIndex,
+	G_OMX_ERROR_PortUnpopulated,
+	G_OMX_ERROR_ComponentSuspended,
+	G_OMX_ERROR_DynamicResourcesUnavailable,
+	G_OMX_ERROR_MbErrorsInFrame,
+	G_OMX_ERROR_FormatNotDetected,
+	G_OMX_ERROR_ContentPipeOpenFailed,
+	G_OMX_ERROR_ContentPipeCreationFailed,
+	G_OMX_ERROR_SeperateTablesUsed,
+	G_OMX_ERROR_TunnelingUnsupported
+} GOmxError;
+#define G_OMX_ERROR g_omx_error_quark ()
 struct _GOmxEngine {
 	GObject parent_instance;
 	GOmxEnginePrivate * priv;
@@ -545,6 +586,8 @@ enum  {
 	G_OMX_CORE_DUMMY_PROPERTY,
 	G_OMX_CORE_MODULE
 };
+GQuark g_omx_error_quark (void);
+void g_omx_try_run (OMX_ERRORTYPE e, GError** error);
 void g_omx_core_init (GOmxCore* self, GError** error);
 void g_omx_core_deinit (GOmxCore* self, GError** error);
 void g_omx_core_get_handle (GOmxCore* self, void** component, const char* component_name, void* app_data, OMX_CALLBACKTYPE* callbacks, GError** error);
@@ -855,253 +898,31 @@ void g_omx_buffer_set_eos (OMX_BUFFERHEADERTYPE* buffer);
 void g_omx_buffer_copy (OMX_BUFFERHEADERTYPE* dest, OMX_BUFFERHEADERTYPE* source);
 void g_omx_buffer_copy_len (OMX_BUFFERHEADERTYPE* dest, OMX_BUFFERHEADERTYPE* source);
 void g_omx_buffer_read_from_file (OMX_BUFFERHEADERTYPE* buffer, FILE* fs);
+const char* g_omx_command_to_string (OMX_COMMANDTYPE command);
+const char* g_omx_state_to_string (OMX_STATETYPE state);
+const char* g_omx_event_to_string (OMX_EVENTTYPE event);
+const char* g_omx_error_to_string (OMX_ERRORTYPE _error_);
+GQuark g_omx_error_quark (void);
 static void _vala_array_destroy (gpointer array, gint array_length, GDestroyNotify destroy_func);
 static void _vala_array_free (gpointer array, gint array_length, GDestroyNotify destroy_func);
 
 static const OMX_CALLBACKTYPE G_OMX_COMPONENT_callbacks = {_g_omx_component_event_handler_omx_event_handler_func, _g_omx_component_empty_buffer_done_omx_empty_buffer_done_func, _g_omx_component_fill_buffer_done_omx_fill_buffer_done_func};
 
 
-static GQuark omx_error_domain (void) {
-	GQuark result;
-	result = g_quark_from_string ("Omx.Error");
-	return result;
-}
-
-
-static const char* omx_error_to_string (OMX_ERRORTYPE self) {
-	const char* result;
-	switch (self) {
-		case OMX_ErrorNone:
-		{
-			result = "The function returned successfully";
-			return result;
-		}
-		case OMX_ErrorInsufficientResources:
-		{
-			result = "There were insufficient resources to perform the requested operation";
-			return result;
-		}
-		case OMX_ErrorUndefined:
-		{
-			result = "There was an error but the cause of the error could not be determined";
-			return result;
-		}
-		case OMX_ErrorInvalidComponentName:
-		{
-			result = "The component name string was invalid";
-			return result;
-		}
-		case OMX_ErrorComponentNotFound:
-		{
-			result = "No component with the specified name string was found";
-			return result;
-		}
-		case OMX_ErrorInvalidComponent:
-		{
-			result = "The component name string was invalid";
-			return result;
-		}
-		case OMX_ErrorBadParameter:
-		{
-			result = "One or more parameters were invalid";
-			return result;
-		}
-		case OMX_ErrorNotImplemented:
-		{
-			result = "The requested function is not implemented";
-			return result;
-		}
-		case OMX_ErrorUnderflow:
-		{
-			result = "The buffer was emptied before the next buffer was ready";
-			return result;
-		}
-		case OMX_ErrorOverflow:
-		{
-			result = "The buffer was not available when it was needed";
-			return result;
-		}
-		case OMX_ErrorHardware:
-		{
-			result = "The hardware failed to respond as expected";
-			return result;
-		}
-		case OMX_ErrorInvalidState:
-		{
-			result = "The component is in the OMX_StateInvalid state";
-			return result;
-		}
-		case OMX_ErrorStreamCorrupt:
-		{
-			result = "The stream is found to be corrupt";
-			return result;
-		}
-		case OMX_ErrorPortsNotCompatible:
-		{
-			result = "Ports being set up for tunneled communication are incompatible";
-			return result;
-		}
-		case OMX_ErrorResourcesLost:
-		{
-			result = "Resources allocated to a component in the OMX_StateIdle state have been lost";
-			return result;
-		}
-		case OMX_ErrorNoMore:
-		{
-			result = "No more indices can be enumerated";
-			return result;
-		}
-		case OMX_ErrorVersionMismatch:
-		{
-			result = "The component detected a version mismatch";
-			return result;
-		}
-		case OMX_ErrorNotReady:
-		{
-			result = "The component is not ready to return data at this time";
-			return result;
-		}
-		case OMX_ErrorTimeout:
-		{
-			result = "A timeout occurred where the component was unable to process the call in a reasonable amount of time";
-			return result;
-		}
-		case OMX_ErrorSameState:
-		{
-			result = "The component tried to transition into the state that it is currently in";
-			return result;
-		}
-		case OMX_ErrorResourcesPreempted:
-		{
-			result = "Resources allocated to a component in the OMX_StateExecuting or OMX_StatePause states have been pre-empted";
-			return result;
-		}
-		case OMX_ErrorPortUnresponsiveDuringAllocation:
-		{
-			result = "The non-supplier port deemed that it had waited an unusually long time for the supplier port to send it an allocated buffer via an OMX_UseBuffer call";
-			return result;
-		}
-		case OMX_ErrorPortUnresponsiveDuringDeallocation:
-		{
-			result = "The non-supplier port deemed that it had waited an unusually long time for the supplier port to request the de-allocation of a buffer header via a OMX_FreeBuffer call";
-			return result;
-		}
-		case OMX_ErrorPortUnresponsiveDuringStop:
-		{
-			result = "The supplier port deemed that it had waited an unusually long time for the non-supplier port to return a buffer via an EmptyThisBuffer or FillThisBuffer call";
-			return result;
-		}
-		case OMX_ErrorIncorrectStateTransition:
-		{
-			result = "A state transition was attempted that is not allowed.";
-			return result;
-		}
-		case OMX_ErrorIncorrectStateOperation:
-		{
-			result = "A command or method was attempted that is not allowed during the present state";
-			return result;
-		}
-		case OMX_ErrorUnsupportedSetting:
-		{
-			result = "One or more values encapsulated in the parameter or configuration structure are unsupported";
-			return result;
-		}
-		case OMX_ErrorUnsupportedIndex:
-		{
-			result = "The parameter or configuration indicated by the given index is unsupported";
-			return result;
-		}
-		case OMX_ErrorBadPortIndex:
-		{
-			result = "The port index that was supplied is incorrect";
-			return result;
-		}
-		case OMX_ErrorPortUnpopulated:
-		{
-			result = "The port has lost one or more of its buffers and is thus unpopulated";
-			return result;
-		}
-		case OMX_ErrorComponentSuspended:
-		{
-			result = "Component suspended due to temporary loss of resources";
-			return result;
-		}
-		case OMX_ErrorDynamicResourcesUnavailable:
-		{
-			result = "Component suspended due to inability to acquire dynamic resources";
-			return result;
-		}
-		case OMX_ErrorMbErrorsInFrame:
-		{
-			result = "Errors detected in frame";
-			return result;
-		}
-		case OMX_ErrorFormatNotDetected:
-		{
-			result = "Component cannot parse or determine the format of the given datastream";
-			return result;
-		}
-		case OMX_ErrorContentPipeOpenFailed:
-		{
-			result = "Opening the Content Pipe failed";
-			return result;
-		}
-		case OMX_ErrorContentPipeCreationFailed:
-		{
-			result = "Creating the Content Pipe failed";
-			return result;
-		}
-		case OMX_ErrorSeperateTablesUsed:
-		{
-			result = "Attempting to query for single Chroma table when separate quantization tables are used for the Chroma (Cb and Cr) coefficients";
-			return result;
-		}
-		case OMX_ErrorTunnelingUnsupported:
-		{
-			result = "Tunneling is not supported by the component";
-			return result;
-		}
-		default:
-		{
-			result = "(unknown)";
-			return result;
-		}
-	}
-}
-
-
-static gpointer _g_error_copy0 (gpointer self) {
-	return self ? g_error_copy (self) : NULL;
-}
-
-
-static void omx_try_run (OMX_ERRORTYPE err, const char* file, const char* function, gint line, GError** error) {
-	GError * _inner_error_;
-	g_return_if_fail (file != NULL);
-	g_return_if_fail (function != NULL);
-	_inner_error_ = NULL;
-	if (err != OMX_ErrorNone) {
-		GError* e;
-		e = g_error_new (omx_error_domain (), (gint) err, "%s (0x%x) in function %s at %s:%d", omx_error_to_string (err), err, function, file, line, NULL);
-		_inner_error_ = _g_error_copy0 (e);
-		{
-			g_propagate_error (error, _inner_error_);
-			_g_error_free0 (e);
-			return;
-		}
-		_g_error_free0 (e);
-	}
-}
-
-
 void g_omx_core_init (GOmxCore* self, GError** error) {
 	GError * _inner_error_;
 	g_return_if_fail (self != NULL);
 	_inner_error_ = NULL;
-	omx_try_run (self->priv->_init_func (self->priv->_init_func_target), __FILE__, __FUNCTION__, __LINE__, &_inner_error_);
+	g_omx_try_run (self->priv->_init_func (self->priv->_init_func_target), &_inner_error_);
 	if (_inner_error_ != NULL) {
-		g_propagate_error (error, _inner_error_);
-		return;
+		if (_inner_error_->domain == G_OMX_ERROR) {
+			g_propagate_error (error, _inner_error_);
+			return;
+		} else {
+			g_critical ("file %s: line %d: uncaught error: %s (%s, %d)", __FILE__, __LINE__, _inner_error_->message, g_quark_to_string (_inner_error_->domain), _inner_error_->code);
+			g_clear_error (&_inner_error_);
+			return;
+		}
 	}
 }
 
@@ -1110,10 +931,16 @@ void g_omx_core_deinit (GOmxCore* self, GError** error) {
 	GError * _inner_error_;
 	g_return_if_fail (self != NULL);
 	_inner_error_ = NULL;
-	omx_try_run (self->priv->_deinit_func (self->priv->_deinit_func_target), __FILE__, __FUNCTION__, __LINE__, &_inner_error_);
+	g_omx_try_run (self->priv->_deinit_func (self->priv->_deinit_func_target), &_inner_error_);
 	if (_inner_error_ != NULL) {
-		g_propagate_error (error, _inner_error_);
-		return;
+		if (_inner_error_->domain == G_OMX_ERROR) {
+			g_propagate_error (error, _inner_error_);
+			return;
+		} else {
+			g_critical ("file %s: line %d: uncaught error: %s (%s, %d)", __FILE__, __LINE__, _inner_error_->message, g_quark_to_string (_inner_error_->domain), _inner_error_->code);
+			g_clear_error (&_inner_error_);
+			return;
+		}
 	}
 }
 
@@ -1126,10 +953,16 @@ void g_omx_core_get_handle (GOmxCore* self, void** component, const char* compon
 	}
 	g_return_if_fail (component_name != NULL);
 	_inner_error_ = NULL;
-	omx_try_run (self->priv->_get_handle_func (component, component_name, app_data, callbacks, self->priv->_get_handle_func_target), __FILE__, __FUNCTION__, __LINE__, &_inner_error_);
+	g_omx_try_run (self->priv->_get_handle_func (component, component_name, app_data, callbacks, self->priv->_get_handle_func_target), &_inner_error_);
 	if (_inner_error_ != NULL) {
-		g_propagate_error (error, _inner_error_);
-		return;
+		if (_inner_error_->domain == G_OMX_ERROR) {
+			g_propagate_error (error, _inner_error_);
+			return;
+		} else {
+			g_critical ("file %s: line %d: uncaught error: %s (%s, %d)", __FILE__, __LINE__, _inner_error_->message, g_quark_to_string (_inner_error_->domain), _inner_error_->code);
+			g_clear_error (&_inner_error_);
+			return;
+		}
 	}
 }
 
@@ -1139,10 +972,16 @@ void g_omx_core_free_handle (GOmxCore* self, void* handle, GError** error) {
 	g_return_if_fail (self != NULL);
 	g_return_if_fail (handle != NULL);
 	_inner_error_ = NULL;
-	omx_try_run (self->priv->_free_handle_func (handle, self->priv->_free_handle_func_target), __FILE__, __FUNCTION__, __LINE__, &_inner_error_);
+	g_omx_try_run (self->priv->_free_handle_func (handle, self->priv->_free_handle_func_target), &_inner_error_);
 	if (_inner_error_ != NULL) {
-		g_propagate_error (error, _inner_error_);
-		return;
+		if (_inner_error_->domain == G_OMX_ERROR) {
+			g_propagate_error (error, _inner_error_);
+			return;
+		} else {
+			g_critical ("file %s: line %d: uncaught error: %s (%s, %d)", __FILE__, __LINE__, _inner_error_->message, g_quark_to_string (_inner_error_->domain), _inner_error_->code);
+			g_clear_error (&_inner_error_);
+			return;
+		}
 	}
 }
 
@@ -1153,10 +992,16 @@ void g_omx_core_setup_tunnel (GOmxCore* self, void* output, guint32 port_output,
 	g_return_if_fail (output != NULL);
 	g_return_if_fail (input != NULL);
 	_inner_error_ = NULL;
-	omx_try_run (self->priv->_setup_tunnel_func (output, port_output, input, port_input, self->priv->_setup_tunnel_func_target), __FILE__, __FUNCTION__, __LINE__, &_inner_error_);
+	g_omx_try_run (self->priv->_setup_tunnel_func (output, port_output, input, port_input, self->priv->_setup_tunnel_func_target), &_inner_error_);
 	if (_inner_error_ != NULL) {
-		g_propagate_error (error, _inner_error_);
-		return;
+		if (_inner_error_->domain == G_OMX_ERROR) {
+			g_propagate_error (error, _inner_error_);
+			return;
+		} else {
+			g_critical ("file %s: line %d: uncaught error: %s (%s, %d)", __FILE__, __LINE__, _inner_error_->message, g_quark_to_string (_inner_error_->domain), _inner_error_->code);
+			g_clear_error (&_inner_error_);
+			return;
+		}
 	}
 }
 
@@ -1338,9 +1183,16 @@ static void g_omx_engine_real_buffers_begin_transfer (GOmxEngine* self, GError**
 			{
 				g_omx_component_buffers_begin_transfer (component, &_inner_error_);
 				if (_inner_error_ != NULL) {
-					g_propagate_error (error, _inner_error_);
-					_g_object_unref0 (component);
-					return;
+					if (_inner_error_->domain == G_OMX_ERROR) {
+						g_propagate_error (error, _inner_error_);
+						_g_object_unref0 (component);
+						return;
+					} else {
+						_g_object_unref0 (component);
+						g_critical ("file %s: line %d: uncaught error: %s (%s, %d)", __FILE__, __LINE__, _inner_error_->message, g_quark_to_string (_inner_error_->domain), _inner_error_->code);
+						g_clear_error (&_inner_error_);
+						return;
+					}
 				}
 				_g_object_unref0 (component);
 				break;
@@ -1371,9 +1223,16 @@ static void g_omx_engine_real_init (GOmxEngine* self, GError** error) {
 			{
 				g_omx_component_init (component, &_inner_error_);
 				if (_inner_error_ != NULL) {
-					g_propagate_error (error, _inner_error_);
-					_g_object_unref0 (component);
-					return;
+					if (_inner_error_->domain == G_OMX_ERROR) {
+						g_propagate_error (error, _inner_error_);
+						_g_object_unref0 (component);
+						return;
+					} else {
+						_g_object_unref0 (component);
+						g_critical ("file %s: line %d: uncaught error: %s (%s, %d)", __FILE__, __LINE__, _inner_error_->message, g_quark_to_string (_inner_error_->domain), _inner_error_->code);
+						g_clear_error (&_inner_error_);
+						return;
+					}
 				}
 				_g_object_unref0 (component);
 			}
@@ -1401,9 +1260,16 @@ static void g_omx_engine_real_set_state (GOmxEngine* self, OMX_STATETYPE state, 
 			{
 				g_omx_component_set_state (component, state, &_inner_error_);
 				if (_inner_error_ != NULL) {
-					g_propagate_error (error, _inner_error_);
-					_g_object_unref0 (component);
-					return;
+					if (_inner_error_->domain == G_OMX_ERROR) {
+						g_propagate_error (error, _inner_error_);
+						_g_object_unref0 (component);
+						return;
+					} else {
+						_g_object_unref0 (component);
+						g_critical ("file %s: line %d: uncaught error: %s (%s, %d)", __FILE__, __LINE__, _inner_error_->message, g_quark_to_string (_inner_error_->domain), _inner_error_->code);
+						g_clear_error (&_inner_error_);
+						return;
+					}
 				}
 				_g_object_unref0 (component);
 			}
@@ -1431,9 +1297,16 @@ static void g_omx_engine_real_set_state_and_wait (GOmxEngine* self, OMX_STATETYP
 			{
 				g_omx_component_set_state_and_wait (component, state, &_inner_error_);
 				if (_inner_error_ != NULL) {
-					g_propagate_error (error, _inner_error_);
-					_g_object_unref0 (component);
-					return;
+					if (_inner_error_->domain == G_OMX_ERROR) {
+						g_propagate_error (error, _inner_error_);
+						_g_object_unref0 (component);
+						return;
+					} else {
+						_g_object_unref0 (component);
+						g_critical ("file %s: line %d: uncaught error: %s (%s, %d)", __FILE__, __LINE__, _inner_error_->message, g_quark_to_string (_inner_error_->domain), _inner_error_->code);
+						g_clear_error (&_inner_error_);
+						return;
+					}
 				}
 				_g_object_unref0 (component);
 			}
@@ -1484,9 +1357,16 @@ static void g_omx_engine_real_free_handles (GOmxEngine* self, GError** error) {
 			{
 				g_omx_component_free_handle (component, &_inner_error_);
 				if (_inner_error_ != NULL) {
-					g_propagate_error (error, _inner_error_);
-					_g_object_unref0 (component);
-					return;
+					if (_inner_error_->domain == G_OMX_ERROR) {
+						g_propagate_error (error, _inner_error_);
+						_g_object_unref0 (component);
+						return;
+					} else {
+						_g_object_unref0 (component);
+						g_critical ("file %s: line %d: uncaught error: %s (%s, %d)", __FILE__, __LINE__, _inner_error_->message, g_quark_to_string (_inner_error_->domain), _inner_error_->code);
+						g_clear_error (&_inner_error_);
+						return;
+					}
 				}
 				_g_object_unref0 (component);
 			}
@@ -2225,14 +2105,26 @@ static void g_omx_component_real_init (GOmxComponent* self, GError** error) {
 	g_return_if_fail (self->priv->_handle == NULL);
 	g_omx_core_get_handle (self->priv->_core, &self->priv->_handle, self->priv->_component_name, self, &G_OMX_COMPONENT_callbacks, &_inner_error_);
 	if (_inner_error_ != NULL) {
-		g_propagate_error (error, _inner_error_);
-		return;
+		if (_inner_error_->domain == G_OMX_ERROR) {
+			g_propagate_error (error, _inner_error_);
+			return;
+		} else {
+			g_critical ("file %s: line %d: uncaught error: %s (%s, %d)", __FILE__, __LINE__, _inner_error_->message, g_quark_to_string (_inner_error_->domain), _inner_error_->code);
+			g_clear_error (&_inner_error_);
+			return;
+		}
 	}
 	omx_structure_init (&self->ports_param);
-	omx_try_run (OMX_GetParameter (self->priv->_handle, self->priv->_init_index, &self->ports_param), __FILE__, __FUNCTION__, __LINE__, &_inner_error_);
+	g_omx_try_run (OMX_GetParameter (self->priv->_handle, self->priv->_init_index, &self->ports_param), &_inner_error_);
 	if (_inner_error_ != NULL) {
-		g_propagate_error (error, _inner_error_);
-		return;
+		if (_inner_error_->domain == G_OMX_ERROR) {
+			g_propagate_error (error, _inner_error_);
+			return;
+		} else {
+			g_critical ("file %s: line %d: uncaught error: %s (%s, %d)", __FILE__, __LINE__, _inner_error_->message, g_quark_to_string (_inner_error_->domain), _inner_error_->code);
+			g_clear_error (&_inner_error_);
+			return;
+		}
 	}
 	self->priv->_pending_state = OMX_StateLoaded;
 	self->priv->_current_state = OMX_StateLoaded;
@@ -2259,8 +2151,14 @@ static void g_omx_component_real_free_handle (GOmxComponent* self, GError** erro
 	g_return_if_fail (self->priv->_handle != NULL);
 	g_omx_core_free_handle (self->priv->_core, self->priv->_handle, &_inner_error_);
 	if (_inner_error_ != NULL) {
-		g_propagate_error (error, _inner_error_);
-		return;
+		if (_inner_error_->domain == G_OMX_ERROR) {
+			g_propagate_error (error, _inner_error_);
+			return;
+		} else {
+			g_critical ("file %s: line %d: uncaught error: %s (%s, %d)", __FILE__, __LINE__, _inner_error_->message, g_quark_to_string (_inner_error_->domain), _inner_error_->code);
+			g_clear_error (&_inner_error_);
+			return;
+		}
 	}
 	self->priv->_handle = NULL;
 }
@@ -2303,18 +2201,32 @@ static void g_omx_component_real_allocate_ports (GOmxComponent* self, GError** e
 				port = g_omx_port_new (self, (guint32) i);
 				g_omx_port_init (port, &_inner_error_);
 				if (_inner_error_ != NULL) {
-					g_propagate_error (error, _inner_error_);
-					_g_object_unref0 (port);
-					return;
+					if (_inner_error_->domain == G_OMX_ERROR) {
+						g_propagate_error (error, _inner_error_);
+						_g_object_unref0 (port);
+						return;
+					} else {
+						_g_object_unref0 (port);
+						g_critical ("file %s: line %d: uncaught error: %s (%s, %d)", __FILE__, __LINE__, _inner_error_->message, g_quark_to_string (_inner_error_->domain), _inner_error_->code);
+						g_clear_error (&_inner_error_);
+						return;
+					}
 				}
 				g_omx_port_set_name (port, _tmp2_ = g_strdup_printf ("%s_port%u", self->priv->_name, i));
 				_g_free0 (_tmp2_);
 				if (!self->priv->_no_allocate_buffers) {
 					g_omx_port_allocate_buffers (port, &_inner_error_);
 					if (_inner_error_ != NULL) {
-						g_propagate_error (error, _inner_error_);
-						_g_object_unref0 (port);
-						return;
+						if (_inner_error_->domain == G_OMX_ERROR) {
+							g_propagate_error (error, _inner_error_);
+							_g_object_unref0 (port);
+							return;
+						} else {
+							_g_object_unref0 (port);
+							g_critical ("file %s: line %d: uncaught error: %s (%s, %d)", __FILE__, __LINE__, _inner_error_->message, g_quark_to_string (_inner_error_->domain), _inner_error_->code);
+							g_clear_error (&_inner_error_);
+							return;
+						}
 					}
 				}
 				self->priv->_ports[i] = (_tmp3_ = _g_object_ref0 (port), _g_object_unref0 (self->priv->_ports[i]), _tmp3_);
@@ -2349,9 +2261,16 @@ static void g_omx_component_real_free_ports (GOmxComponent* self, GError** error
 			{
 				g_omx_port_free_buffers (port, &_inner_error_);
 				if (_inner_error_ != NULL) {
-					g_propagate_error (error, _inner_error_);
-					_g_object_unref0 (port);
-					return;
+					if (_inner_error_->domain == G_OMX_ERROR) {
+						g_propagate_error (error, _inner_error_);
+						_g_object_unref0 (port);
+						return;
+					} else {
+						_g_object_unref0 (port);
+						g_critical ("file %s: line %d: uncaught error: %s (%s, %d)", __FILE__, __LINE__, _inner_error_->message, g_quark_to_string (_inner_error_->domain), _inner_error_->code);
+						g_clear_error (&_inner_error_);
+						return;
+					}
 				}
 				_g_object_unref0 (port);
 			}
@@ -2384,9 +2303,16 @@ static void g_omx_component_real_buffers_begin_transfer (GOmxComponent* self, GE
 			{
 				g_omx_port_buffers_begin_transfer (port, &_inner_error_);
 				if (_inner_error_ != NULL) {
-					g_propagate_error (error, _inner_error_);
-					_g_object_unref0 (port);
-					return;
+					if (_inner_error_->domain == G_OMX_ERROR) {
+						g_propagate_error (error, _inner_error_);
+						_g_object_unref0 (port);
+						return;
+					} else {
+						_g_object_unref0 (port);
+						g_critical ("file %s: line %d: uncaught error: %s (%s, %d)", __FILE__, __LINE__, _inner_error_->message, g_quark_to_string (_inner_error_->domain), _inner_error_->code);
+						g_clear_error (&_inner_error_);
+						return;
+					}
 				}
 				_g_object_unref0 (port);
 			}
@@ -2429,8 +2355,14 @@ static void g_omx_component_real_set_state (GOmxComponent* self, OMX_STATETYPE s
 	self->priv->_pending_state = state;
 	g_omx_component_send_command (self, OMX_CommandStateSet, (guint) state, NULL, &_inner_error_);
 	if (_inner_error_ != NULL) {
-		g_propagate_error (error, _inner_error_);
-		return;
+		if (_inner_error_->domain == G_OMX_ERROR) {
+			g_propagate_error (error, _inner_error_);
+			return;
+		} else {
+			g_critical ("file %s: line %d: uncaught error: %s (%s, %d)", __FILE__, __LINE__, _inner_error_->message, g_quark_to_string (_inner_error_->domain), _inner_error_->code);
+			g_clear_error (&_inner_error_);
+			return;
+		}
 	}
 	if (self->priv->_current_state == OMX_StateLoaded) {
 		_tmp0_ = self->priv->_pending_state == OMX_StateIdle;
@@ -2440,8 +2372,14 @@ static void g_omx_component_real_set_state (GOmxComponent* self, OMX_STATETYPE s
 	if (_tmp0_) {
 		g_omx_component_allocate_ports (self, &_inner_error_);
 		if (_inner_error_ != NULL) {
-			g_propagate_error (error, _inner_error_);
-			return;
+			if (_inner_error_->domain == G_OMX_ERROR) {
+				g_propagate_error (error, _inner_error_);
+				return;
+			} else {
+				g_critical ("file %s: line %d: uncaught error: %s (%s, %d)", __FILE__, __LINE__, _inner_error_->message, g_quark_to_string (_inner_error_->domain), _inner_error_->code);
+				g_clear_error (&_inner_error_);
+				return;
+			}
 		}
 	} else {
 		gboolean _tmp1_ = FALSE;
@@ -2453,8 +2391,14 @@ static void g_omx_component_real_set_state (GOmxComponent* self, OMX_STATETYPE s
 		if (_tmp1_) {
 			g_omx_component_free_ports (self, &_inner_error_);
 			if (_inner_error_ != NULL) {
-				g_propagate_error (error, _inner_error_);
-				return;
+				if (_inner_error_->domain == G_OMX_ERROR) {
+					g_propagate_error (error, _inner_error_);
+					return;
+				} else {
+					g_critical ("file %s: line %d: uncaught error: %s (%s, %d)", __FILE__, __LINE__, _inner_error_->message, g_quark_to_string (_inner_error_->domain), _inner_error_->code);
+					g_clear_error (&_inner_error_);
+					return;
+				}
 			}
 		}
 	}
@@ -2473,8 +2417,14 @@ void g_omx_component_set_state_and_wait (GOmxComponent* self, OMX_STATETYPE stat
 	_inner_error_ = NULL;
 	g_omx_component_set_state (self, state, &_inner_error_);
 	if (_inner_error_ != NULL) {
-		g_propagate_error (error, _inner_error_);
-		return;
+		if (_inner_error_->domain == G_OMX_ERROR) {
+			g_propagate_error (error, _inner_error_);
+			return;
+		} else {
+			g_critical ("file %s: line %d: uncaught error: %s (%s, %d)", __FILE__, __LINE__, _inner_error_->message, g_quark_to_string (_inner_error_->domain), _inner_error_->code);
+			g_clear_error (&_inner_error_);
+			return;
+		}
 	}
 	g_omx_component_wait_for_state (self);
 }
@@ -2487,10 +2437,16 @@ OMX_STATETYPE g_omx_component_get_state (GOmxComponent* self, GError** error) {
 	g_return_val_if_fail (self != NULL, 0);
 	_inner_error_ = NULL;
 	g_return_val_if_fail (self->priv->_handle != NULL, 0);
-	omx_try_run (OMX_GetState (self->priv->_handle, &state), __FILE__, __FUNCTION__, __LINE__, &_inner_error_);
+	g_omx_try_run (OMX_GetState (self->priv->_handle, &state), &_inner_error_);
 	if (_inner_error_ != NULL) {
-		g_propagate_error (error, _inner_error_);
-		return 0;
+		if (_inner_error_->domain == G_OMX_ERROR) {
+			g_propagate_error (error, _inner_error_);
+			return 0;
+		} else {
+			g_critical ("file %s: line %d: uncaught error: %s (%s, %d)", __FILE__, __LINE__, _inner_error_->message, g_quark_to_string (_inner_error_->domain), _inner_error_->code);
+			g_clear_error (&_inner_error_);
+			return 0;
+		}
 	}
 	result = state;
 	return result;
@@ -2557,6 +2513,208 @@ void g_omx_component_event_set_function (GOmxComponent* self, OMX_EVENTTYPE even
 		default:
 		{
 			break;
+		}
+	}
+}
+
+
+static const char* omx_error_to_string (OMX_ERRORTYPE self) {
+	const char* result;
+	switch (self) {
+		case OMX_ErrorNone:
+		{
+			result = "The function returned successfully";
+			return result;
+		}
+		case OMX_ErrorInsufficientResources:
+		{
+			result = "There were insufficient resources to perform the requested operation";
+			return result;
+		}
+		case OMX_ErrorUndefined:
+		{
+			result = "There was an error but the cause of the error could not be determined";
+			return result;
+		}
+		case OMX_ErrorInvalidComponentName:
+		{
+			result = "The component name string was invalid";
+			return result;
+		}
+		case OMX_ErrorComponentNotFound:
+		{
+			result = "No component with the specified name string was found";
+			return result;
+		}
+		case OMX_ErrorInvalidComponent:
+		{
+			result = "The component name string was invalid";
+			return result;
+		}
+		case OMX_ErrorBadParameter:
+		{
+			result = "One or more parameters were invalid";
+			return result;
+		}
+		case OMX_ErrorNotImplemented:
+		{
+			result = "The requested function is not implemented";
+			return result;
+		}
+		case OMX_ErrorUnderflow:
+		{
+			result = "The buffer was emptied before the next buffer was ready";
+			return result;
+		}
+		case OMX_ErrorOverflow:
+		{
+			result = "The buffer was not available when it was needed";
+			return result;
+		}
+		case OMX_ErrorHardware:
+		{
+			result = "The hardware failed to respond as expected";
+			return result;
+		}
+		case OMX_ErrorInvalidState:
+		{
+			result = "The component is in the OMX_StateInvalid state";
+			return result;
+		}
+		case OMX_ErrorStreamCorrupt:
+		{
+			result = "The stream is found to be corrupt";
+			return result;
+		}
+		case OMX_ErrorPortsNotCompatible:
+		{
+			result = "Ports being set up for tunneled communication are incompatible";
+			return result;
+		}
+		case OMX_ErrorResourcesLost:
+		{
+			result = "Resources allocated to a component in the OMX_StateIdle state have been lost";
+			return result;
+		}
+		case OMX_ErrorNoMore:
+		{
+			result = "No more indices can be enumerated";
+			return result;
+		}
+		case OMX_ErrorVersionMismatch:
+		{
+			result = "The component detected a version mismatch";
+			return result;
+		}
+		case OMX_ErrorNotReady:
+		{
+			result = "The component is not ready to return data at this time";
+			return result;
+		}
+		case OMX_ErrorTimeout:
+		{
+			result = "A timeout occurred where the component was unable to process the call in a reasonable amount of time";
+			return result;
+		}
+		case OMX_ErrorSameState:
+		{
+			result = "The component tried to transition into the state that it is currently in";
+			return result;
+		}
+		case OMX_ErrorResourcesPreempted:
+		{
+			result = "Resources allocated to a component in the OMX_StateExecuting or OMX_StatePause states have been pre-empted";
+			return result;
+		}
+		case OMX_ErrorPortUnresponsiveDuringAllocation:
+		{
+			result = "The non-supplier port deemed that it had waited an unusually long time for the supplier port to send it an allocated buffer via an OMX_UseBuffer call";
+			return result;
+		}
+		case OMX_ErrorPortUnresponsiveDuringDeallocation:
+		{
+			result = "The non-supplier port deemed that it had waited an unusually long time for the supplier port to request the de-allocation of a buffer header via a OMX_FreeBuffer call";
+			return result;
+		}
+		case OMX_ErrorPortUnresponsiveDuringStop:
+		{
+			result = "The supplier port deemed that it had waited an unusually long time for the non-supplier port to return a buffer via an EmptyThisBuffer or FillThisBuffer call";
+			return result;
+		}
+		case OMX_ErrorIncorrectStateTransition:
+		{
+			result = "A state transition was attempted that is not allowed.";
+			return result;
+		}
+		case OMX_ErrorIncorrectStateOperation:
+		{
+			result = "A command or method was attempted that is not allowed during the present state";
+			return result;
+		}
+		case OMX_ErrorUnsupportedSetting:
+		{
+			result = "One or more values encapsulated in the parameter or configuration structure are unsupported";
+			return result;
+		}
+		case OMX_ErrorUnsupportedIndex:
+		{
+			result = "The parameter or configuration indicated by the given index is unsupported";
+			return result;
+		}
+		case OMX_ErrorBadPortIndex:
+		{
+			result = "The port index that was supplied is incorrect";
+			return result;
+		}
+		case OMX_ErrorPortUnpopulated:
+		{
+			result = "The port has lost one or more of its buffers and is thus unpopulated";
+			return result;
+		}
+		case OMX_ErrorComponentSuspended:
+		{
+			result = "Component suspended due to temporary loss of resources";
+			return result;
+		}
+		case OMX_ErrorDynamicResourcesUnavailable:
+		{
+			result = "Component suspended due to inability to acquire dynamic resources";
+			return result;
+		}
+		case OMX_ErrorMbErrorsInFrame:
+		{
+			result = "Errors detected in frame";
+			return result;
+		}
+		case OMX_ErrorFormatNotDetected:
+		{
+			result = "Component cannot parse or determine the format of the given datastream";
+			return result;
+		}
+		case OMX_ErrorContentPipeOpenFailed:
+		{
+			result = "Opening the Content Pipe failed";
+			return result;
+		}
+		case OMX_ErrorContentPipeCreationFailed:
+		{
+			result = "Creating the Content Pipe failed";
+			return result;
+		}
+		case OMX_ErrorSeperateTablesUsed:
+		{
+			result = "Attempting to query for single Chroma table when separate quantization tables are used for the Chroma (Cb and Cr) coefficients";
+			return result;
+		}
+		case OMX_ErrorTunnelingUnsupported:
+		{
+			result = "Tunneling is not supported by the component";
+			return result;
+		}
+		default:
+		{
+			result = "(unknown)";
+			return result;
 		}
 	}
 }
@@ -3235,8 +3393,14 @@ void g_omx_port_init (GOmxPort* self, GError** error) {
 	_inner_error_ = NULL;
 	g_omx_port_get_parameter (self, &_inner_error_);
 	if (_inner_error_ != NULL) {
-		g_propagate_error (error, _inner_error_);
-		return;
+		if (_inner_error_->domain == G_OMX_ERROR) {
+			g_propagate_error (error, _inner_error_);
+			return;
+		} else {
+			g_critical ("file %s: line %d: uncaught error: %s (%s, %d)", __FILE__, __LINE__, _inner_error_->message, g_quark_to_string (_inner_error_->domain), _inner_error_->code);
+			g_clear_error (&_inner_error_);
+			return;
+		}
 	}
 }
 
@@ -3245,10 +3409,16 @@ void g_omx_port_get_parameter (GOmxPort* self, GError** error) {
 	GError * _inner_error_;
 	g_return_if_fail (self != NULL);
 	_inner_error_ = NULL;
-	omx_try_run (OMX_GetParameter (g_omx_component_get_handle (self->priv->_component), (guint) OMX_IndexParamPortDefinition, &self->definition), __FILE__, __FUNCTION__, __LINE__, &_inner_error_);
+	g_omx_try_run (OMX_GetParameter (g_omx_component_get_handle (self->priv->_component), (guint) OMX_IndexParamPortDefinition, &self->definition), &_inner_error_);
 	if (_inner_error_ != NULL) {
-		g_propagate_error (error, _inner_error_);
-		return;
+		if (_inner_error_->domain == G_OMX_ERROR) {
+			g_propagate_error (error, _inner_error_);
+			return;
+		} else {
+			g_critical ("file %s: line %d: uncaught error: %s (%s, %d)", __FILE__, __LINE__, _inner_error_->message, g_quark_to_string (_inner_error_->domain), _inner_error_->code);
+			g_clear_error (&_inner_error_);
+			return;
+		}
 	}
 }
 
@@ -3257,10 +3427,16 @@ void g_omx_port_set_parameter (GOmxPort* self, GError** error) {
 	GError * _inner_error_;
 	g_return_if_fail (self != NULL);
 	_inner_error_ = NULL;
-	omx_try_run (OMX_SetParameter (g_omx_component_get_handle (self->priv->_component), (guint) OMX_IndexParamPortDefinition, &self->definition), __FILE__, __FUNCTION__, __LINE__, &_inner_error_);
+	g_omx_try_run (OMX_SetParameter (g_omx_component_get_handle (self->priv->_component), (guint) OMX_IndexParamPortDefinition, &self->definition), &_inner_error_);
 	if (_inner_error_ != NULL) {
-		g_propagate_error (error, _inner_error_);
-		return;
+		if (_inner_error_->domain == G_OMX_ERROR) {
+			g_propagate_error (error, _inner_error_);
+			return;
+		} else {
+			g_critical ("file %s: line %d: uncaught error: %s (%s, %d)", __FILE__, __LINE__, _inner_error_->message, g_quark_to_string (_inner_error_->domain), _inner_error_->code);
+			g_clear_error (&_inner_error_);
+			return;
+		}
 	}
 }
 
@@ -3290,10 +3466,16 @@ void g_omx_port_allocate_buffers (GOmxPort* self, GError** error) {
 				if (!(i < n_buffers)) {
 					break;
 				}
-				omx_try_run (OMX_AllocateBuffer (g_omx_component_get_handle (self->priv->_component), &self->priv->_buffers[i], (guint) self->definition.nPortIndex, self, (guint) self->definition.nBufferSize), __FILE__, __FUNCTION__, __LINE__, &_inner_error_);
+				g_omx_try_run (OMX_AllocateBuffer (g_omx_component_get_handle (self->priv->_component), &self->priv->_buffers[i], (guint) self->definition.nPortIndex, self, (guint) self->definition.nBufferSize), &_inner_error_);
 				if (_inner_error_ != NULL) {
-					g_propagate_error (error, _inner_error_);
-					return;
+					if (_inner_error_->domain == G_OMX_ERROR) {
+						g_propagate_error (error, _inner_error_);
+						return;
+					} else {
+						g_critical ("file %s: line %d: uncaught error: %s (%s, %d)", __FILE__, __LINE__, _inner_error_->message, g_quark_to_string (_inner_error_->domain), _inner_error_->code);
+						g_clear_error (&_inner_error_);
+						return;
+					}
 				}
 				g_async_queue_push (self->priv->_buffers_queue, self->priv->_buffers[i]);
 			}
@@ -3311,8 +3493,14 @@ void g_omx_port_setup_tunnel_with (GOmxPort* self, GOmxPort* port, GError** erro
 	g_return_if_fail (self->priv->_component != NULL);
 	g_omx_core_setup_tunnel (g_omx_component_get_core (self->priv->_component), g_omx_component_get_handle (self->priv->_component), (guint32) g_omx_port_get_index (self), g_omx_component_get_handle (port->priv->_component), (guint32) g_omx_port_get_index (port), &_inner_error_);
 	if (_inner_error_ != NULL) {
-		g_propagate_error (error, _inner_error_);
-		return;
+		if (_inner_error_->domain == G_OMX_ERROR) {
+			g_propagate_error (error, _inner_error_);
+			return;
+		} else {
+			g_critical ("file %s: line %d: uncaught error: %s (%s, %d)", __FILE__, __LINE__, _inner_error_->message, g_quark_to_string (_inner_error_->domain), _inner_error_->code);
+			g_clear_error (&_inner_error_);
+			return;
+		}
 	}
 	self->priv->_peer = (_tmp0_ = _g_object_ref0 (port), _g_object_unref0 (self->priv->_peer), _tmp0_);
 }
@@ -3344,10 +3532,16 @@ void g_omx_port_use_buffers_of (GOmxPort* self, GOmxPort* port, GError** error) 
 					break;
 				}
 				buffer_used = g_omx_port_get_buffer (port, i);
-				omx_try_run (OMX_UseBuffer (g_omx_component_get_handle (self->priv->_component), &self->priv->_buffers[i], (guint) self->definition.nPortIndex, self->priv->_component, (guint) self->definition.nBufferSize, buffer_used->pBuffer), __FILE__, __FUNCTION__, __LINE__, &_inner_error_);
+				g_omx_try_run (OMX_UseBuffer (g_omx_component_get_handle (self->priv->_component), &self->priv->_buffers[i], (guint) self->definition.nPortIndex, self->priv->_component, (guint) self->definition.nBufferSize, buffer_used->pBuffer), &_inner_error_);
 				if (_inner_error_ != NULL) {
-					g_propagate_error (error, _inner_error_);
-					return;
+					if (_inner_error_->domain == G_OMX_ERROR) {
+						g_propagate_error (error, _inner_error_);
+						return;
+					} else {
+						g_critical ("file %s: line %d: uncaught error: %s (%s, %d)", __FILE__, __LINE__, _inner_error_->message, g_quark_to_string (_inner_error_->domain), _inner_error_->code);
+						g_clear_error (&_inner_error_);
+						return;
+					}
 				}
 				g_async_queue_push (self->priv->_buffers_queue, self->priv->_buffers[i]);
 			}
@@ -3364,35 +3558,71 @@ void g_omx_port_enable (GOmxPort* self, GError** error) {
 	self->definition.bEnabled = TRUE;
 	g_omx_port_set_parameter (self, &_inner_error_);
 	if (_inner_error_ != NULL) {
-		g_propagate_error (error, _inner_error_);
-		return;
+		if (_inner_error_->domain == G_OMX_ERROR) {
+			g_propagate_error (error, _inner_error_);
+			return;
+		} else {
+			g_critical ("file %s: line %d: uncaught error: %s (%s, %d)", __FILE__, __LINE__, _inner_error_->message, g_quark_to_string (_inner_error_->domain), _inner_error_->code);
+			g_clear_error (&_inner_error_);
+			return;
+		}
 	}
 	g_omx_component_send_command (self->priv->_component, OMX_CommandPortEnable, g_omx_port_get_index (self), NULL, &_inner_error_);
 	if (_inner_error_ != NULL) {
-		g_propagate_error (error, _inner_error_);
-		return;
+		if (_inner_error_->domain == G_OMX_ERROR) {
+			g_propagate_error (error, _inner_error_);
+			return;
+		} else {
+			g_critical ("file %s: line %d: uncaught error: %s (%s, %d)", __FILE__, __LINE__, _inner_error_->message, g_quark_to_string (_inner_error_->domain), _inner_error_->code);
+			g_clear_error (&_inner_error_);
+			return;
+		}
 	}
 	g_omx_port_allocate_buffers (self, &_inner_error_);
 	if (_inner_error_ != NULL) {
-		g_propagate_error (error, _inner_error_);
-		return;
+		if (_inner_error_->domain == G_OMX_ERROR) {
+			g_propagate_error (error, _inner_error_);
+			return;
+		} else {
+			g_critical ("file %s: line %d: uncaught error: %s (%s, %d)", __FILE__, __LINE__, _inner_error_->message, g_quark_to_string (_inner_error_->domain), _inner_error_->code);
+			g_clear_error (&_inner_error_);
+			return;
+		}
 	}
 	if (g_omx_component_get_current_state (self->priv->_component) != OMX_StateLoaded) {
 		g_omx_port_buffers_begin_transfer (self, &_inner_error_);
 		if (_inner_error_ != NULL) {
-			g_propagate_error (error, _inner_error_);
-			return;
+			if (_inner_error_->domain == G_OMX_ERROR) {
+				g_propagate_error (error, _inner_error_);
+				return;
+			} else {
+				g_critical ("file %s: line %d: uncaught error: %s (%s, %d)", __FILE__, __LINE__, _inner_error_->message, g_quark_to_string (_inner_error_->domain), _inner_error_->code);
+				g_clear_error (&_inner_error_);
+				return;
+			}
 		}
 	}
 	g_omx_component_wait_for_port (self->priv->_component, &_inner_error_);
 	if (_inner_error_ != NULL) {
-		g_propagate_error (error, _inner_error_);
-		return;
+		if (_inner_error_->domain == G_OMX_ERROR) {
+			g_propagate_error (error, _inner_error_);
+			return;
+		} else {
+			g_critical ("file %s: line %d: uncaught error: %s (%s, %d)", __FILE__, __LINE__, _inner_error_->message, g_quark_to_string (_inner_error_->domain), _inner_error_->code);
+			g_clear_error (&_inner_error_);
+			return;
+		}
 	}
 	g_omx_port_get_parameter (self, &_inner_error_);
 	if (_inner_error_ != NULL) {
-		g_propagate_error (error, _inner_error_);
-		return;
+		if (_inner_error_->domain == G_OMX_ERROR) {
+			g_propagate_error (error, _inner_error_);
+			return;
+		} else {
+			g_critical ("file %s: line %d: uncaught error: %s (%s, %d)", __FILE__, __LINE__, _inner_error_->message, g_quark_to_string (_inner_error_->domain), _inner_error_->code);
+			g_clear_error (&_inner_error_);
+			return;
+		}
 	}
 }
 
@@ -3405,33 +3635,69 @@ void g_omx_port_disable (GOmxPort* self, GError** error) {
 	self->definition.bEnabled = FALSE;
 	g_omx_port_set_parameter (self, &_inner_error_);
 	if (_inner_error_ != NULL) {
-		g_propagate_error (error, _inner_error_);
-		return;
+		if (_inner_error_->domain == G_OMX_ERROR) {
+			g_propagate_error (error, _inner_error_);
+			return;
+		} else {
+			g_critical ("file %s: line %d: uncaught error: %s (%s, %d)", __FILE__, __LINE__, _inner_error_->message, g_quark_to_string (_inner_error_->domain), _inner_error_->code);
+			g_clear_error (&_inner_error_);
+			return;
+		}
 	}
 	g_omx_component_send_command (self->priv->_component, OMX_CommandPortDisable, g_omx_port_get_index (self), NULL, &_inner_error_);
 	if (_inner_error_ != NULL) {
-		g_propagate_error (error, _inner_error_);
-		return;
+		if (_inner_error_->domain == G_OMX_ERROR) {
+			g_propagate_error (error, _inner_error_);
+			return;
+		} else {
+			g_critical ("file %s: line %d: uncaught error: %s (%s, %d)", __FILE__, __LINE__, _inner_error_->message, g_quark_to_string (_inner_error_->domain), _inner_error_->code);
+			g_clear_error (&_inner_error_);
+			return;
+		}
 	}
 	g_omx_port_flush (self, &_inner_error_);
 	if (_inner_error_ != NULL) {
-		g_propagate_error (error, _inner_error_);
-		return;
+		if (_inner_error_->domain == G_OMX_ERROR) {
+			g_propagate_error (error, _inner_error_);
+			return;
+		} else {
+			g_critical ("file %s: line %d: uncaught error: %s (%s, %d)", __FILE__, __LINE__, _inner_error_->message, g_quark_to_string (_inner_error_->domain), _inner_error_->code);
+			g_clear_error (&_inner_error_);
+			return;
+		}
 	}
 	g_omx_port_free_buffers (self, &_inner_error_);
 	if (_inner_error_ != NULL) {
-		g_propagate_error (error, _inner_error_);
-		return;
+		if (_inner_error_->domain == G_OMX_ERROR) {
+			g_propagate_error (error, _inner_error_);
+			return;
+		} else {
+			g_critical ("file %s: line %d: uncaught error: %s (%s, %d)", __FILE__, __LINE__, _inner_error_->message, g_quark_to_string (_inner_error_->domain), _inner_error_->code);
+			g_clear_error (&_inner_error_);
+			return;
+		}
 	}
 	g_omx_component_wait_for_port (self->priv->_component, &_inner_error_);
 	if (_inner_error_ != NULL) {
-		g_propagate_error (error, _inner_error_);
-		return;
+		if (_inner_error_->domain == G_OMX_ERROR) {
+			g_propagate_error (error, _inner_error_);
+			return;
+		} else {
+			g_critical ("file %s: line %d: uncaught error: %s (%s, %d)", __FILE__, __LINE__, _inner_error_->message, g_quark_to_string (_inner_error_->domain), _inner_error_->code);
+			g_clear_error (&_inner_error_);
+			return;
+		}
 	}
 	g_omx_port_get_parameter (self, &_inner_error_);
 	if (_inner_error_ != NULL) {
-		g_propagate_error (error, _inner_error_);
-		return;
+		if (_inner_error_->domain == G_OMX_ERROR) {
+			g_propagate_error (error, _inner_error_);
+			return;
+		} else {
+			g_critical ("file %s: line %d: uncaught error: %s (%s, %d)", __FILE__, __LINE__, _inner_error_->message, g_quark_to_string (_inner_error_->domain), _inner_error_->code);
+			g_clear_error (&_inner_error_);
+			return;
+		}
 	}
 }
 
@@ -3443,8 +3709,14 @@ void g_omx_port_flush (GOmxPort* self, GError** error) {
 	g_return_if_fail (self->priv->_component != NULL);
 	g_omx_component_send_command (self->priv->_component, OMX_CommandFlush, g_omx_port_get_index (self), NULL, &_inner_error_);
 	if (_inner_error_ != NULL) {
-		g_propagate_error (error, _inner_error_);
-		return;
+		if (_inner_error_->domain == G_OMX_ERROR) {
+			g_propagate_error (error, _inner_error_);
+			return;
+		} else {
+			g_critical ("file %s: line %d: uncaught error: %s (%s, %d)", __FILE__, __LINE__, _inner_error_->message, g_quark_to_string (_inner_error_->domain), _inner_error_->code);
+			g_clear_error (&_inner_error_);
+			return;
+		}
 	}
 	g_omx_component_wait_for_flush (self->priv->_component);
 }
@@ -3484,10 +3756,16 @@ void g_omx_port_free_buffers (GOmxPort* self, GError** error) {
 			OMX_BUFFERHEADERTYPE* buffer;
 			buffer = buffer_collection[buffer_it];
 			{
-				omx_try_run (OMX_FreeBuffer (g_omx_component_get_handle (self->priv->_component), (guint) self->definition.nPortIndex, buffer), __FILE__, __FUNCTION__, __LINE__, &_inner_error_);
+				g_omx_try_run (OMX_FreeBuffer (g_omx_component_get_handle (self->priv->_component), (guint) self->definition.nPortIndex, buffer), &_inner_error_);
 				if (_inner_error_ != NULL) {
-					g_propagate_error (error, _inner_error_);
-					return;
+					if (_inner_error_->domain == G_OMX_ERROR) {
+						g_propagate_error (error, _inner_error_);
+						return;
+					} else {
+						g_critical ("file %s: line %d: uncaught error: %s (%s, %d)", __FILE__, __LINE__, _inner_error_->message, g_quark_to_string (_inner_error_->domain), _inner_error_->code);
+						g_clear_error (&_inner_error_);
+						return;
+					}
 				}
 			}
 		}
@@ -3583,8 +3861,14 @@ void g_omx_port_buffers_begin_transfer (GOmxPort* self, GError** error) {
 							}
 							g_omx_port_push_buffer (self, g_omx_port_pop_buffer (self), &_inner_error_);
 							if (_inner_error_ != NULL) {
-								g_propagate_error (error, _inner_error_);
-								return;
+								if (_inner_error_->domain == G_OMX_ERROR) {
+									g_propagate_error (error, _inner_error_);
+									return;
+								} else {
+									g_critical ("file %s: line %d: uncaught error: %s (%s, %d)", __FILE__, __LINE__, _inner_error_->message, g_quark_to_string (_inner_error_->domain), _inner_error_->code);
+									g_clear_error (&_inner_error_);
+									return;
+								}
 							}
 							break;
 						}
@@ -4136,6 +4420,204 @@ void g_omx_buffer_read_from_file (OMX_BUFFERHEADERTYPE* buffer, FILE* fs) {
 	buffer->nFilledLen = fread (buffer->pBuffer, 1, buffer->nAllocLen, fs);
 	if (feof (fs)) {
 		omx_buffer_header_set_eos (buffer);
+	}
+}
+
+
+static const char* omx_command_to_string (OMX_COMMANDTYPE self) {
+	const char* result;
+	switch (self) {
+		case OMX_CommandStateSet:
+		{
+			result = "Change the component state";
+			return result;
+		}
+		case OMX_CommandFlush:
+		{
+			result = "Flush the queue(s) of buffers on a port of a component";
+			return result;
+		}
+		case OMX_CommandPortDisable:
+		{
+			result = "Disable a port on a component";
+			return result;
+		}
+		case OMX_CommandPortEnable:
+		{
+			result = "Enable a port on a component";
+			return result;
+		}
+		case OMX_CommandMarkBuffer:
+		{
+			result = "Mark a buffer and specify which other component will raise the event mark received";
+			return result;
+		}
+		default:
+		{
+			result = "(unknown)";
+			return result;
+		}
+	}
+}
+
+
+const char* g_omx_command_to_string (OMX_COMMANDTYPE command) {
+	const char* result;
+	result = omx_command_to_string (command);
+	return result;
+}
+
+
+static const char* omx_state_to_string (OMX_STATETYPE self) {
+	const char* result;
+	switch (self) {
+		case OMX_StateInvalid:
+		{
+			result = "Component is corrupt or has encountered an error from which it cannot recover";
+			return result;
+		}
+		case OMX_StateLoaded:
+		{
+			result = "Component has been loaded but has no resources allocated";
+			return result;
+		}
+		case OMX_StateIdle:
+		{
+			result = "Component has all resources but has not transferred any buffers or begun processing data";
+			return result;
+		}
+		case OMX_StateExecuting:
+		{
+			result = "Component is transferring buffers and is processing data (if data is available)";
+			return result;
+		}
+		case OMX_StatePause:
+		{
+			result = "Component data processing has been paused but may be resumed from the point it was paused";
+			return result;
+		}
+		case OMX_StateWaitForResources:
+		{
+			result = "Component is waiting for a resource to become available";
+			return result;
+		}
+		default:
+		{
+			result = "(unknown)";
+			return result;
+		}
+	}
+}
+
+
+const char* g_omx_state_to_string (OMX_STATETYPE state) {
+	const char* result;
+	result = omx_state_to_string (state);
+	return result;
+}
+
+
+static const char* omx_event_to_string (OMX_EVENTTYPE self) {
+	const char* result;
+	switch (self) {
+		case OMX_EventCmdComplete:
+		{
+			result = "Component has completed the execution of a command";
+			return result;
+		}
+		case OMX_EventError:
+		{
+			result = "Component has detected an error condition";
+			return result;
+		}
+		case OMX_EventMark:
+		{
+			result = "A buffer mark has reached the target component, and the IL client has received this event with the private data pointer of the mark";
+			return result;
+		}
+		case OMX_EventPortSettingsChanged:
+		{
+			result = "Component has changed port settings. For example, the component has changed port settings resulting from bit stream parsing";
+			return result;
+		}
+		case OMX_EventBufferFlag:
+		{
+			result = "The event that a component sends when it detects the end of a stream";
+			return result;
+		}
+		case OMX_EventResourcesAcquired:
+		{
+			result = "The component has been granted resources and is transitioning from the OMX_StateWaitForResources state to the OMX_StateIdle state";
+			return result;
+		}
+		case OMX_EventComponentResumed:
+		{
+			result = "The component has been resumed (i.e. no longer suspended) due to reacquisition of resources";
+			return result;
+		}
+		case OMX_EventDynamicResourcesAvailable:
+		{
+			result = "The component has acquired previously unavailable dynamic resources";
+			return result;
+		}
+		case OMX_EventPortFormatDetected:
+		{
+			result = "Component has successfully recognized a format and determined that it can support it";
+			return result;
+		}
+		default:
+		{
+			result = "(unknown)";
+			return result;
+		}
+	}
+}
+
+
+const char* g_omx_event_to_string (OMX_EVENTTYPE event) {
+	const char* result;
+	result = omx_event_to_string (event);
+	return result;
+}
+
+
+const char* g_omx_error_to_string (OMX_ERRORTYPE _error_) {
+	const char* result;
+	result = omx_error_to_string (_error_);
+	return result;
+}
+
+
+GQuark g_omx_error_quark (void) {
+	return g_quark_from_static_string ("g_omx_error-quark");
+}
+
+
+static gpointer _g_error_copy0 (gpointer self) {
+	return self ? g_error_copy (self) : NULL;
+}
+
+
+void g_omx_try_run (OMX_ERRORTYPE e, GError** error) {
+	GError * _inner_error_;
+	_inner_error_ = NULL;
+	if (e != OMX_ErrorNone) {
+		GError* _error_;
+		_error_ = g_error_new (g_omx_error_quark (), (gint) e, g_omx_error_to_string (e), NULL);
+		_inner_error_ = _g_error_copy0 ((GError*) _error_);
+		{
+			if (_inner_error_->domain == G_OMX_ERROR) {
+				g_propagate_error (error, _inner_error_);
+				_g_error_free0 (_error_);
+				return;
+			} else {
+				_g_error_free0 (_error_);
+				g_critical ("file %s: line %d: uncaught error: %s (%s, %d)", __FILE__, __LINE__, _inner_error_->message, g_quark_to_string (_inner_error_->domain), _inner_error_->code);
+				g_clear_error (&_inner_error_);
+				return;
+			}
+		}
+		_g_error_free0 (_error_);
 	}
 }
 

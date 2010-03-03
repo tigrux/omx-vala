@@ -35,13 +35,13 @@ namespace GOmx {
 
         public void init()
         throws Error {
-            Omx.try_run(_init_func());
+            try_run(_init_func());
         }
 
 
         public void deinit()
         throws Error {
-            Omx.try_run(_deinit_func());
+            try_run(_deinit_func());
         }
 
 
@@ -49,7 +49,7 @@ namespace GOmx {
                 out Omx.Handle component, string component_name,
                 void *app_data, Omx.Callback callbacks)
         throws Error {
-            Omx.try_run(
+            try_run(
                 _get_handle_func(
                     out component, component_name, app_data, callbacks));
         }
@@ -57,7 +57,7 @@ namespace GOmx {
 
         public void free_handle(Omx.Handle handle)
         throws Error {
-            Omx.try_run(_free_handle_func(handle));
+            try_run(_free_handle_func(handle));
         }
 
 
@@ -65,7 +65,7 @@ namespace GOmx {
                 Omx.Handle output, uint32 port_output,
                 Omx.Handle input, uint32 port_input)
         throws Error {
-            Omx.try_run(
+            try_run(
                 _setup_tunnel_func(output, port_output, input, port_input));
         }
 
@@ -514,7 +514,7 @@ namespace GOmx {
                 this, callbacks);
 
             ports_param.init();
-            Omx.try_run(
+            try_run(
                 _handle.get_parameter(
                     _init_index, ports_param));
             _pending_state = Omx.State.Loaded;
@@ -608,7 +608,7 @@ namespace GOmx {
         public Omx.State get_state()
         throws Error requires(_handle != null) {
             Omx.State state;
-            Omx.try_run(
+            try_run(
                 _handle.get_state(
                     out state));
             return state;
@@ -896,7 +896,7 @@ namespace GOmx {
 
         public void get_parameter()
         throws Error {
-            Omx.try_run(
+            try_run(
                 _component.handle.get_parameter(
                     Omx.Index.ParamPortDefinition, definition));
         }
@@ -904,7 +904,7 @@ namespace GOmx {
 
         public void set_parameter()
         throws Error {
-            Omx.try_run(
+            try_run(
                 _component.handle.set_parameter(
                     Omx.Index.ParamPortDefinition, definition));
         }
@@ -916,7 +916,7 @@ namespace GOmx {
             _buffers = new Omx.BufferHeader[n_buffers];
             _buffers_queue = new AsyncQueue<Omx.BufferHeader>();
             for(uint i=0; i<n_buffers; i++) {
-                Omx.try_run(
+                try_run(
                     _component.handle.allocate_buffer(
                         out _buffers[i], definition.port_index,
                         this, definition.buffer_size));
@@ -940,7 +940,7 @@ namespace GOmx {
             _buffers = new Omx.BufferHeader[n_buffers];
             for(uint i=0; i<n_buffers; i++) {
                 var buffer_used = port.get_buffer(i);
-                Omx.try_run(
+                try_run(
                     _component.handle.use_buffer(
                         out _buffers[i], definition.port_index,
                         _component, definition.buffer_size,
@@ -996,7 +996,7 @@ namespace GOmx {
         public void free_buffers()
         throws Error requires(_buffers != null) {
             foreach(var buffer in _buffers)
-                Omx.try_run(
+                try_run(
                     _component.handle.free_buffer(
                         definition.port_index, buffer));
             _buffers = null;
@@ -1181,6 +1181,78 @@ namespace GOmx {
         buffer.length = fs.read(buffer.buffer);
         if(fs.eof())
             buffer.set_eos();
+    }
+
+    
+    public weak string command_to_string(Omx.Command command) {
+        return command.to_string();
+    }
+
+
+    public weak string state_to_string(Omx.State state) {
+        return state.to_string();
+    }
+
+
+    public weak string event_to_string(Omx.Event event) {
+        return event.to_string();
+    }
+
+
+    public weak string error_to_string(Omx.Error error) {
+        return error.to_string();
+    }
+
+
+
+    public errordomain Error {
+        None,
+        InsufficientResources,
+        Undefined,
+        InvalidComponentName,
+        ComponentNotFound,
+        InvalidComponent,
+        BadParameter,
+        NotImplemented,
+        Underflow,
+        Overflow,
+        Hardware,
+        InvalidState,
+        StreamCorrupt,
+        PortsNotCompatible,
+        ResourcesLost,
+        NoMore,
+        VersionMismatch,
+        NotReady,
+        Timeout,
+        SameState,
+        ResourcesPreempted,
+        PortUnresponsiveDuringAllocation,
+        PortUnresponsiveDuringDeallocation,
+        PortUnresponsiveDuringStop,
+        IncorrectStateTransition,
+        IncorrectStateOperation,
+        UnsupportedSetting,
+        UnsupportedIndex,
+        BadPortIndex,
+        PortUnpopulated,
+        ComponentSuspended,
+        DynamicResourcesUnavailable,
+        MbErrorsInFrame,
+        FormatNotDetected,
+        ContentPipeOpenFailed,
+        ContentPipeCreationFailed,
+        SeperateTablesUsed,
+        TunnelingUnsupported
+    }
+
+    extern Quark error_quark();
+
+    public void try_run(Omx.Error e) throws Error {
+        if(e != Omx.Error.None) {
+            var error = new GLib.Error(error_quark(), e, error_to_string(e));
+            throw (Error)error;
+        }
     }
 }
 
