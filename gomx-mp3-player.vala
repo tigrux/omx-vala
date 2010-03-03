@@ -71,7 +71,6 @@ public void play(string filename) throws Error,GOmx.Error {
                         port.push_buffer(buffer);
                         break;
                     }
-
                     default:
                         break;
                 }
@@ -86,6 +85,7 @@ public void play(string filename) throws Error,GOmx.Error {
                 break;
         }
     }
+
     engine.set_state_and_wait(Omx.State.Idle);
     engine.set_state_and_wait(Omx.State.Loaded);
 
