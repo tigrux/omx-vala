@@ -773,6 +773,7 @@ void g_omx_port_enable (GOmxPort* self, GError** error);
 void g_omx_port_flush (GOmxPort* self, GError** error);
 void g_omx_port_disable (GOmxPort* self, GError** error);
 guint g_omx_port_get_n_buffers (GOmxPort* self);
+guint g_omx_port_get_buffer_size (GOmxPort* self);
 gboolean g_omx_buffer_is_eos (OMX_BUFFERHEADERTYPE* buffer);
 OMX_BUFFERHEADERTYPE* g_omx_port_pop_buffer (GOmxPort* self);
 void g_omx_port_push_buffer (GOmxPort* self, OMX_BUFFERHEADERTYPE* buffer, GError** error);
@@ -2678,7 +2679,9 @@ static OMX_ERRORTYPE g_omx_component_buffer_done (GOmxComponent* self, GOmxPort*
 	g_return_val_if_fail (port != NULL, 0);
 	g_return_val_if_fail (buffer != NULL, 0);
 	g_async_queue_push (g_omx_port_get_queue (port), buffer);
-	g_async_queue_push (self->priv->_ports_queue, _g_object_ref0 (port));
+	if (self->priv->_ports_queue != NULL) {
+		g_async_queue_push (self->priv->_ports_queue, _g_object_ref0 (port));
+	}
 	g_omx_port_buffer_done (port, buffer);
 	result = OMX_ErrorNone;
 	return result;
@@ -3585,6 +3588,14 @@ guint g_omx_port_get_n_buffers (GOmxPort* self) {
 	guint result;
 	g_return_val_if_fail (self != NULL, 0U);
 	result = (guint) self->definition.nBufferCountActual;
+	return result;
+}
+
+
+guint g_omx_port_get_buffer_size (GOmxPort* self) {
+	guint result;
+	g_return_val_if_fail (self != NULL, 0U);
+	result = (guint) self->definition.nBufferSize;
 	return result;
 }
 

@@ -747,7 +747,8 @@ namespace GOmx {
                 Port port,
                 Omx.BufferHeader buffer) {
             port.queue.push(buffer);
-            _ports_queue.push(port);
+            if(_ports_queue != null)
+                _ports_queue.push(port);
             port.buffer_done(buffer);
             return Omx.Error.None;
         }
@@ -1009,6 +1010,11 @@ namespace GOmx {
 
         public uint get_n_buffers() {
             return definition.buffer_count_actual;
+        }
+
+
+        public uint get_buffer_size() {
+            return definition.buffer_size;
         }
 
 

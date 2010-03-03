@@ -110,6 +110,7 @@ namespace GOmx {
 		public void enable () throws GOmx.Error;
 		public void flush () throws GOmx.Error;
 		public void free_buffers () throws GOmx.Error;
+		public uint get_buffer_size ();
 		public uint get_n_buffers ();
 		public void get_parameter () throws GOmx.Error;
 		public void init () throws GOmx.Error;

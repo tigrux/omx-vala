@@ -502,6 +502,7 @@ void g_omx_port_enable (GOmxPort* self, GError** error);
 void g_omx_port_disable (GOmxPort* self, GError** error);
 void g_omx_port_flush (GOmxPort* self, GError** error);
 guint g_omx_port_get_n_buffers (GOmxPort* self);
+guint g_omx_port_get_buffer_size (GOmxPort* self);
 void g_omx_port_free_buffers (GOmxPort* self, GError** error);
 OMX_BUFFERHEADERTYPE* g_omx_port_pop_buffer (GOmxPort* self);
 void g_omx_port_push_buffer (GOmxPort* self, OMX_BUFFERHEADERTYPE* buffer, GError** error);
