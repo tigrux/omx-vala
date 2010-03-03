@@ -586,6 +586,7 @@ namespace GOmx {
 
         public virtual void set_state(Omx.State state)
         throws Error requires(_handle != null) {
+            try_run(can_set_state(state));
             _pending_state = state;
             send_command(Omx.Command.StateSet, state);
             if(_current_state == Omx.State.Loaded &&
@@ -595,6 +596,36 @@ namespace GOmx {
             if(_current_state == Omx.State.Idle &&
                _pending_state == Omx.State.Loaded)
                 free_ports();
+        }
+
+
+        public Omx.Error can_set_state(Omx.State next_state) {
+            if(_current_state == next_state)
+                return Omx.Error.SameState;
+            Omx.State[,] transitions = {
+                {Omx.State.Loaded, Omx.State.WaitForResources},
+                {Omx.State.Loaded, Omx.State.Idle},
+                {Omx.State.Loaded, Omx.State.Invalid},
+                {Omx.State.WaitForResources, Omx.State.Loaded},
+                {Omx.State.WaitForResources, Omx.State.Invalid},
+                {Omx.State.WaitForResources, Omx.State.Idle},
+                {Omx.State.Idle, Omx.State.Loaded},
+                {Omx.State.Idle, Omx.State.Invalid},
+                {Omx.State.Idle, Omx.State.Pause},
+                {Omx.State.Idle, Omx.State.Executing},
+                {Omx.State.Pause, Omx.State.Invalid},
+                {Omx.State.Pause, Omx.State.Idle},
+                {Omx.State.Pause, Omx.State.Executing},
+                {Omx.State.Executing, Omx.State.Idle},
+                {Omx.State.Executing, Omx.State.Pause},
+                {Omx.State.Executing, Omx.State.Invalid}
+            };
+            uint length = transitions.length[0];
+            for(uint i=0; i<length; i++)
+                if(transitions[i,0] == _current_state)
+                   if(transitions[i,1] == next_state)
+                       return Omx.Error.None;
+            return Omx.Error.IncorrectStateTransition;
         }
 
 

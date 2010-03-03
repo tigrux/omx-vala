@@ -150,7 +150,7 @@ namespace Omx {
                 case PortUnresponsiveDuringStop:
                     return "The supplier port deemed that it had waited an unusually long time for the non-supplier port to return a buffer via an EmptyThisBuffer or FillThisBuffer call";
                 case IncorrectStateTransition:
-                    return "A state transition was attempted that is not allowed.";
+                    return "A state transition was attempted that is not allowed";
                 case IncorrectStateOperation:
                     return "A command or method was attempted that is not allowed during the present state";
                 case UnsupportedSetting:

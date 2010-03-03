@@ -29,6 +29,7 @@ namespace GOmx {
 		public Component (GOmx.Core core, string comp_name, Omx.Index index);
 		protected virtual void allocate_ports () throws GOmx.Error;
 		public virtual void buffers_begin_transfer () throws GOmx.Error;
+		public Omx.Error can_set_state (Omx.State next_state);
 		public void event_set_function (Omx.Event event, GOmx.Component.EventFunc event_function);
 		public virtual void free_handle () throws GOmx.Error;
 		protected virtual void free_ports () throws GOmx.Error;

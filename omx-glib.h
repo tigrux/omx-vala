@@ -502,6 +502,7 @@ void g_omx_component_wait_for_state (GOmxComponent* self);
 void g_omx_component_wait_for_port (GOmxComponent* self, GError** error);
 void g_omx_component_wait_for_flush (GOmxComponent* self);
 void g_omx_component_set_state (GOmxComponent* self, OMX_STATETYPE state, GError** error);
+OMX_ERRORTYPE g_omx_component_can_set_state (GOmxComponent* self, OMX_STATETYPE next_state);
 void g_omx_component_set_state_and_wait (GOmxComponent* self, OMX_STATETYPE state, GError** error);
 OMX_STATETYPE g_omx_component_get_state (GOmxComponent* self, GError** error);
 void g_omx_component_event_set_function (GOmxComponent* self, OMX_EVENTTYPE event, GOmxComponentEventFunc event_function, void* event_function_target);

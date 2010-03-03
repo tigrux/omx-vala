@@ -246,7 +246,7 @@ static const char* omx_error_to_string (OMX_ERRORTYPE self) {
 		}
 		case OMX_ErrorIncorrectStateTransition:
 		{
-			result = "A state transition was attempted that is not allowed.";
+			result = "A state transition was attempted that is not allowed";
 			return result;
 		}
 		case OMX_ErrorIncorrectStateOperation:

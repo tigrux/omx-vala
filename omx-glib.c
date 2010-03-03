@@ -771,6 +771,7 @@ static void g_omx_component_real_buffers_begin_transfer (GOmxComponent* self, GE
 void g_omx_semaphore_down (GOmxSemaphore* self);
 void g_omx_component_wait_for_port (GOmxComponent* self, GError** error);
 void g_omx_component_wait_for_flush (GOmxComponent* self);
+OMX_ERRORTYPE g_omx_component_can_set_state (GOmxComponent* self, OMX_STATETYPE next_state);
 static void g_omx_component_real_set_state (GOmxComponent* self, OMX_STATETYPE state, GError** error);
 OMX_STATETYPE g_omx_component_get_state (GOmxComponent* self, GError** error);
 void g_omx_component_event_set_function (GOmxComponent* self, OMX_EVENTTYPE event, GOmxComponentEventFunc event_function, void* event_function_target);
@@ -2352,6 +2353,17 @@ static void g_omx_component_real_set_state (GOmxComponent* self, OMX_STATETYPE s
 	g_return_if_fail (self != NULL);
 	_inner_error_ = NULL;
 	g_return_if_fail (self->priv->_handle != NULL);
+	g_omx_try_run (g_omx_component_can_set_state (self, state), &_inner_error_);
+	if (_inner_error_ != NULL) {
+		if (_inner_error_->domain == G_OMX_ERROR) {
+			g_propagate_error (error, _inner_error_);
+			return;
+		} else {
+			g_critical ("file %s: line %d: uncaught error: %s (%s, %d)", __FILE__, __LINE__, _inner_error_->message, g_quark_to_string (_inner_error_->domain), _inner_error_->code);
+			g_clear_error (&_inner_error_);
+			return;
+		}
+	}
 	self->priv->_pending_state = state;
 	g_omx_component_send_command (self, OMX_CommandStateSet, (guint) state, NULL, &_inner_error_);
 	if (_inner_error_ != NULL) {
@@ -2408,6 +2420,51 @@ static void g_omx_component_real_set_state (GOmxComponent* self, OMX_STATETYPE s
 void g_omx_component_set_state (GOmxComponent* self, OMX_STATETYPE state, GError** error) {
 	g_return_if_fail (self->priv->_handle != NULL);
 	G_OMX_COMPONENT_GET_CLASS (self)->set_state (self, state, error);
+}
+
+
+OMX_ERRORTYPE g_omx_component_can_set_state (GOmxComponent* self, OMX_STATETYPE next_state) {
+	OMX_ERRORTYPE result;
+	OMX_STATETYPE* _tmp1_;
+	gint transitions_length2;
+	gint transitions_length1;
+	OMX_STATETYPE* _tmp0_ = NULL;
+	OMX_STATETYPE* transitions;
+	guint length;
+	g_return_val_if_fail (self != NULL, 0);
+	if (self->priv->_current_state == next_state) {
+		result = OMX_ErrorSameState;
+		return result;
+	}
+	transitions = (_tmp1_ = (_tmp0_ = g_new0 (OMX_STATETYPE, 16 * 2), _tmp0_[0] = OMX_StateLoaded, _tmp0_[1] = OMX_StateWaitForResources, _tmp0_[2] = OMX_StateLoaded, _tmp0_[3] = OMX_StateIdle, _tmp0_[4] = OMX_StateLoaded, _tmp0_[5] = OMX_StateInvalid, _tmp0_[6] = OMX_StateWaitForResources, _tmp0_[7] = OMX_StateLoaded, _tmp0_[8] = OMX_StateWaitForResources, _tmp0_[9] = OMX_StateInvalid, _tmp0_[10] = OMX_StateWaitForResources, _tmp0_[11] = OMX_StateIdle, _tmp0_[12] = OMX_StateIdle, _tmp0_[13] = OMX_StateLoaded, _tmp0_[14] = OMX_StateIdle, _tmp0_[15] = OMX_StateInvalid, _tmp0_[16] = OMX_StateIdle, _tmp0_[17] = OMX_StatePause, _tmp0_[18] = OMX_StateIdle, _tmp0_[19] = OMX_StateExecuting, _tmp0_[20] = OMX_StatePause, _tmp0_[21] = OMX_StateInvalid, _tmp0_[22] = OMX_StatePause, _tmp0_[23] = OMX_StateIdle, _tmp0_[24] = OMX_StatePause, _tmp0_[25] = OMX_StateExecuting, _tmp0_[26] = OMX_StateExecuting, _tmp0_[27] = OMX_StateIdle, _tmp0_[28] = OMX_StateExecuting, _tmp0_[29] = OMX_StatePause, _tmp0_[30] = OMX_StateExecuting, _tmp0_[31] = OMX_StateInvalid, _tmp0_), transitions_length1 = 16, transitions_length2 = 2, _tmp1_);
+	length = (guint) transitions_length1;
+	{
+		guint i;
+		i = (guint) 0;
+		{
+			gboolean _tmp2_;
+			_tmp2_ = TRUE;
+			while (TRUE) {
+				if (!_tmp2_) {
+					i++;
+				}
+				_tmp2_ = FALSE;
+				if (!(i < length)) {
+					break;
+				}
+				if (transitions[(i * transitions_length2) + 0] == self->priv->_current_state) {
+					if (transitions[(i * transitions_length2) + 1] == next_state) {
+						result = OMX_ErrorNone;
+						transitions = (g_free (transitions), NULL);
+						return result;
+					}
+				}
+			}
+		}
+	}
+	result = OMX_ErrorIncorrectStateTransition;
+	transitions = (g_free (transitions), NULL);
+	return result;
 }
 
 
@@ -2643,7 +2700,7 @@ static const char* omx_error_to_string (OMX_ERRORTYPE self) {
 		}
 		case OMX_ErrorIncorrectStateTransition:
 		{
-			result = "A state transition was attempted that is not allowed.";
+			result = "A state transition was attempted that is not allowed";
 			return result;
 		}
 		case OMX_ErrorIncorrectStateOperation:
@@ -2756,7 +2813,7 @@ static OMX_ERRORTYPE g_omx_component_event_handler (GOmxComponent* self, void* c
 		{
 			OMX_ERRORTYPE _error_;
 			_error_ = (OMX_ERRORTYPE) data1;
-			g_critical ("omx-glib.vala:696: %s", omx_error_to_string (_error_));
+			g_critical ("omx-glib.vala:727: %s", omx_error_to_string (_error_));
 			if (self->priv->_event_func_1 != NULL) {
 				self->priv->_event_func_1 (self, (guint) data1, (guint) data2, event_data, self->priv->_event_func_1_target);
 			}
