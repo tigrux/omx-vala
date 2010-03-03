@@ -1,15 +1,15 @@
 MODULES="gobject-2.0 gthread-2.0 gmodule-2.0"
 CFLAGS=`pkg-config $(MODULES) --cflags` -I . -Wall -ggdb
 
-all: simple-mp3-player gomx-mp3-player
+all: omx-mp3-player gomx-mp3-player
 
 %%.o: %.c
 
 
-simple-mp3-player: simple-mp3-player.o
+omx-mp3-player: omx-mp3-player.o
 	$(CC) `pkg-config $(MODULES) libomxil-bellagio --libs` $^ -o $@
 
-simple-mp3-player.c: simple-mp3-player.vala libomxil-bellagio.vapi omx.vapi
+omx-mp3-player.c: omx-mp3-player.vala libomxil-bellagio.vapi omx.vapi
 	valac -C $^
 
 
@@ -24,4 +24,4 @@ gomx.vapi gomx.c: gomx.vala omx.vapi
 
 
 clean:
-	rm -f *.o *.c *~ simple-mp3-player gomx-mp3-player gomx.vapi gomx.h
+	rm -f *.o *.c *~ omx-mp3-player gomx-mp3-player gomx.vapi gomx.h
