@@ -147,51 +147,29 @@ typedef struct _GOmxVideoComponentPrivate GOmxVideoComponentPrivate;
 typedef struct _GOmxSemaphore GOmxSemaphore;
 typedef struct _GOmxSemaphoreClass GOmxSemaphoreClass;
 
-#define G_OMX_COMPONENT_TYPE_PORT_LIST (g_omx_component_port_list_get_type ())
-#define G_OMX_COMPONENT_PORT_LIST(obj) (G_TYPE_CHECK_INSTANCE_CAST ((obj), G_OMX_COMPONENT_TYPE_PORT_LIST, GOmxComponentPortList))
-#define G_OMX_COMPONENT_PORT_LIST_CLASS(klass) (G_TYPE_CHECK_CLASS_CAST ((klass), G_OMX_COMPONENT_TYPE_PORT_LIST, GOmxComponentPortListClass))
-#define G_OMX_COMPONENT_IS_PORT_LIST(obj) (G_TYPE_CHECK_INSTANCE_TYPE ((obj), G_OMX_COMPONENT_TYPE_PORT_LIST))
-#define G_OMX_COMPONENT_IS_PORT_LIST_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((klass), G_OMX_COMPONENT_TYPE_PORT_LIST))
-#define G_OMX_COMPONENT_PORT_LIST_GET_CLASS(obj) (G_TYPE_INSTANCE_GET_CLASS ((obj), G_OMX_COMPONENT_TYPE_PORT_LIST, GOmxComponentPortListClass))
+#define G_OMX_TYPE_PORT_ARRAY (g_omx_port_array_get_type ())
+#define G_OMX_PORT_ARRAY(obj) (G_TYPE_CHECK_INSTANCE_CAST ((obj), G_OMX_TYPE_PORT_ARRAY, GOmxPortArray))
+#define G_OMX_PORT_ARRAY_CLASS(klass) (G_TYPE_CHECK_CLASS_CAST ((klass), G_OMX_TYPE_PORT_ARRAY, GOmxPortArrayClass))
+#define G_OMX_IS_PORT_ARRAY(obj) (G_TYPE_CHECK_INSTANCE_TYPE ((obj), G_OMX_TYPE_PORT_ARRAY))
+#define G_OMX_IS_PORT_ARRAY_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((klass), G_OMX_TYPE_PORT_ARRAY))
+#define G_OMX_PORT_ARRAY_GET_CLASS(obj) (G_TYPE_INSTANCE_GET_CLASS ((obj), G_OMX_TYPE_PORT_ARRAY, GOmxPortArrayClass))
 
-typedef struct _GOmxComponentPortList GOmxComponentPortList;
-typedef struct _GOmxComponentPortListClass GOmxComponentPortListClass;
+typedef struct _GOmxPortArray GOmxPortArray;
+typedef struct _GOmxPortArrayClass GOmxPortArrayClass;
 #define _g_free0(var) (var = (g_free (var), NULL))
-typedef struct _GOmxComponentPortListPrivate GOmxComponentPortListPrivate;
 
-#define G_OMX_COMPONENT_PORT_LIST_TYPE_ITERATOR (g_omx_component_port_list_iterator_get_type ())
-#define G_OMX_COMPONENT_PORT_LIST_ITERATOR(obj) (G_TYPE_CHECK_INSTANCE_CAST ((obj), G_OMX_COMPONENT_PORT_LIST_TYPE_ITERATOR, GOmxComponentPortListIterator))
-#define G_OMX_COMPONENT_PORT_LIST_ITERATOR_CLASS(klass) (G_TYPE_CHECK_CLASS_CAST ((klass), G_OMX_COMPONENT_PORT_LIST_TYPE_ITERATOR, GOmxComponentPortListIteratorClass))
-#define G_OMX_COMPONENT_PORT_LIST_IS_ITERATOR(obj) (G_TYPE_CHECK_INSTANCE_TYPE ((obj), G_OMX_COMPONENT_PORT_LIST_TYPE_ITERATOR))
-#define G_OMX_COMPONENT_PORT_LIST_IS_ITERATOR_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((klass), G_OMX_COMPONENT_PORT_LIST_TYPE_ITERATOR))
-#define G_OMX_COMPONENT_PORT_LIST_ITERATOR_GET_CLASS(obj) (G_TYPE_INSTANCE_GET_CLASS ((obj), G_OMX_COMPONENT_PORT_LIST_TYPE_ITERATOR, GOmxComponentPortListIteratorClass))
+#define G_OMX_PORT_ARRAY_TYPE_ITERATOR (g_omx_port_array_iterator_get_type ())
+#define G_OMX_PORT_ARRAY_ITERATOR(obj) (G_TYPE_CHECK_INSTANCE_CAST ((obj), G_OMX_PORT_ARRAY_TYPE_ITERATOR, GOmxPortArrayIterator))
+#define G_OMX_PORT_ARRAY_ITERATOR_CLASS(klass) (G_TYPE_CHECK_CLASS_CAST ((klass), G_OMX_PORT_ARRAY_TYPE_ITERATOR, GOmxPortArrayIteratorClass))
+#define G_OMX_PORT_ARRAY_IS_ITERATOR(obj) (G_TYPE_CHECK_INSTANCE_TYPE ((obj), G_OMX_PORT_ARRAY_TYPE_ITERATOR))
+#define G_OMX_PORT_ARRAY_IS_ITERATOR_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((klass), G_OMX_PORT_ARRAY_TYPE_ITERATOR))
+#define G_OMX_PORT_ARRAY_ITERATOR_GET_CLASS(obj) (G_TYPE_INSTANCE_GET_CLASS ((obj), G_OMX_PORT_ARRAY_TYPE_ITERATOR, GOmxPortArrayIteratorClass))
 
-typedef struct _GOmxComponentPortListIterator GOmxComponentPortListIterator;
-typedef struct _GOmxComponentPortListIteratorClass GOmxComponentPortListIteratorClass;
-typedef struct _GOmxComponentPortListIteratorPrivate GOmxComponentPortListIteratorPrivate;
+typedef struct _GOmxPortArrayIterator GOmxPortArrayIterator;
+typedef struct _GOmxPortArrayIteratorClass GOmxPortArrayIteratorClass;
+typedef struct _GOmxPortArrayPrivate GOmxPortArrayPrivate;
+typedef struct _GOmxPortArrayIteratorPrivate GOmxPortArrayIteratorPrivate;
 typedef struct _GOmxPortPrivate GOmxPortPrivate;
-
-#define G_OMX_PORT_TYPE_BUFFER_LIST (g_omx_port_buffer_list_get_type ())
-#define G_OMX_PORT_BUFFER_LIST(obj) (G_TYPE_CHECK_INSTANCE_CAST ((obj), G_OMX_PORT_TYPE_BUFFER_LIST, GOmxPortBufferList))
-#define G_OMX_PORT_BUFFER_LIST_CLASS(klass) (G_TYPE_CHECK_CLASS_CAST ((klass), G_OMX_PORT_TYPE_BUFFER_LIST, GOmxPortBufferListClass))
-#define G_OMX_PORT_IS_BUFFER_LIST(obj) (G_TYPE_CHECK_INSTANCE_TYPE ((obj), G_OMX_PORT_TYPE_BUFFER_LIST))
-#define G_OMX_PORT_IS_BUFFER_LIST_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((klass), G_OMX_PORT_TYPE_BUFFER_LIST))
-#define G_OMX_PORT_BUFFER_LIST_GET_CLASS(obj) (G_TYPE_INSTANCE_GET_CLASS ((obj), G_OMX_PORT_TYPE_BUFFER_LIST, GOmxPortBufferListClass))
-
-typedef struct _GOmxPortBufferList GOmxPortBufferList;
-typedef struct _GOmxPortBufferListClass GOmxPortBufferListClass;
-typedef struct _GOmxPortBufferListPrivate GOmxPortBufferListPrivate;
-
-#define G_OMX_PORT_BUFFER_LIST_TYPE_ITERATOR (g_omx_port_buffer_list_iterator_get_type ())
-#define G_OMX_PORT_BUFFER_LIST_ITERATOR(obj) (G_TYPE_CHECK_INSTANCE_CAST ((obj), G_OMX_PORT_BUFFER_LIST_TYPE_ITERATOR, GOmxPortBufferListIterator))
-#define G_OMX_PORT_BUFFER_LIST_ITERATOR_CLASS(klass) (G_TYPE_CHECK_CLASS_CAST ((klass), G_OMX_PORT_BUFFER_LIST_TYPE_ITERATOR, GOmxPortBufferListIteratorClass))
-#define G_OMX_PORT_BUFFER_LIST_IS_ITERATOR(obj) (G_TYPE_CHECK_INSTANCE_TYPE ((obj), G_OMX_PORT_BUFFER_LIST_TYPE_ITERATOR))
-#define G_OMX_PORT_BUFFER_LIST_IS_ITERATOR_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((klass), G_OMX_PORT_BUFFER_LIST_TYPE_ITERATOR))
-#define G_OMX_PORT_BUFFER_LIST_ITERATOR_GET_CLASS(obj) (G_TYPE_INSTANCE_GET_CLASS ((obj), G_OMX_PORT_BUFFER_LIST_TYPE_ITERATOR, GOmxPortBufferListIteratorClass))
-
-typedef struct _GOmxPortBufferListIterator GOmxPortBufferListIterator;
-typedef struct _GOmxPortBufferListIteratorClass GOmxPortBufferListIteratorClass;
-typedef struct _GOmxPortBufferListIteratorPrivate GOmxPortBufferListIteratorPrivate;
 typedef struct _GOmxSemaphorePrivate GOmxSemaphorePrivate;
 #define _g_cond_free0(var) ((var == NULL) ? NULL : (var = (g_cond_free (var), NULL)))
 #define _g_mutex_free0(var) ((var == NULL) ? NULL : (var = (g_mutex_free (var), NULL)))
@@ -287,7 +265,7 @@ struct _GOmxEngineClass {
 };
 
 struct _GOmxEnginePrivate {
-	GOmxComponentList* _component_list;
+	GOmxComponentList* _components;
 	GOmxPortQueue* _port_queue;
 	guint _n_components;
 };
@@ -400,10 +378,7 @@ struct _GOmxComponentPrivate {
 	GOmxSemaphore* _wait_for_port_sem;
 	GOmxSemaphore* _wait_for_flush_sem;
 	GAsyncQueue* _ports_queue;
-	GOmxPort** _ports;
-	gint _ports_length1;
-	gint _ports_size;
-	GOmxComponentPortList* _port_list;
+	GOmxPortArray* _ports;
 	GOmxComponentEventFunc _event_func_0;
 	gpointer _event_func_0_target;
 	GDestroyNotify _event_func_0_target_destroy_notify;
@@ -439,30 +414,33 @@ struct _GOmxComponentPrivate {
 	gboolean _no_allocate_buffers;
 };
 
-struct _GOmxComponentPortList {
+struct _GOmxPortArray {
 	GObject parent_instance;
-	GOmxComponentPortListPrivate * priv;
+	GOmxPortArrayPrivate * priv;
 };
 
-struct _GOmxComponentPortListClass {
+struct _GOmxPortArrayClass {
 	GObjectClass parent_class;
 };
 
-struct _GOmxComponentPortListPrivate {
-	GOmxComponent* _component;
+struct _GOmxPortArrayPrivate {
+	GOmxPort** _ports;
+	gint _ports_length1;
+	gint _ports_size;
+	guint _start_index;
 };
 
-struct _GOmxComponentPortListIterator {
+struct _GOmxPortArrayIterator {
 	GObject parent_instance;
-	GOmxComponentPortListIteratorPrivate * priv;
+	GOmxPortArrayIteratorPrivate * priv;
 };
 
-struct _GOmxComponentPortListIteratorClass {
+struct _GOmxPortArrayIteratorClass {
 	GObjectClass parent_class;
 };
 
-struct _GOmxComponentPortListIteratorPrivate {
-	GOmxComponent* _component;
+struct _GOmxPortArrayIteratorPrivate {
+	GOmxPortArray* _array;
 	guint _index;
 };
 
@@ -482,7 +460,6 @@ struct _GOmxPortPrivate {
 	gint _buffers_length1;
 	gint _buffers_size;
 	GAsyncQueue* _buffers_queue;
-	GOmxPortBufferList* _buffer_list;
 	gboolean _eos;
 	GOmxPortBufferDoneFunc _buffer_done_func;
 	gpointer _buffer_done_func_target;
@@ -490,33 +467,6 @@ struct _GOmxPortPrivate {
 	GOmxPort* _peer;
 	char* _name;
 	GOmxComponent* _component;
-};
-
-struct _GOmxPortBufferList {
-	GObject parent_instance;
-	GOmxPortBufferListPrivate * priv;
-};
-
-struct _GOmxPortBufferListClass {
-	GObjectClass parent_class;
-};
-
-struct _GOmxPortBufferListPrivate {
-	GOmxPort* _port;
-};
-
-struct _GOmxPortBufferListIterator {
-	GObject parent_instance;
-	GOmxPortBufferListIteratorPrivate * priv;
-};
-
-struct _GOmxPortBufferListIteratorClass {
-	GObjectClass parent_class;
-};
-
-struct _GOmxPortBufferListIteratorPrivate {
-	GOmxPort* _port;
-	guint _index;
 };
 
 struct _GOmxSemaphore {
@@ -544,11 +494,9 @@ static gpointer g_omx_port_queue_parent_class = NULL;
 static gpointer g_omx_audio_component_parent_class = NULL;
 static gpointer g_omx_image_component_parent_class = NULL;
 static gpointer g_omx_video_component_parent_class = NULL;
-static gpointer g_omx_component_port_list_iterator_parent_class = NULL;
-static gpointer g_omx_component_port_list_parent_class = NULL;
 static gpointer g_omx_component_parent_class = NULL;
-static gpointer g_omx_port_buffer_list_iterator_parent_class = NULL;
-static gpointer g_omx_port_buffer_list_parent_class = NULL;
+static gpointer g_omx_port_array_iterator_parent_class = NULL;
+static gpointer g_omx_port_array_parent_class = NULL;
 static gpointer g_omx_port_parent_class = NULL;
 static gpointer g_omx_semaphore_parent_class = NULL;
 
@@ -677,7 +625,7 @@ enum  {
 GOmxVideoComponent* g_omx_video_component_new (GOmxCore* core, const char* comp_name);
 GOmxVideoComponent* g_omx_video_component_construct (GType object_type, GOmxCore* core, const char* comp_name);
 GType g_omx_semaphore_get_type (void);
-GType g_omx_component_port_list_get_type (void);
+GType g_omx_port_array_get_type (void);
 #define G_OMX_COMPONENT_GET_PRIVATE(o) (G_TYPE_INSTANCE_GET_PRIVATE ((o), G_OMX_TYPE_COMPONENT, GOmxComponentPrivate))
 enum  {
 	G_OMX_COMPONENT_DUMMY_PROPERTY,
@@ -703,18 +651,24 @@ static OMX_ERRORTYPE _g_omx_component_fill_buffer_done_omx_fill_buffer_done_func
 GOmxComponent* g_omx_component_new (GOmxCore* core, const char* comp_name, OMX_INDEXTYPE index);
 GOmxComponent* g_omx_component_construct (GType object_type, GOmxCore* core, const char* comp_name, OMX_INDEXTYPE index);
 guint g_omx_component_get_n_ports (GOmxComponent* self);
-GOmxPort* g_omx_component_get_port (GOmxComponent* self, guint i);
 static void g_omx_component_real_init (GOmxComponent* self, GError** error);
 void g_omx_component_send_command (GOmxComponent* self, OMX_COMMANDTYPE cmd, guint param, void* cmd_data, GError** error);
 static void g_omx_component_real_free_handle (GOmxComponent* self, GError** error);
+GOmxPortArray* g_omx_port_array_new (guint length, guint start_index);
+GOmxPortArray* g_omx_port_array_construct (GType object_type, guint length, guint start_index);
 GOmxPort* g_omx_port_new (GOmxComponent* component, guint32 index);
 GOmxPort* g_omx_port_construct (GType object_type, GOmxComponent* component, guint32 index);
 void g_omx_port_init (GOmxPort* self, GError** error);
 const char* g_omx_component_get_name (GOmxComponent* self);
 void g_omx_port_set_name (GOmxPort* self, const char* value);
 void g_omx_port_allocate_buffers (GOmxPort* self, GError** error);
+void g_omx_port_array_set (GOmxPortArray* self, guint index, GOmxPort* port);
 void g_omx_component_allocate_ports (GOmxComponent* self, GError** error);
 static void g_omx_component_real_allocate_ports (GOmxComponent* self, GError** error);
+GType g_omx_port_array_iterator_get_type (void);
+GOmxPortArrayIterator* g_omx_port_array_iterator (GOmxPortArray* self);
+gboolean g_omx_port_array_iterator_next (GOmxPortArrayIterator* self);
+GOmxPort* g_omx_port_array_iterator_get (GOmxPortArrayIterator* self);
 void g_omx_port_free_buffers (GOmxPort* self, GError** error);
 void g_omx_component_free_ports (GOmxComponent* self, GError** error);
 static void g_omx_component_real_free_ports (GOmxComponent* self, GError** error);
@@ -728,13 +682,14 @@ static void g_omx_component_real_set_state (GOmxComponent* self, OMX_STATETYPE s
 OMX_STATETYPE g_omx_component_get_state (GOmxComponent* self, GError** error);
 void g_omx_component_event_set_function (GOmxComponent* self, OMX_EVENTTYPE event, GOmxComponentEventFunc event_function, void* event_function_target);
 void g_omx_semaphore_up (GOmxSemaphore* self);
+GOmxPort* g_omx_port_array_get (GOmxPortArray* self, guint index);
 static OMX_ERRORTYPE g_omx_component_buffer_done (GOmxComponent* self, GOmxPort* port, OMX_BUFFERHEADERTYPE* buffer);
 GAsyncQueue* g_omx_port_get_queue (GOmxPort* self);
 void g_omx_port_buffer_done (GOmxPort* self, OMX_BUFFERHEADERTYPE* buffer);
 gboolean g_omx_component_get_started (GOmxComponent* self);
 void g_omx_component_set_name (GOmxComponent* self, const char* value);
 void* g_omx_component_get_handle (GOmxComponent* self);
-GOmxComponentPortList* g_omx_component_get_ports (GOmxComponent* self);
+GOmxPortArray* g_omx_component_get_ports (GOmxComponent* self);
 GAsyncQueue* g_omx_component_get_queue (GOmxComponent* self);
 GOmxCore* g_omx_component_get_core (GOmxComponent* self);
 void g_omx_component_set_core (GOmxComponent* self, GOmxCore* value);
@@ -749,37 +704,26 @@ gboolean g_omx_component_get_no_allocate_buffers (GOmxComponent* self);
 void g_omx_component_set_no_allocate_buffers (GOmxComponent* self, gboolean value);
 GOmxSemaphore* g_omx_semaphore_new (void);
 GOmxSemaphore* g_omx_semaphore_construct (GType object_type);
-GOmxComponentPortList* g_omx_component_port_list_new (GOmxComponent* component);
-GOmxComponentPortList* g_omx_component_port_list_construct (GType object_type, GOmxComponent* component);
 static GObject * g_omx_component_constructor (GType type, guint n_construct_properties, GObjectConstructParam * construct_properties);
-#define G_OMX_COMPONENT_PORT_LIST_GET_PRIVATE(o) (G_TYPE_INSTANCE_GET_PRIVATE ((o), G_OMX_COMPONENT_TYPE_PORT_LIST, GOmxComponentPortListPrivate))
-enum  {
-	G_OMX_COMPONENT_PORT_LIST_DUMMY_PROPERTY,
-	G_OMX_COMPONENT_PORT_LIST_COMPONENT,
-	G_OMX_COMPONENT_PORT_LIST_LENGTH
-};
-GOmxComponentPortListIterator* g_omx_component_port_list_iterator_new (GOmxComponentPortList* list);
-GOmxComponentPortListIterator* g_omx_component_port_list_iterator_construct (GType object_type, GOmxComponentPortList* list);
-GType g_omx_component_port_list_iterator_get_type (void);
-GOmxComponentPortListIterator* g_omx_component_port_list_iterator (GOmxComponentPortList* self);
-GOmxPort* g_omx_component_port_list_get (GOmxComponentPortList* self, guint index);
-GOmxComponent* g_omx_component_port_list_get_component (GOmxComponentPortList* self);
-void g_omx_component_port_list_set_component (GOmxComponentPortList* self, GOmxComponent* value);
-guint g_omx_component_port_list_get_length (GOmxComponentPortList* self);
-#define G_OMX_COMPONENT_PORT_LIST_ITERATOR_GET_PRIVATE(o) (G_TYPE_INSTANCE_GET_PRIVATE ((o), G_OMX_COMPONENT_PORT_LIST_TYPE_ITERATOR, GOmxComponentPortListIteratorPrivate))
-enum  {
-	G_OMX_COMPONENT_PORT_LIST_ITERATOR_DUMMY_PROPERTY
-};
-gboolean g_omx_component_port_list_iterator_next (GOmxComponentPortListIterator* self);
-GOmxPort* g_omx_component_port_list_iterator_get (GOmxComponentPortListIterator* self);
-static void g_omx_component_port_list_iterator_finalize (GObject* obj);
-static void g_omx_component_port_list_finalize (GObject* obj);
-static void g_omx_component_port_list_get_property (GObject * object, guint property_id, GValue * value, GParamSpec * pspec);
-static void g_omx_component_port_list_set_property (GObject * object, guint property_id, const GValue * value, GParamSpec * pspec);
 static void g_omx_component_finalize (GObject* obj);
 static void g_omx_component_get_property (GObject * object, guint property_id, GValue * value, GParamSpec * pspec);
 static void g_omx_component_set_property (GObject * object, guint property_id, const GValue * value, GParamSpec * pspec);
-GType g_omx_port_buffer_list_get_type (void);
+#define G_OMX_PORT_ARRAY_GET_PRIVATE(o) (G_TYPE_INSTANCE_GET_PRIVATE ((o), G_OMX_TYPE_PORT_ARRAY, GOmxPortArrayPrivate))
+enum  {
+	G_OMX_PORT_ARRAY_DUMMY_PROPERTY,
+	G_OMX_PORT_ARRAY_LENGTH
+};
+GOmxPortArrayIterator* g_omx_port_array_iterator_new (GOmxPortArray* array);
+GOmxPortArrayIterator* g_omx_port_array_iterator_construct (GType object_type, GOmxPortArray* array);
+static guint g_omx_port_array_get_start (GOmxPortArray* self);
+guint g_omx_port_array_get_length (GOmxPortArray* self);
+#define G_OMX_PORT_ARRAY_ITERATOR_GET_PRIVATE(o) (G_TYPE_INSTANCE_GET_PRIVATE ((o), G_OMX_PORT_ARRAY_TYPE_ITERATOR, GOmxPortArrayIteratorPrivate))
+enum  {
+	G_OMX_PORT_ARRAY_ITERATOR_DUMMY_PROPERTY
+};
+static void g_omx_port_array_iterator_finalize (GObject* obj);
+static void g_omx_port_array_finalize (GObject* obj);
+static void g_omx_port_array_get_property (GObject * object, guint property_id, GValue * value, GParamSpec * pspec);
 #define G_OMX_PORT_GET_PRIVATE(o) (G_TYPE_INSTANCE_GET_PRIVATE ((o), G_OMX_TYPE_PORT, GOmxPortPrivate))
 enum  {
 	G_OMX_PORT_DUMMY_PROPERTY,
@@ -788,14 +732,12 @@ enum  {
 	G_OMX_PORT_PEER,
 	G_OMX_PORT_INDEX,
 	G_OMX_PORT_EOS,
-	G_OMX_PORT_QUEUE,
-	G_OMX_PORT_BUFFERS
+	G_OMX_PORT_QUEUE
 };
 void g_omx_port_get_parameter (GOmxPort* self, GError** error);
 void g_omx_port_set_parameter (GOmxPort* self, GError** error);
 guint g_omx_port_get_index (GOmxPort* self);
 void g_omx_port_setup_tunnel_with (GOmxPort* self, GOmxPort* port, GError** error);
-OMX_BUFFERHEADERTYPE* g_omx_port_get_buffer (GOmxPort* self, guint i);
 void g_omx_port_use_buffers_of (GOmxPort* self, GOmxPort* port, GError** error);
 void g_omx_port_enable (GOmxPort* self, GError** error);
 void g_omx_port_flush (GOmxPort* self, GError** error);
@@ -809,34 +751,7 @@ GOmxComponent* g_omx_port_get_component (GOmxPort* self);
 void g_omx_port_set_component (GOmxPort* self, GOmxComponent* value);
 GOmxPort* g_omx_port_get_peer (GOmxPort* self);
 void g_omx_port_set_index (GOmxPort* self, guint value);
-GOmxPortBufferList* g_omx_port_get_buffers (GOmxPort* self);
-GOmxPortBufferList* g_omx_port_buffer_list_new (GOmxPort* port);
-GOmxPortBufferList* g_omx_port_buffer_list_construct (GType object_type, GOmxPort* port);
 static GObject * g_omx_port_constructor (GType type, guint n_construct_properties, GObjectConstructParam * construct_properties);
-#define G_OMX_PORT_BUFFER_LIST_GET_PRIVATE(o) (G_TYPE_INSTANCE_GET_PRIVATE ((o), G_OMX_PORT_TYPE_BUFFER_LIST, GOmxPortBufferListPrivate))
-enum  {
-	G_OMX_PORT_BUFFER_LIST_DUMMY_PROPERTY,
-	G_OMX_PORT_BUFFER_LIST_PORT,
-	G_OMX_PORT_BUFFER_LIST_LENGTH
-};
-GOmxPortBufferListIterator* g_omx_port_buffer_list_iterator_new (GOmxPortBufferList* list);
-GOmxPortBufferListIterator* g_omx_port_buffer_list_iterator_construct (GType object_type, GOmxPortBufferList* list);
-GType g_omx_port_buffer_list_iterator_get_type (void);
-GOmxPortBufferListIterator* g_omx_port_buffer_list_iterator (GOmxPortBufferList* self);
-OMX_BUFFERHEADERTYPE* g_omx_port_buffer_list_get (GOmxPortBufferList* self, guint index);
-GOmxPort* g_omx_port_buffer_list_get_port (GOmxPortBufferList* self);
-void g_omx_port_buffer_list_set_port (GOmxPortBufferList* self, GOmxPort* value);
-guint g_omx_port_buffer_list_get_length (GOmxPortBufferList* self);
-#define G_OMX_PORT_BUFFER_LIST_ITERATOR_GET_PRIVATE(o) (G_TYPE_INSTANCE_GET_PRIVATE ((o), G_OMX_PORT_BUFFER_LIST_TYPE_ITERATOR, GOmxPortBufferListIteratorPrivate))
-enum  {
-	G_OMX_PORT_BUFFER_LIST_ITERATOR_DUMMY_PROPERTY
-};
-gboolean g_omx_port_buffer_list_iterator_next (GOmxPortBufferListIterator* self);
-OMX_BUFFERHEADERTYPE* g_omx_port_buffer_list_iterator_get (GOmxPortBufferListIterator* self);
-static void g_omx_port_buffer_list_iterator_finalize (GObject* obj);
-static void g_omx_port_buffer_list_finalize (GObject* obj);
-static void g_omx_port_buffer_list_get_property (GObject * object, guint property_id, GValue * value, GParamSpec * pspec);
-static void g_omx_port_buffer_list_set_property (GObject * object, guint property_id, const GValue * value, GParamSpec * pspec);
 static void g_omx_port_finalize (GObject* obj);
 static void g_omx_port_get_property (GObject * object, guint property_id, GValue * value, GParamSpec * pspec);
 static void g_omx_port_set_property (GObject * object, guint property_id, const GValue * value, GParamSpec * pspec);
@@ -1096,7 +1011,7 @@ void g_omx_engine_add_component (GOmxEngine* self, guint id, GOmxComponent* comp
 	g_return_if_fail (component != NULL);
 	component->id = id;
 	g_omx_component_set_queue (component, g_omx_port_queue_get_queue (self->priv->_port_queue));
-	g_omx_component_list_append (self->priv->_component_list, component);
+	g_omx_component_list_append (self->priv->_components, component);
 	self->priv->_n_components++;
 }
 
@@ -1107,7 +1022,7 @@ static void g_omx_engine_real_buffers_begin_transfer (GOmxEngine* self, GError**
 	_inner_error_ = NULL;
 	{
 		GOmxComponentListIterator* _component_it;
-		_component_it = g_omx_component_list_iterator (self->priv->_component_list);
+		_component_it = g_omx_component_list_iterator (self->priv->_components);
 		while (TRUE) {
 			GOmxComponent* component;
 			if (!g_omx_component_list_iterator_next (_component_it)) {
@@ -1148,7 +1063,7 @@ static void g_omx_engine_real_init (GOmxEngine* self, GError** error) {
 	_inner_error_ = NULL;
 	{
 		GOmxComponentListIterator* _component_it;
-		_component_it = g_omx_component_list_iterator (self->priv->_component_list);
+		_component_it = g_omx_component_list_iterator (self->priv->_components);
 		while (TRUE) {
 			GOmxComponent* component;
 			if (!g_omx_component_list_iterator_next (_component_it)) {
@@ -1188,7 +1103,7 @@ static void g_omx_engine_real_set_state (GOmxEngine* self, OMX_STATETYPE state, 
 	_inner_error_ = NULL;
 	{
 		GOmxComponentListIterator* _component_it;
-		_component_it = g_omx_component_list_iterator (self->priv->_component_list);
+		_component_it = g_omx_component_list_iterator (self->priv->_components);
 		while (TRUE) {
 			GOmxComponent* component;
 			if (!g_omx_component_list_iterator_next (_component_it)) {
@@ -1228,7 +1143,7 @@ static void g_omx_engine_real_set_state_and_wait (GOmxEngine* self, OMX_STATETYP
 	_inner_error_ = NULL;
 	{
 		GOmxComponentListIterator* _component_it;
-		_component_it = g_omx_component_list_iterator (self->priv->_component_list);
+		_component_it = g_omx_component_list_iterator (self->priv->_components);
 		while (TRUE) {
 			GOmxComponent* component;
 			if (!g_omx_component_list_iterator_next (_component_it)) {
@@ -1266,7 +1181,7 @@ static void g_omx_engine_real_wait_for_state_set (GOmxEngine* self) {
 	g_return_if_fail (self != NULL);
 	{
 		GOmxComponentListIterator* _component_it;
-		_component_it = g_omx_component_list_iterator (self->priv->_component_list);
+		_component_it = g_omx_component_list_iterator (self->priv->_components);
 		while (TRUE) {
 			GOmxComponent* component;
 			if (!g_omx_component_list_iterator_next (_component_it)) {
@@ -1292,7 +1207,7 @@ static void g_omx_engine_real_free_handles (GOmxEngine* self, GError** error) {
 	_inner_error_ = NULL;
 	{
 		GOmxComponentListIterator* _component_it;
-		_component_it = g_omx_component_list_iterator (self->priv->_component_list);
+		_component_it = g_omx_component_list_iterator (self->priv->_components);
 		while (TRUE) {
 			GOmxComponent* component;
 			if (!g_omx_component_list_iterator_next (_component_it)) {
@@ -1341,7 +1256,7 @@ GOmxEngine* g_omx_engine_new (void) {
 GOmxComponentList* g_omx_engine_get_components (GOmxEngine* self) {
 	GOmxComponentList* result;
 	g_return_val_if_fail (self != NULL, NULL);
-	result = self->priv->_component_list;
+	result = self->priv->_components;
 	return result;
 }
 
@@ -1364,7 +1279,7 @@ static GObject * g_omx_engine_constructor (GType type, guint n_construct_propert
 	{
 		GOmxComponentList* _tmp0_;
 		GOmxPortQueue* _tmp1_;
-		self->priv->_component_list = (_tmp0_ = g_omx_component_list_new (), _g_object_unref0 (self->priv->_component_list), _tmp0_);
+		self->priv->_components = (_tmp0_ = g_omx_component_list_new (), _g_object_unref0 (self->priv->_components), _tmp0_);
 		self->priv->_port_queue = (_tmp1_ = g_omx_port_queue_new (), _g_object_unref0 (self->priv->_port_queue), _tmp1_);
 	}
 	return obj;
@@ -1396,7 +1311,7 @@ static void g_omx_engine_instance_init (GOmxEngine * self) {
 static void g_omx_engine_finalize (GObject* obj) {
 	GOmxEngine * self;
 	self = G_OMX_ENGINE (obj);
-	_g_object_unref0 (self->priv->_component_list);
+	_g_object_unref0 (self->priv->_components);
 	_g_object_unref0 (self->priv->_port_queue);
 	G_OBJECT_CLASS (g_omx_engine_parent_class)->finalize (obj);
 }
@@ -1906,15 +1821,6 @@ guint g_omx_component_get_n_ports (GOmxComponent* self) {
 }
 
 
-GOmxPort* g_omx_component_get_port (GOmxComponent* self, guint i) {
-	GOmxPort* result;
-	g_return_val_if_fail (self != NULL, NULL);
-	g_return_val_if_fail (((i - self->ports_param.nStartPortNumber) < self->ports_param.nPorts) && ((i - self->ports_param.nStartPortNumber) >= 0), NULL);
-	result = _g_object_ref0 (self->priv->_ports[i - self->ports_param.nStartPortNumber]);
-	return result;
-}
-
-
 static void g_omx_component_real_init (GOmxComponent* self, GError** error) {
 	GError * _inner_error_;
 	g_return_if_fail (self != NULL);
@@ -1989,25 +1895,24 @@ void g_omx_component_free_handle (GOmxComponent* self, GError** error) {
 
 static void g_omx_component_real_allocate_ports (GOmxComponent* self, GError** error) {
 	GError * _inner_error_;
-	guint32 first_port;
+	guint32 start_port;
 	guint32 last_port;
-	GOmxPort** _tmp0_;
+	GOmxPortArray* _tmp0_;
 	g_return_if_fail (self != NULL);
 	_inner_error_ = NULL;
 	g_return_if_fail (self->priv->_ports == NULL);
-	first_port = self->ports_param.nStartPortNumber;
-	last_port = first_port + self->ports_param.nPorts;
-	self->priv->_ports = (_tmp0_ = g_new0 (GOmxPort*, self->ports_param.nPorts + 1), self->priv->_ports = (_vala_array_free (self->priv->_ports, self->priv->_ports_length1, (GDestroyNotify) g_object_unref), NULL), self->priv->_ports_length1 = self->ports_param.nPorts, self->priv->_ports_size = self->priv->_ports_length1, _tmp0_);
+	start_port = self->ports_param.nStartPortNumber;
+	last_port = start_port + self->ports_param.nPorts;
+	self->priv->_ports = (_tmp0_ = g_omx_port_array_new ((guint) self->ports_param.nPorts, (guint) start_port), _g_object_unref0 (self->priv->_ports), _tmp0_);
 	{
 		guint i;
-		i = (guint) first_port;
+		i = (guint) start_port;
 		{
 			gboolean _tmp1_;
 			_tmp1_ = TRUE;
 			while (TRUE) {
 				GOmxPort* port;
 				char* _tmp2_;
-				GOmxPort* _tmp3_;
 				if (!_tmp1_) {
 					i++;
 				}
@@ -2046,7 +1951,7 @@ static void g_omx_component_real_allocate_ports (GOmxComponent* self, GError** e
 						}
 					}
 				}
-				self->priv->_ports[i] = (_tmp3_ = _g_object_ref0 (port), _g_object_unref0 (self->priv->_ports[i]), _tmp3_);
+				g_omx_port_array_set (self->priv->_ports, i, port);
 				_g_object_unref0 (port);
 			}
 		}
@@ -2062,38 +1967,39 @@ void g_omx_component_allocate_ports (GOmxComponent* self, GError** error) {
 
 static void g_omx_component_real_free_ports (GOmxComponent* self, GError** error) {
 	GError * _inner_error_;
-	GOmxPort** _tmp0_;
+	GOmxPortArray* _tmp0_;
 	g_return_if_fail (self != NULL);
 	_inner_error_ = NULL;
 	g_return_if_fail (self->priv->_ports != NULL);
 	{
-		GOmxPort** port_collection;
-		int port_collection_length1;
-		int port_it;
-		port_collection = self->priv->_ports;
-		port_collection_length1 = self->priv->_ports_length1;
-		for (port_it = 0; port_it < self->priv->_ports_length1; port_it = port_it + 1) {
+		GOmxPortArrayIterator* _port_it;
+		_port_it = g_omx_port_array_iterator (self->priv->_ports);
+		while (TRUE) {
 			GOmxPort* port;
-			port = _g_object_ref0 (port_collection[port_it]);
-			{
-				g_omx_port_free_buffers (port, &_inner_error_);
-				if (_inner_error_ != NULL) {
-					if (_inner_error_->domain == G_OMX_ERROR) {
-						g_propagate_error (error, _inner_error_);
-						_g_object_unref0 (port);
-						return;
-					} else {
-						_g_object_unref0 (port);
-						g_critical ("file %s: line %d: uncaught error: %s (%s, %d)", __FILE__, __LINE__, _inner_error_->message, g_quark_to_string (_inner_error_->domain), _inner_error_->code);
-						g_clear_error (&_inner_error_);
-						return;
-					}
-				}
-				_g_object_unref0 (port);
+			if (!g_omx_port_array_iterator_next (_port_it)) {
+				break;
 			}
+			port = g_omx_port_array_iterator_get (_port_it);
+			g_omx_port_free_buffers (port, &_inner_error_);
+			if (_inner_error_ != NULL) {
+				if (_inner_error_->domain == G_OMX_ERROR) {
+					g_propagate_error (error, _inner_error_);
+					_g_object_unref0 (port);
+					_g_object_unref0 (_port_it);
+					return;
+				} else {
+					_g_object_unref0 (port);
+					_g_object_unref0 (_port_it);
+					g_critical ("file %s: line %d: uncaught error: %s (%s, %d)", __FILE__, __LINE__, _inner_error_->message, g_quark_to_string (_inner_error_->domain), _inner_error_->code);
+					g_clear_error (&_inner_error_);
+					return;
+				}
+			}
+			_g_object_unref0 (port);
 		}
+		_g_object_unref0 (_port_it);
 	}
-	self->priv->_ports = (_tmp0_ = NULL, self->priv->_ports = (_vala_array_free (self->priv->_ports, self->priv->_ports_length1, (GDestroyNotify) g_object_unref), NULL), self->priv->_ports_length1 = 0, self->priv->_ports_size = self->priv->_ports_length1, _tmp0_);
+	self->priv->_ports = (_tmp0_ = NULL, _g_object_unref0 (self->priv->_ports), _tmp0_);
 }
 
 
@@ -2109,31 +2015,32 @@ static void g_omx_component_real_buffers_begin_transfer (GOmxComponent* self, GE
 	_inner_error_ = NULL;
 	g_return_if_fail (self->priv->_ports != NULL);
 	{
-		GOmxPort** port_collection;
-		int port_collection_length1;
-		int port_it;
-		port_collection = self->priv->_ports;
-		port_collection_length1 = self->priv->_ports_length1;
-		for (port_it = 0; port_it < self->priv->_ports_length1; port_it = port_it + 1) {
+		GOmxPortArrayIterator* _port_it;
+		_port_it = g_omx_port_array_iterator (self->priv->_ports);
+		while (TRUE) {
 			GOmxPort* port;
-			port = _g_object_ref0 (port_collection[port_it]);
-			{
-				g_omx_port_buffers_begin_transfer (port, &_inner_error_);
-				if (_inner_error_ != NULL) {
-					if (_inner_error_->domain == G_OMX_ERROR) {
-						g_propagate_error (error, _inner_error_);
-						_g_object_unref0 (port);
-						return;
-					} else {
-						_g_object_unref0 (port);
-						g_critical ("file %s: line %d: uncaught error: %s (%s, %d)", __FILE__, __LINE__, _inner_error_->message, g_quark_to_string (_inner_error_->domain), _inner_error_->code);
-						g_clear_error (&_inner_error_);
-						return;
-					}
-				}
-				_g_object_unref0 (port);
+			if (!g_omx_port_array_iterator_next (_port_it)) {
+				break;
 			}
+			port = g_omx_port_array_iterator_get (_port_it);
+			g_omx_port_buffers_begin_transfer (port, &_inner_error_);
+			if (_inner_error_ != NULL) {
+				if (_inner_error_->domain == G_OMX_ERROR) {
+					g_propagate_error (error, _inner_error_);
+					_g_object_unref0 (port);
+					_g_object_unref0 (_port_it);
+					return;
+				} else {
+					_g_object_unref0 (port);
+					_g_object_unref0 (_port_it);
+					g_critical ("file %s: line %d: uncaught error: %s (%s, %d)", __FILE__, __LINE__, _inner_error_->message, g_quark_to_string (_inner_error_->domain), _inner_error_->code);
+					g_clear_error (&_inner_error_);
+					return;
+				}
+			}
+			_g_object_unref0 (port);
 		}
+		_g_object_unref0 (_port_it);
 	}
 }
 
@@ -2629,7 +2536,7 @@ static OMX_ERRORTYPE g_omx_component_event_handler (GOmxComponent* self, void* c
 		{
 			OMX_ERRORTYPE _error_;
 			_error_ = (OMX_ERRORTYPE) data1;
-			g_critical ("omx-glib.vala:682: %s", omx_error_to_string (_error_));
+			g_critical ("omx-glib.vala:674: %s", omx_error_to_string (_error_));
 			if (self->priv->_event_func_1 != NULL) {
 				self->priv->_event_func_1 (self, (guint) data1, (guint) data2, event_data, self->priv->_event_func_1_target);
 			}
@@ -2700,7 +2607,7 @@ static OMX_ERRORTYPE g_omx_component_empty_buffer_done (GOmxComponent* self, voi
 	g_return_val_if_fail (self != NULL, 0);
 	g_return_val_if_fail (component != NULL, 0);
 	g_return_val_if_fail (buffer != NULL, 0);
-	port = g_omx_component_get_port (self, (guint) buffer->nInputPortIndex);
+	port = g_omx_port_array_get (self->priv->_ports, (guint) buffer->nInputPortIndex);
 	result = g_omx_component_buffer_done (self, port, buffer);
 	_g_object_unref0 (port);
 	return result;
@@ -2713,7 +2620,7 @@ static OMX_ERRORTYPE g_omx_component_fill_buffer_done (GOmxComponent* self, void
 	g_return_val_if_fail (self != NULL, 0);
 	g_return_val_if_fail (component != NULL, 0);
 	g_return_val_if_fail (buffer != NULL, 0);
-	port = g_omx_component_get_port (self, (guint) buffer->nOutputPortIndex);
+	port = g_omx_port_array_get (self->priv->_ports, (guint) buffer->nOutputPortIndex);
 	result = g_omx_component_buffer_done (self, port, buffer);
 	_g_object_unref0 (port);
 	return result;
@@ -2765,10 +2672,10 @@ void* g_omx_component_get_handle (GOmxComponent* self) {
 }
 
 
-GOmxComponentPortList* g_omx_component_get_ports (GOmxComponent* self) {
-	GOmxComponentPortList* result;
+GOmxPortArray* g_omx_component_get_ports (GOmxComponent* self) {
+	GOmxPortArray* result;
 	g_return_val_if_fail (self != NULL, NULL);
-	result = self->priv->_port_list;
+	result = self->priv->_ports;
 	return result;
 }
 
@@ -2885,195 +2792,14 @@ static GObject * g_omx_component_constructor (GType type, guint n_construct_prop
 		GOmxSemaphore* _tmp4_;
 		GOmxSemaphore* _tmp5_;
 		GOmxSemaphore* _tmp6_;
-		GOmxComponentPortList* _tmp7_;
 		self->priv->_wait_for_state_sem = (_tmp4_ = g_omx_semaphore_new (), _g_object_unref0 (self->priv->_wait_for_state_sem), _tmp4_);
 		self->priv->_wait_for_port_sem = (_tmp5_ = g_omx_semaphore_new (), _g_object_unref0 (self->priv->_wait_for_port_sem), _tmp5_);
 		self->priv->_wait_for_flush_sem = (_tmp6_ = g_omx_semaphore_new (), _g_object_unref0 (self->priv->_wait_for_flush_sem), _tmp6_);
-		self->priv->_port_list = (_tmp7_ = g_omx_component_port_list_new (self), _g_object_unref0 (self->priv->_port_list), _tmp7_);
 		self->priv->_current_state = OMX_StateInvalid;
 		self->priv->_previous_state = OMX_StateInvalid;
 		self->priv->_pending_state = OMX_StateInvalid;
 	}
 	return obj;
-}
-
-
-GOmxComponentPortList* g_omx_component_port_list_construct (GType object_type, GOmxComponent* component) {
-	GOmxComponentPortList * self;
-	g_return_val_if_fail (component != NULL, NULL);
-	self = (GOmxComponentPortList*) g_object_new (object_type, "component", component, NULL);
-	return self;
-}
-
-
-GOmxComponentPortList* g_omx_component_port_list_new (GOmxComponent* component) {
-	return g_omx_component_port_list_construct (G_OMX_COMPONENT_TYPE_PORT_LIST, component);
-}
-
-
-GOmxComponentPortListIterator* g_omx_component_port_list_iterator (GOmxComponentPortList* self) {
-	GOmxComponentPortListIterator* result;
-	g_return_val_if_fail (self != NULL, NULL);
-	result = g_omx_component_port_list_iterator_new (self);
-	return result;
-}
-
-
-GOmxPort* g_omx_component_port_list_get (GOmxComponentPortList* self, guint index) {
-	GOmxPort* result;
-	g_return_val_if_fail (self != NULL, NULL);
-	result = _g_object_ref0 (self->priv->_component->priv->_ports[index]);
-	return result;
-}
-
-
-GOmxComponent* g_omx_component_port_list_get_component (GOmxComponentPortList* self) {
-	GOmxComponent* result;
-	g_return_val_if_fail (self != NULL, NULL);
-	result = self->priv->_component;
-	return result;
-}
-
-
-void g_omx_component_port_list_set_component (GOmxComponentPortList* self, GOmxComponent* value) {
-	GOmxComponent* _tmp0_;
-	g_return_if_fail (self != NULL);
-	self->priv->_component = (_tmp0_ = _g_object_ref0 (value), _g_object_unref0 (self->priv->_component), _tmp0_);
-	g_object_notify ((GObject *) self, "component");
-}
-
-
-guint g_omx_component_port_list_get_length (GOmxComponentPortList* self) {
-	guint result;
-	g_return_val_if_fail (self != NULL, 0U);
-	result = (guint) self->priv->_component->priv->_ports_length1;
-	return result;
-}
-
-
-GOmxComponentPortListIterator* g_omx_component_port_list_iterator_construct (GType object_type, GOmxComponentPortList* list) {
-	GOmxComponentPortListIterator * self;
-	GOmxComponent* _tmp0_;
-	g_return_val_if_fail (list != NULL, NULL);
-	self = (GOmxComponentPortListIterator*) g_object_new (object_type, NULL);
-	self->priv->_component = (_tmp0_ = _g_object_ref0 (list->priv->_component), _g_object_unref0 (self->priv->_component), _tmp0_);
-	return self;
-}
-
-
-GOmxComponentPortListIterator* g_omx_component_port_list_iterator_new (GOmxComponentPortList* list) {
-	return g_omx_component_port_list_iterator_construct (G_OMX_COMPONENT_PORT_LIST_TYPE_ITERATOR, list);
-}
-
-
-gboolean g_omx_component_port_list_iterator_next (GOmxComponentPortListIterator* self) {
-	gboolean result;
-	g_return_val_if_fail (self != NULL, FALSE);
-	result = self->priv->_index < self->priv->_component->priv->_ports_length1;
-	return result;
-}
-
-
-GOmxPort* g_omx_component_port_list_iterator_get (GOmxComponentPortListIterator* self) {
-	GOmxPort* result;
-	g_return_val_if_fail (self != NULL, NULL);
-	result = _g_object_ref0 (self->priv->_component->priv->_ports[self->priv->_index++]);
-	return result;
-}
-
-
-static void g_omx_component_port_list_iterator_class_init (GOmxComponentPortListIteratorClass * klass) {
-	g_omx_component_port_list_iterator_parent_class = g_type_class_peek_parent (klass);
-	g_type_class_add_private (klass, sizeof (GOmxComponentPortListIteratorPrivate));
-	G_OBJECT_CLASS (klass)->finalize = g_omx_component_port_list_iterator_finalize;
-}
-
-
-static void g_omx_component_port_list_iterator_instance_init (GOmxComponentPortListIterator * self) {
-	self->priv = G_OMX_COMPONENT_PORT_LIST_ITERATOR_GET_PRIVATE (self);
-}
-
-
-static void g_omx_component_port_list_iterator_finalize (GObject* obj) {
-	GOmxComponentPortListIterator * self;
-	self = G_OMX_COMPONENT_PORT_LIST_ITERATOR (obj);
-	_g_object_unref0 (self->priv->_component);
-	G_OBJECT_CLASS (g_omx_component_port_list_iterator_parent_class)->finalize (obj);
-}
-
-
-GType g_omx_component_port_list_iterator_get_type (void) {
-	static GType g_omx_component_port_list_iterator_type_id = 0;
-	if (g_omx_component_port_list_iterator_type_id == 0) {
-		static const GTypeInfo g_define_type_info = { sizeof (GOmxComponentPortListIteratorClass), (GBaseInitFunc) NULL, (GBaseFinalizeFunc) NULL, (GClassInitFunc) g_omx_component_port_list_iterator_class_init, (GClassFinalizeFunc) NULL, NULL, sizeof (GOmxComponentPortListIterator), 0, (GInstanceInitFunc) g_omx_component_port_list_iterator_instance_init, NULL };
-		g_omx_component_port_list_iterator_type_id = g_type_register_static (G_TYPE_OBJECT, "GOmxComponentPortListIterator", &g_define_type_info, 0);
-	}
-	return g_omx_component_port_list_iterator_type_id;
-}
-
-
-static void g_omx_component_port_list_class_init (GOmxComponentPortListClass * klass) {
-	g_omx_component_port_list_parent_class = g_type_class_peek_parent (klass);
-	g_type_class_add_private (klass, sizeof (GOmxComponentPortListPrivate));
-	G_OBJECT_CLASS (klass)->get_property = g_omx_component_port_list_get_property;
-	G_OBJECT_CLASS (klass)->set_property = g_omx_component_port_list_set_property;
-	G_OBJECT_CLASS (klass)->finalize = g_omx_component_port_list_finalize;
-	g_object_class_install_property (G_OBJECT_CLASS (klass), G_OMX_COMPONENT_PORT_LIST_COMPONENT, g_param_spec_object ("component", "component", "component", G_OMX_TYPE_COMPONENT, G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK | G_PARAM_STATIC_BLURB | G_PARAM_READABLE | G_PARAM_WRITABLE | G_PARAM_CONSTRUCT));
-	g_object_class_install_property (G_OBJECT_CLASS (klass), G_OMX_COMPONENT_PORT_LIST_LENGTH, g_param_spec_uint ("length", "length", "length", 0, G_MAXUINT, 0U, G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK | G_PARAM_STATIC_BLURB | G_PARAM_READABLE));
-}
-
-
-static void g_omx_component_port_list_instance_init (GOmxComponentPortList * self) {
-	self->priv = G_OMX_COMPONENT_PORT_LIST_GET_PRIVATE (self);
-}
-
-
-static void g_omx_component_port_list_finalize (GObject* obj) {
-	GOmxComponentPortList * self;
-	self = G_OMX_COMPONENT_PORT_LIST (obj);
-	_g_object_unref0 (self->priv->_component);
-	G_OBJECT_CLASS (g_omx_component_port_list_parent_class)->finalize (obj);
-}
-
-
-GType g_omx_component_port_list_get_type (void) {
-	static GType g_omx_component_port_list_type_id = 0;
-	if (g_omx_component_port_list_type_id == 0) {
-		static const GTypeInfo g_define_type_info = { sizeof (GOmxComponentPortListClass), (GBaseInitFunc) NULL, (GBaseFinalizeFunc) NULL, (GClassInitFunc) g_omx_component_port_list_class_init, (GClassFinalizeFunc) NULL, NULL, sizeof (GOmxComponentPortList), 0, (GInstanceInitFunc) g_omx_component_port_list_instance_init, NULL };
-		g_omx_component_port_list_type_id = g_type_register_static (G_TYPE_OBJECT, "GOmxComponentPortList", &g_define_type_info, 0);
-	}
-	return g_omx_component_port_list_type_id;
-}
-
-
-static void g_omx_component_port_list_get_property (GObject * object, guint property_id, GValue * value, GParamSpec * pspec) {
-	GOmxComponentPortList * self;
-	self = G_OMX_COMPONENT_PORT_LIST (object);
-	switch (property_id) {
-		case G_OMX_COMPONENT_PORT_LIST_COMPONENT:
-		g_value_set_object (value, g_omx_component_port_list_get_component (self));
-		break;
-		case G_OMX_COMPONENT_PORT_LIST_LENGTH:
-		g_value_set_uint (value, g_omx_component_port_list_get_length (self));
-		break;
-		default:
-		G_OBJECT_WARN_INVALID_PROPERTY_ID (object, property_id, pspec);
-		break;
-	}
-}
-
-
-static void g_omx_component_port_list_set_property (GObject * object, guint property_id, const GValue * value, GParamSpec * pspec) {
-	GOmxComponentPortList * self;
-	self = G_OMX_COMPONENT_PORT_LIST (object);
-	switch (property_id) {
-		case G_OMX_COMPONENT_PORT_LIST_COMPONENT:
-		g_omx_component_port_list_set_component (self, g_value_get_object (value));
-		break;
-		default:
-		G_OBJECT_WARN_INVALID_PROPERTY_ID (object, property_id, pspec);
-		break;
-	}
 }
 
 
@@ -3093,7 +2819,7 @@ static void g_omx_component_class_init (GOmxComponentClass * klass) {
 	g_object_class_install_property (G_OBJECT_CLASS (klass), G_OMX_COMPONENT_STARTED, g_param_spec_boolean ("started", "started", "started", FALSE, G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK | G_PARAM_STATIC_BLURB | G_PARAM_READABLE));
 	g_object_class_install_property (G_OBJECT_CLASS (klass), G_OMX_COMPONENT_NAME, g_param_spec_string ("name", "name", "name", NULL, G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK | G_PARAM_STATIC_BLURB | G_PARAM_READABLE | G_PARAM_WRITABLE));
 	g_object_class_install_property (G_OBJECT_CLASS (klass), G_OMX_COMPONENT_HANDLE, g_param_spec_pointer ("handle", "handle", "handle", G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK | G_PARAM_STATIC_BLURB | G_PARAM_READABLE));
-	g_object_class_install_property (G_OBJECT_CLASS (klass), G_OMX_COMPONENT_PORTS, g_param_spec_object ("ports", "ports", "ports", G_OMX_COMPONENT_TYPE_PORT_LIST, G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK | G_PARAM_STATIC_BLURB | G_PARAM_READABLE));
+	g_object_class_install_property (G_OBJECT_CLASS (klass), G_OMX_COMPONENT_PORTS, g_param_spec_object ("ports", "ports", "ports", G_OMX_TYPE_PORT_ARRAY, G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK | G_PARAM_STATIC_BLURB | G_PARAM_READABLE));
 	g_object_class_install_property (G_OBJECT_CLASS (klass), G_OMX_COMPONENT_QUEUE, g_param_spec_pointer ("queue", "queue", "queue", G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK | G_PARAM_STATIC_BLURB | G_PARAM_READABLE | G_PARAM_WRITABLE));
 	g_object_class_install_property (G_OBJECT_CLASS (klass), G_OMX_COMPONENT_CORE, g_param_spec_object ("core", "core", "core", G_OMX_TYPE_CORE, G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK | G_PARAM_STATIC_BLURB | G_PARAM_READABLE | G_PARAM_WRITABLE | G_PARAM_CONSTRUCT));
 	g_object_class_install_property (G_OBJECT_CLASS (klass), G_OMX_COMPONENT_COMPONENT_NAME, g_param_spec_string ("component-name", "component-name", "component-name", NULL, G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK | G_PARAM_STATIC_BLURB | G_PARAM_READABLE | G_PARAM_WRITABLE | G_PARAM_CONSTRUCT));
@@ -3116,8 +2842,7 @@ static void g_omx_component_finalize (GObject* obj) {
 	_g_object_unref0 (self->priv->_wait_for_state_sem);
 	_g_object_unref0 (self->priv->_wait_for_port_sem);
 	_g_object_unref0 (self->priv->_wait_for_flush_sem);
-	self->priv->_ports = (_vala_array_free (self->priv->_ports, self->priv->_ports_length1, (GDestroyNotify) g_object_unref), NULL);
-	_g_object_unref0 (self->priv->_port_list);
+	_g_object_unref0 (self->priv->_ports);
 	(self->priv->_event_func_0_target_destroy_notify == NULL) ? NULL : self->priv->_event_func_0_target_destroy_notify (self->priv->_event_func_0_target);
 	self->priv->_event_func_0 = NULL;
 	self->priv->_event_func_0_target = NULL;
@@ -3239,6 +2964,172 @@ static void g_omx_component_set_property (GObject * object, guint property_id, c
 		break;
 		case G_OMX_COMPONENT_NO_ALLOCATE_BUFFERS:
 		g_omx_component_set_no_allocate_buffers (self, g_value_get_boolean (value));
+		break;
+		default:
+		G_OBJECT_WARN_INVALID_PROPERTY_ID (object, property_id, pspec);
+		break;
+	}
+}
+
+
+GOmxPortArray* g_omx_port_array_construct (GType object_type, guint length, guint start_index) {
+	GOmxPortArray * self;
+	GOmxPort** _tmp0_;
+	self = (GOmxPortArray*) g_object_new (object_type, NULL);
+	start_index = self->priv->_start_index;
+	self->priv->_ports = (_tmp0_ = g_new0 (GOmxPort*, length + 1), self->priv->_ports = (_vala_array_free (self->priv->_ports, self->priv->_ports_length1, (GDestroyNotify) g_object_unref), NULL), self->priv->_ports_length1 = length, self->priv->_ports_size = self->priv->_ports_length1, _tmp0_);
+	return self;
+}
+
+
+GOmxPortArray* g_omx_port_array_new (guint length, guint start_index) {
+	return g_omx_port_array_construct (G_OMX_TYPE_PORT_ARRAY, length, start_index);
+}
+
+
+GOmxPortArrayIterator* g_omx_port_array_iterator (GOmxPortArray* self) {
+	GOmxPortArrayIterator* result;
+	g_return_val_if_fail (self != NULL, NULL);
+	result = g_omx_port_array_iterator_new (self);
+	return result;
+}
+
+
+GOmxPort* g_omx_port_array_get (GOmxPortArray* self, guint index) {
+	GOmxPort* result;
+	g_return_val_if_fail (self != NULL, NULL);
+	g_return_val_if_fail (((index - self->priv->_start_index) < self->priv->_ports_length1) && ((index - self->priv->_start_index) >= 0), NULL);
+	result = _g_object_ref0 (self->priv->_ports[index - self->priv->_start_index]);
+	return result;
+}
+
+
+void g_omx_port_array_set (GOmxPortArray* self, guint index, GOmxPort* port) {
+	GOmxPort* _tmp1_;
+	GOmxPort* *_tmp0_;
+	g_return_if_fail (self != NULL);
+	g_return_if_fail (port != NULL);
+	_tmp0_ = &self->priv->_ports[index - self->priv->_start_index];
+	(*_tmp0_) = (_tmp1_ = _g_object_ref0 (port), _g_object_unref0 ((*_tmp0_)), _tmp1_);
+}
+
+
+static guint g_omx_port_array_get_start (GOmxPortArray* self) {
+	guint result;
+	g_return_val_if_fail (self != NULL, 0U);
+	result = self->priv->_start_index;
+	return result;
+}
+
+
+guint g_omx_port_array_get_length (GOmxPortArray* self) {
+	guint result;
+	g_return_val_if_fail (self != NULL, 0U);
+	result = (guint) self->priv->_ports_length1;
+	return result;
+}
+
+
+GOmxPortArrayIterator* g_omx_port_array_iterator_construct (GType object_type, GOmxPortArray* array) {
+	GOmxPortArrayIterator * self;
+	GOmxPortArray* _tmp0_;
+	g_return_val_if_fail (array != NULL, NULL);
+	self = (GOmxPortArrayIterator*) g_object_new (object_type, NULL);
+	self->priv->_array = (_tmp0_ = _g_object_ref0 (array), _g_object_unref0 (self->priv->_array), _tmp0_);
+	self->priv->_index = g_omx_port_array_get_start (array);
+	return self;
+}
+
+
+GOmxPortArrayIterator* g_omx_port_array_iterator_new (GOmxPortArray* array) {
+	return g_omx_port_array_iterator_construct (G_OMX_PORT_ARRAY_TYPE_ITERATOR, array);
+}
+
+
+gboolean g_omx_port_array_iterator_next (GOmxPortArrayIterator* self) {
+	gboolean result;
+	g_return_val_if_fail (self != NULL, FALSE);
+	result = self->priv->_index < (g_omx_port_array_get_length (self->priv->_array) + g_omx_port_array_get_start (self->priv->_array));
+	return result;
+}
+
+
+GOmxPort* g_omx_port_array_iterator_get (GOmxPortArrayIterator* self) {
+	GOmxPort* result;
+	g_return_val_if_fail (self != NULL, NULL);
+	result = g_omx_port_array_get (self->priv->_array, self->priv->_index++);
+	return result;
+}
+
+
+static void g_omx_port_array_iterator_class_init (GOmxPortArrayIteratorClass * klass) {
+	g_omx_port_array_iterator_parent_class = g_type_class_peek_parent (klass);
+	g_type_class_add_private (klass, sizeof (GOmxPortArrayIteratorPrivate));
+	G_OBJECT_CLASS (klass)->finalize = g_omx_port_array_iterator_finalize;
+}
+
+
+static void g_omx_port_array_iterator_instance_init (GOmxPortArrayIterator * self) {
+	self->priv = G_OMX_PORT_ARRAY_ITERATOR_GET_PRIVATE (self);
+}
+
+
+static void g_omx_port_array_iterator_finalize (GObject* obj) {
+	GOmxPortArrayIterator * self;
+	self = G_OMX_PORT_ARRAY_ITERATOR (obj);
+	_g_object_unref0 (self->priv->_array);
+	G_OBJECT_CLASS (g_omx_port_array_iterator_parent_class)->finalize (obj);
+}
+
+
+GType g_omx_port_array_iterator_get_type (void) {
+	static GType g_omx_port_array_iterator_type_id = 0;
+	if (g_omx_port_array_iterator_type_id == 0) {
+		static const GTypeInfo g_define_type_info = { sizeof (GOmxPortArrayIteratorClass), (GBaseInitFunc) NULL, (GBaseFinalizeFunc) NULL, (GClassInitFunc) g_omx_port_array_iterator_class_init, (GClassFinalizeFunc) NULL, NULL, sizeof (GOmxPortArrayIterator), 0, (GInstanceInitFunc) g_omx_port_array_iterator_instance_init, NULL };
+		g_omx_port_array_iterator_type_id = g_type_register_static (G_TYPE_OBJECT, "GOmxPortArrayIterator", &g_define_type_info, 0);
+	}
+	return g_omx_port_array_iterator_type_id;
+}
+
+
+static void g_omx_port_array_class_init (GOmxPortArrayClass * klass) {
+	g_omx_port_array_parent_class = g_type_class_peek_parent (klass);
+	g_type_class_add_private (klass, sizeof (GOmxPortArrayPrivate));
+	G_OBJECT_CLASS (klass)->get_property = g_omx_port_array_get_property;
+	G_OBJECT_CLASS (klass)->finalize = g_omx_port_array_finalize;
+	g_object_class_install_property (G_OBJECT_CLASS (klass), G_OMX_PORT_ARRAY_LENGTH, g_param_spec_uint ("length", "length", "length", 0, G_MAXUINT, 0U, G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK | G_PARAM_STATIC_BLURB | G_PARAM_READABLE));
+}
+
+
+static void g_omx_port_array_instance_init (GOmxPortArray * self) {
+	self->priv = G_OMX_PORT_ARRAY_GET_PRIVATE (self);
+}
+
+
+static void g_omx_port_array_finalize (GObject* obj) {
+	GOmxPortArray * self;
+	self = G_OMX_PORT_ARRAY (obj);
+	self->priv->_ports = (_vala_array_free (self->priv->_ports, self->priv->_ports_length1, (GDestroyNotify) g_object_unref), NULL);
+	G_OBJECT_CLASS (g_omx_port_array_parent_class)->finalize (obj);
+}
+
+
+GType g_omx_port_array_get_type (void) {
+	static GType g_omx_port_array_type_id = 0;
+	if (g_omx_port_array_type_id == 0) {
+		static const GTypeInfo g_define_type_info = { sizeof (GOmxPortArrayClass), (GBaseInitFunc) NULL, (GBaseFinalizeFunc) NULL, (GClassInitFunc) g_omx_port_array_class_init, (GClassFinalizeFunc) NULL, NULL, sizeof (GOmxPortArray), 0, (GInstanceInitFunc) g_omx_port_array_instance_init, NULL };
+		g_omx_port_array_type_id = g_type_register_static (G_TYPE_OBJECT, "GOmxPortArray", &g_define_type_info, 0);
+	}
+	return g_omx_port_array_type_id;
+}
+
+
+static void g_omx_port_array_get_property (GObject * object, guint property_id, GValue * value, GParamSpec * pspec) {
+	GOmxPortArray * self;
+	self = G_OMX_PORT_ARRAY (object);
+	switch (property_id) {
+		case G_OMX_PORT_ARRAY_LENGTH:
+		g_value_set_uint (value, g_omx_port_array_get_length (self));
 		break;
 		default:
 		G_OBJECT_WARN_INVALID_PROPERTY_ID (object, property_id, pspec);
@@ -3404,7 +3295,7 @@ void g_omx_port_use_buffers_of (GOmxPort* self, GOmxPort* port, GError** error) 
 				if (!(i < n_buffers)) {
 					break;
 				}
-				buffer_used = g_omx_port_get_buffer (port, i);
+				buffer_used = port->priv->_buffers[i];
 				g_omx_try_run (OMX_UseBuffer (g_omx_component_get_handle (self->priv->_component), &self->priv->_buffers[i], (guint) self->definition.nPortIndex, self->priv->_component, (guint) self->definition.nBufferSize, buffer_used->pBuffer), &_inner_error_);
 				if (_inner_error_ != NULL) {
 					if (_inner_error_->domain == G_OMX_ERROR) {
@@ -3592,15 +3483,6 @@ void g_omx_port_flush (GOmxPort* self, GError** error) {
 		}
 	}
 	g_omx_component_wait_for_flush (self->priv->_component);
-}
-
-
-OMX_BUFFERHEADERTYPE* g_omx_port_get_buffer (GOmxPort* self, guint i) {
-	OMX_BUFFERHEADERTYPE* result;
-	g_return_val_if_fail (self != NULL, NULL);
-	g_return_val_if_fail (i < self->definition.nBufferCountActual, NULL);
-	result = self->priv->_buffers[i];
-	return result;
 }
 
 
@@ -3858,14 +3740,6 @@ GAsyncQueue* g_omx_port_get_queue (GOmxPort* self) {
 }
 
 
-GOmxPortBufferList* g_omx_port_get_buffers (GOmxPort* self) {
-	GOmxPortBufferList* result;
-	g_return_val_if_fail (self != NULL, NULL);
-	result = self->priv->_buffer_list;
-	return result;
-}
-
-
 static GObject * g_omx_port_constructor (GType type, guint n_construct_properties, GObjectConstructParam * construct_properties) {
 	GObject * obj;
 	GObjectClass * parent_class;
@@ -3874,190 +3748,9 @@ static GObject * g_omx_port_constructor (GType type, guint n_construct_propertie
 	obj = parent_class->constructor (type, n_construct_properties, construct_properties);
 	self = G_OMX_PORT (obj);
 	{
-		GOmxPortBufferList* _tmp8_;
-		self->priv->_buffer_list = (_tmp8_ = g_omx_port_buffer_list_new (self), _g_object_unref0 (self->priv->_buffer_list), _tmp8_);
 		omx_structure_init (&self->definition);
 	}
 	return obj;
-}
-
-
-GOmxPortBufferList* g_omx_port_buffer_list_construct (GType object_type, GOmxPort* port) {
-	GOmxPortBufferList * self;
-	g_return_val_if_fail (port != NULL, NULL);
-	self = (GOmxPortBufferList*) g_object_new (object_type, "port", port, NULL);
-	return self;
-}
-
-
-GOmxPortBufferList* g_omx_port_buffer_list_new (GOmxPort* port) {
-	return g_omx_port_buffer_list_construct (G_OMX_PORT_TYPE_BUFFER_LIST, port);
-}
-
-
-GOmxPortBufferListIterator* g_omx_port_buffer_list_iterator (GOmxPortBufferList* self) {
-	GOmxPortBufferListIterator* result;
-	g_return_val_if_fail (self != NULL, NULL);
-	result = g_omx_port_buffer_list_iterator_new (self);
-	return result;
-}
-
-
-OMX_BUFFERHEADERTYPE* g_omx_port_buffer_list_get (GOmxPortBufferList* self, guint index) {
-	OMX_BUFFERHEADERTYPE* result;
-	g_return_val_if_fail (self != NULL, NULL);
-	result = g_omx_port_get_buffer (self->priv->_port, index);
-	return result;
-}
-
-
-GOmxPort* g_omx_port_buffer_list_get_port (GOmxPortBufferList* self) {
-	GOmxPort* result;
-	g_return_val_if_fail (self != NULL, NULL);
-	result = self->priv->_port;
-	return result;
-}
-
-
-void g_omx_port_buffer_list_set_port (GOmxPortBufferList* self, GOmxPort* value) {
-	GOmxPort* _tmp0_;
-	g_return_if_fail (self != NULL);
-	self->priv->_port = (_tmp0_ = _g_object_ref0 (value), _g_object_unref0 (self->priv->_port), _tmp0_);
-	g_object_notify ((GObject *) self, "port");
-}
-
-
-guint g_omx_port_buffer_list_get_length (GOmxPortBufferList* self) {
-	guint result;
-	g_return_val_if_fail (self != NULL, 0U);
-	result = g_omx_port_get_n_buffers (self->priv->_port);
-	return result;
-}
-
-
-GOmxPortBufferListIterator* g_omx_port_buffer_list_iterator_construct (GType object_type, GOmxPortBufferList* list) {
-	GOmxPortBufferListIterator * self;
-	GOmxPort* _tmp0_;
-	g_return_val_if_fail (list != NULL, NULL);
-	self = (GOmxPortBufferListIterator*) g_object_new (object_type, NULL);
-	self->priv->_port = (_tmp0_ = _g_object_ref0 (list->priv->_port), _g_object_unref0 (self->priv->_port), _tmp0_);
-	return self;
-}
-
-
-GOmxPortBufferListIterator* g_omx_port_buffer_list_iterator_new (GOmxPortBufferList* list) {
-	return g_omx_port_buffer_list_iterator_construct (G_OMX_PORT_BUFFER_LIST_TYPE_ITERATOR, list);
-}
-
-
-gboolean g_omx_port_buffer_list_iterator_next (GOmxPortBufferListIterator* self) {
-	gboolean result;
-	g_return_val_if_fail (self != NULL, FALSE);
-	result = self->priv->_index < g_omx_port_get_n_buffers (self->priv->_port);
-	return result;
-}
-
-
-OMX_BUFFERHEADERTYPE* g_omx_port_buffer_list_iterator_get (GOmxPortBufferListIterator* self) {
-	OMX_BUFFERHEADERTYPE* result;
-	g_return_val_if_fail (self != NULL, NULL);
-	result = g_omx_port_get_buffer (self->priv->_port, self->priv->_index++);
-	return result;
-}
-
-
-static void g_omx_port_buffer_list_iterator_class_init (GOmxPortBufferListIteratorClass * klass) {
-	g_omx_port_buffer_list_iterator_parent_class = g_type_class_peek_parent (klass);
-	g_type_class_add_private (klass, sizeof (GOmxPortBufferListIteratorPrivate));
-	G_OBJECT_CLASS (klass)->finalize = g_omx_port_buffer_list_iterator_finalize;
-}
-
-
-static void g_omx_port_buffer_list_iterator_instance_init (GOmxPortBufferListIterator * self) {
-	self->priv = G_OMX_PORT_BUFFER_LIST_ITERATOR_GET_PRIVATE (self);
-}
-
-
-static void g_omx_port_buffer_list_iterator_finalize (GObject* obj) {
-	GOmxPortBufferListIterator * self;
-	self = G_OMX_PORT_BUFFER_LIST_ITERATOR (obj);
-	_g_object_unref0 (self->priv->_port);
-	G_OBJECT_CLASS (g_omx_port_buffer_list_iterator_parent_class)->finalize (obj);
-}
-
-
-GType g_omx_port_buffer_list_iterator_get_type (void) {
-	static GType g_omx_port_buffer_list_iterator_type_id = 0;
-	if (g_omx_port_buffer_list_iterator_type_id == 0) {
-		static const GTypeInfo g_define_type_info = { sizeof (GOmxPortBufferListIteratorClass), (GBaseInitFunc) NULL, (GBaseFinalizeFunc) NULL, (GClassInitFunc) g_omx_port_buffer_list_iterator_class_init, (GClassFinalizeFunc) NULL, NULL, sizeof (GOmxPortBufferListIterator), 0, (GInstanceInitFunc) g_omx_port_buffer_list_iterator_instance_init, NULL };
-		g_omx_port_buffer_list_iterator_type_id = g_type_register_static (G_TYPE_OBJECT, "GOmxPortBufferListIterator", &g_define_type_info, 0);
-	}
-	return g_omx_port_buffer_list_iterator_type_id;
-}
-
-
-static void g_omx_port_buffer_list_class_init (GOmxPortBufferListClass * klass) {
-	g_omx_port_buffer_list_parent_class = g_type_class_peek_parent (klass);
-	g_type_class_add_private (klass, sizeof (GOmxPortBufferListPrivate));
-	G_OBJECT_CLASS (klass)->get_property = g_omx_port_buffer_list_get_property;
-	G_OBJECT_CLASS (klass)->set_property = g_omx_port_buffer_list_set_property;
-	G_OBJECT_CLASS (klass)->finalize = g_omx_port_buffer_list_finalize;
-	g_object_class_install_property (G_OBJECT_CLASS (klass), G_OMX_PORT_BUFFER_LIST_PORT, g_param_spec_object ("port", "port", "port", G_OMX_TYPE_PORT, G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK | G_PARAM_STATIC_BLURB | G_PARAM_READABLE | G_PARAM_WRITABLE | G_PARAM_CONSTRUCT));
-	g_object_class_install_property (G_OBJECT_CLASS (klass), G_OMX_PORT_BUFFER_LIST_LENGTH, g_param_spec_uint ("length", "length", "length", 0, G_MAXUINT, 0U, G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK | G_PARAM_STATIC_BLURB | G_PARAM_READABLE));
-}
-
-
-static void g_omx_port_buffer_list_instance_init (GOmxPortBufferList * self) {
-	self->priv = G_OMX_PORT_BUFFER_LIST_GET_PRIVATE (self);
-}
-
-
-static void g_omx_port_buffer_list_finalize (GObject* obj) {
-	GOmxPortBufferList * self;
-	self = G_OMX_PORT_BUFFER_LIST (obj);
-	_g_object_unref0 (self->priv->_port);
-	G_OBJECT_CLASS (g_omx_port_buffer_list_parent_class)->finalize (obj);
-}
-
-
-GType g_omx_port_buffer_list_get_type (void) {
-	static GType g_omx_port_buffer_list_type_id = 0;
-	if (g_omx_port_buffer_list_type_id == 0) {
-		static const GTypeInfo g_define_type_info = { sizeof (GOmxPortBufferListClass), (GBaseInitFunc) NULL, (GBaseFinalizeFunc) NULL, (GClassInitFunc) g_omx_port_buffer_list_class_init, (GClassFinalizeFunc) NULL, NULL, sizeof (GOmxPortBufferList), 0, (GInstanceInitFunc) g_omx_port_buffer_list_instance_init, NULL };
-		g_omx_port_buffer_list_type_id = g_type_register_static (G_TYPE_OBJECT, "GOmxPortBufferList", &g_define_type_info, 0);
-	}
-	return g_omx_port_buffer_list_type_id;
-}
-
-
-static void g_omx_port_buffer_list_get_property (GObject * object, guint property_id, GValue * value, GParamSpec * pspec) {
-	GOmxPortBufferList * self;
-	self = G_OMX_PORT_BUFFER_LIST (object);
-	switch (property_id) {
-		case G_OMX_PORT_BUFFER_LIST_PORT:
-		g_value_set_object (value, g_omx_port_buffer_list_get_port (self));
-		break;
-		case G_OMX_PORT_BUFFER_LIST_LENGTH:
-		g_value_set_uint (value, g_omx_port_buffer_list_get_length (self));
-		break;
-		default:
-		G_OBJECT_WARN_INVALID_PROPERTY_ID (object, property_id, pspec);
-		break;
-	}
-}
-
-
-static void g_omx_port_buffer_list_set_property (GObject * object, guint property_id, const GValue * value, GParamSpec * pspec) {
-	GOmxPortBufferList * self;
-	self = G_OMX_PORT_BUFFER_LIST (object);
-	switch (property_id) {
-		case G_OMX_PORT_BUFFER_LIST_PORT:
-		g_omx_port_buffer_list_set_port (self, g_value_get_object (value));
-		break;
-		default:
-		G_OBJECT_WARN_INVALID_PROPERTY_ID (object, property_id, pspec);
-		break;
-	}
 }
 
 
@@ -4074,7 +3767,6 @@ static void g_omx_port_class_init (GOmxPortClass * klass) {
 	g_object_class_install_property (G_OBJECT_CLASS (klass), G_OMX_PORT_INDEX, g_param_spec_uint ("index", "index", "index", 0, G_MAXUINT, 0U, G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK | G_PARAM_STATIC_BLURB | G_PARAM_READABLE | G_PARAM_WRITABLE));
 	g_object_class_install_property (G_OBJECT_CLASS (klass), G_OMX_PORT_EOS, g_param_spec_boolean ("eos", "eos", "eos", FALSE, G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK | G_PARAM_STATIC_BLURB | G_PARAM_READABLE));
 	g_object_class_install_property (G_OBJECT_CLASS (klass), G_OMX_PORT_QUEUE, g_param_spec_pointer ("queue", "queue", "queue", G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK | G_PARAM_STATIC_BLURB | G_PARAM_READABLE));
-	g_object_class_install_property (G_OBJECT_CLASS (klass), G_OMX_PORT_BUFFERS, g_param_spec_object ("buffers", "buffers", "buffers", G_OMX_PORT_TYPE_BUFFER_LIST, G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK | G_PARAM_STATIC_BLURB | G_PARAM_READABLE));
 }
 
 
@@ -4088,7 +3780,6 @@ static void g_omx_port_finalize (GObject* obj) {
 	self = G_OMX_PORT (obj);
 	self->priv->_buffers = (g_free (self->priv->_buffers), NULL);
 	_g_async_queue_unref0 (self->priv->_buffers_queue);
-	_g_object_unref0 (self->priv->_buffer_list);
 	(self->priv->_buffer_done_func_target_destroy_notify == NULL) ? NULL : self->priv->_buffer_done_func_target_destroy_notify (self->priv->_buffer_done_func_target);
 	self->priv->_buffer_done_func = NULL;
 	self->priv->_buffer_done_func_target = NULL;
@@ -4131,9 +3822,6 @@ static void g_omx_port_get_property (GObject * object, guint property_id, GValue
 		break;
 		case G_OMX_PORT_QUEUE:
 		g_value_set_pointer (value, g_omx_port_get_queue (self));
-		break;
-		case G_OMX_PORT_BUFFERS:
-		g_value_set_object (value, g_omx_port_get_buffers (self));
 		break;
 		default:
 		G_OBJECT_WARN_INVALID_PROPERTY_ID (object, property_id, pspec);
@@ -4205,10 +3893,10 @@ static GObject * g_omx_semaphore_constructor (GType type, guint n_construct_prop
 	obj = parent_class->constructor (type, n_construct_properties, construct_properties);
 	self = G_OMX_SEMAPHORE (obj);
 	{
-		GCond* _tmp9_;
-		GMutex* _tmp10_;
-		self->priv->_cond = (_tmp9_ = g_cond_new (), _g_cond_free0 (self->priv->_cond), _tmp9_);
-		self->priv->_mutex = (_tmp10_ = g_mutex_new (), _g_mutex_free0 (self->priv->_mutex), _tmp10_);
+		GCond* _tmp7_;
+		GMutex* _tmp8_;
+		self->priv->_cond = (_tmp7_ = g_cond_new (), _g_cond_free0 (self->priv->_cond), _tmp7_);
+		self->priv->_mutex = (_tmp8_ = g_mutex_new (), _g_mutex_free0 (self->priv->_mutex), _tmp8_);
 		self->priv->counter = 0;
 	}
 	return obj;

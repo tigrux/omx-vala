@@ -102,17 +102,17 @@ namespace GOmx {
         }
     }
 
-
+////////////////////////////////////////////////////////////////////////////////
 
     public class Engine: Object {
-        ComponentList _component_list;
+        ComponentList _components;
         PortQueue _port_queue;
         uint _n_components;
 
 
         public ComponentList components {
             get {
-                return _component_list;
+                return _components;
             }
         }
 
@@ -130,7 +130,7 @@ namespace GOmx {
 
 
         construct {
-            _component_list = new ComponentList();
+            _components = new ComponentList();
             _port_queue = new PortQueue();
         }
 
@@ -138,14 +138,14 @@ namespace GOmx {
         public void add_component(uint id, Component component) {
             component.id = id;
             component.queue = _port_queue.queue;
-            _component_list.append(component);
+            _components.append(component);
             _n_components++;
         }
 
 
         public virtual void buffers_begin_transfer()
         throws Error {
-            foreach(var component in _component_list) {
+            foreach(var component in _components) {
                 component.buffers_begin_transfer();
                 break;
             }
@@ -154,39 +154,39 @@ namespace GOmx {
 
         public virtual void init()
         throws Error {
-            foreach(var component in _component_list)
+            foreach(var component in _components)
                 component.init();
         }
 
 
         public virtual void set_state(Omx.State state)
         throws Error {
-            foreach(var component in _component_list)
+            foreach(var component in _components)
                 component.set_state(state);
         }
 
 
         public virtual void set_state_and_wait(Omx.State state)
         throws Error {
-            foreach(var component in _component_list)
+            foreach(var component in _components)
                 component.set_state_and_wait(state);
         }
 
 
         public virtual void wait_for_state_set() {
-            foreach(var component in _component_list)
+            foreach(var component in _components)
                 component.wait_for_state();
         }
 
 
         public virtual void free_handles()
         throws Error {
-            foreach(var component in _component_list)
+            foreach(var component in _components)
                 component.free_handle();
         }
     }
 
-
+////////////////////////////////////////////////////////////////////////////////
 
     public class ComponentList: Object {
         List<Component> _components_list;
@@ -241,7 +241,7 @@ namespace GOmx {
         }
     }
 
-
+////////////////////////////////////////////////////////////////////////////////
 
     public class PortQueue: Object {
         AsyncQueue<Port> _queue;
@@ -319,6 +319,7 @@ namespace GOmx {
         }
     }
 
+////////////////////////////////////////////////////////////////////////////////
 
     public class Component: Object {
         public Omx.PortParam ports_param;
@@ -334,8 +335,7 @@ namespace GOmx {
         Semaphore _wait_for_flush_sem;
 
         weak AsyncQueue<Port> _ports_queue;
-        Port[] _ports;
-        PortList _port_list;
+        PortArray _ports;
 
         public delegate void EventFunc(
             Component component, uint data1, uint data2, void *event_data);
@@ -372,9 +372,9 @@ namespace GOmx {
         }
 
 
-        public PortList ports {
+        public PortArray ports {
             get {
-                return _port_list;
+                return _ports;
             }
         }
 
@@ -434,7 +434,6 @@ namespace GOmx {
             _wait_for_state_sem = new Semaphore();
             _wait_for_port_sem = new Semaphore();
             _wait_for_flush_sem = new Semaphore();
-            _port_list = new PortList(this);
             _current_state = Omx.State.Invalid;
             _previous_state = Omx.State.Invalid;
             _pending_state = Omx.State.Invalid;
@@ -452,13 +451,6 @@ namespace GOmx {
 
         public uint get_n_ports() {
             return ports_param.ports;
-        }
-
-
-        public Port get_port(uint i)
-        requires(i-ports_param.start_port_number < ports_param.ports &&
-                 i-ports_param.start_port_number >= 0) {
-            return _ports[i-ports_param.start_port_number];
         }
 
 
@@ -493,11 +485,11 @@ namespace GOmx {
 
         protected virtual void allocate_ports()
         throws Error requires(_ports == null) {
-            var first_port = ports_param.start_port_number;
-            var last_port = first_port +  ports_param.ports;
+            var start_port = ports_param.start_port_number;
+            var last_port = start_port +  ports_param.ports;
 
-            _ports = new Port[ports_param.ports];
-            for(uint i=first_port; i<last_port; i++) {
+            _ports = new PortArray(ports_param.ports, start_port);
+            for(uint i=start_port; i<last_port; i++) {
                 var port = new Port(this, i);
                 port.init();
                 port.name = "%s_port%u".printf(name, i);
@@ -729,7 +721,7 @@ namespace GOmx {
         Omx.Error empty_buffer_done(
                 Omx.Handle component,
                 Omx.BufferHeader buffer) {
-            var port = get_port(buffer.input_port_index);
+            var port = _ports[buffer.input_port_index];
             return buffer_done(port, buffer);
         }
 
@@ -737,7 +729,7 @@ namespace GOmx {
         Omx.Error fill_buffer_done(
                 Omx.Handle component,
                 Omx.BufferHeader buffer) {
-            var port = get_port(buffer.output_port_index);
+            var port = _ports[buffer.output_port_index];
             return buffer_done(port, buffer);
         }
 
@@ -750,64 +742,77 @@ namespace GOmx {
             port.buffer_done(buffer);
             return Omx.Error.None;
         }
+    }
+
+////////////////////////////////////////////////////////////////////////////////
+
+    public class PortArray: Object {
+        Port[] _ports;
+        uint _start_index;
+
+        
+        uint start {
+            get {
+                return _start_index;
+            }
+        }
 
 
+        public uint length {
+            get {
+                return _ports.length;
+            }
+        }
 
-        public class PortList: Object {
-            public Component component {
-                get; construct set;
+
+        public PortArray(uint length, uint start_index=0) {
+            start_index = _start_index;
+            _ports = new Port[length];
+        }
+
+
+        public Iterator iterator() {
+            return new Iterator(this);
+        }
+
+
+        public new Port get(uint index)
+        requires(index-_start_index < _ports.length && index-_start_index >=0) {
+            return _ports[index - _start_index];
+        }
+
+
+        public new void set(uint index, Port port) {
+            _ports[index - _start_index] = port;
+        }
+
+
+        public class Iterator: Object {
+            PortArray _array;
+            uint _index;
+
+            public Iterator(PortArray array) {
+                _array = array;
+                _index = array.start;
             }
 
-
-            public uint length {
-                get {
-                    return _component._ports.length;
-                }
+            public bool next() {
+                return _index < _array.length + _array.start;
             }
 
-
-            public PortList(Component component) {
-                Object(component: component);
-            }
-
-
-            public Iterator iterator() {
-                return new Iterator(this);
-            }
-
-
-            public new Port get(uint index) {
-                return _component._ports[index];
-            }
-
-
-            public class Iterator: Object {
-                Component _component;
-                uint _index;
-
-                public Iterator(PortList list) {
-                    _component = list._component;
-                }
-
-                public bool next() {
-                    return _index < _component._ports.length;
-                }
-
-                public new Port get() {
-                    return _component._ports[_index++];
-                }
+            public new Port get() {
+                return _array[_index++];
             }
         }
     }
 
-
+////////////////////////////////////////////////////////////////////////////////
 
     public class Port: Object {
         public Omx.Param.PortDefinition definition;
 
         Omx.BufferHeader[] _buffers;
         AsyncQueue<Omx.BufferHeader> _buffers_queue;
-        BufferList _buffer_list;
         bool _eos;
         BufferDoneFunc _buffer_done_func;
         Port _peer;
@@ -856,15 +861,7 @@ namespace GOmx {
         }
 
 
-        public BufferList buffers {
-            get {
-                return _buffer_list;
-            }
-        }
-
-
         construct {
-            _buffer_list = new BufferList(this);
             definition.init();
         }
 
@@ -925,7 +922,7 @@ namespace GOmx {
             uint n_buffers = definition.buffer_count_actual;
             _buffers = new Omx.BufferHeader[n_buffers];
             for(uint i=0; i<n_buffers; i++) {
-                var buffer_used = port.get_buffer(i);
+                var buffer_used = port._buffers[i];
                 try_run(
                     _component.handle.use_buffer(
                         out _buffers[i], definition.port_index,
@@ -965,12 +962,6 @@ namespace GOmx {
         throws Error requires(_component != null) {
             _component.send_command(Omx.Command.Flush, index);
             _component.wait_for_flush();
-        }
-
-
-        public weak Omx.BufferHeader get_buffer(uint i)
-        requires(i < definition.buffer_count_actual) {
-            return _buffers[i];
         }
 
 
@@ -1048,56 +1039,9 @@ namespace GOmx {
                     break;
             }
         }
-
-
-        public class BufferList: Object {
-            public Port port {
-                get; construct set;
-            }
-
-
-            public BufferList(Port port) {
-                Object(port: port);
-            }
-
-
-            public Iterator iterator() {
-                return new Iterator(this);
-            }
-
-
-            public uint length {
-                get {
-                    return _port.get_n_buffers();
-                }
-            }
-
-
-            public new Omx.BufferHeader get(uint index) {
-                return _port.get_buffer(index);
-            }
-
-
-            public class Iterator: Object {
-                Port _port;
-                uint _index;
-
-                public Iterator(BufferList list) {
-                    _port = list._port;
-                }
-
-                public bool next() {
-                    return _index < _port.get_n_buffers();
-                }
-
-                public new Omx.BufferHeader get() {
-                    return _port.get_buffer(_index++);
-                }
-            }
-        }
     }
 
-
+////////////////////////////////////////////////////////////////////////////////
 
     public class Semaphore: Object {
         Cond _cond;
@@ -1129,7 +1073,7 @@ namespace GOmx {
         }
     }
 
-
+////////////////////////////////////////////////////////////////////////////////
 
     public bool buffer_is_eos(Omx.BufferHeader buffer) {
         return buffer.eos;
@@ -1189,7 +1133,7 @@ namespace GOmx {
         return error.to_string();
     }
 
-
+////////////////////////////////////////////////////////////////////////////////
 
     public errordomain Error {
         None,

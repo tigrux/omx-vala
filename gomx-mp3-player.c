@@ -186,7 +186,7 @@ void play (const char* filename, GError** error) {
 								GOmxPort* audiosink_inport;
 								OMX_BUFFERHEADERTYPE* audiosink_buffer;
 								buffer = g_omx_port_pop_buffer (port);
-								audiosink_inport = g_omx_component_port_list_get (g_omx_component_get_ports ((GOmxComponent*) audiosink), (guint) 0);
+								audiosink_inport = g_omx_port_array_get (g_omx_component_get_ports ((GOmxComponent*) audiosink), (guint) 0);
 								audiosink_buffer = g_omx_port_pop_buffer (audiosink_inport);
 								g_omx_buffer_copy (audiosink_buffer, buffer);
 								g_omx_port_push_buffer (audiosink_inport, audiosink_buffer, &_inner_error_);
