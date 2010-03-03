@@ -766,7 +766,7 @@ enum  {
 void g_omx_port_get_parameter (GOmxPort* self, GError** error);
 void g_omx_port_set_parameter (GOmxPort* self, GError** error);
 guint g_omx_port_get_index (GOmxPort* self);
-void g_omx_port_setup_tunnel_with (GOmxPort* self, GOmxPort* port, GError** error);
+void g_omx_port_setup_tunnel_with_port (GOmxPort* self, GOmxPort* port, GError** error);
 void g_omx_port_use_buffers_of_port (GOmxPort* self, GOmxPort* port, GError** error);
 void g_omx_port_use_buffers_of_array (GOmxPort* self, guint8** array, int array_length1, GError** error);
 void g_omx_port_enable (GOmxPort* self, GError** error);
@@ -3310,7 +3310,7 @@ void g_omx_port_allocate_buffers (GOmxPort* self, GError** error) {
 }
 
 
-void g_omx_port_setup_tunnel_with (GOmxPort* self, GOmxPort* port, GError** error) {
+void g_omx_port_setup_tunnel_with_port (GOmxPort* self, GOmxPort* port, GError** error) {
 	GError * _inner_error_;
 	GOmxPort* _tmp0_;
 	g_return_if_fail (self != NULL);

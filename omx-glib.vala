@@ -928,7 +928,7 @@ namespace GOmx {
         }
 
 
-        public void setup_tunnel_with(Port port)
+        public void setup_tunnel_with_port(Port port)
         throws Error requires(_component != null) {
             _component.core.setup_tunnel(
                 _component.handle, index,
