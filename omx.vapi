@@ -126,11 +126,11 @@ namespace Omx {
                 case InvalidState:
                     return "The component is in the OMX_StateInvalid state";
                 case StreamCorrupt:
-                    return "The stream is found to be corrupt. OMX IL components processing coded data (typically decoders) may have the ability to detect corruption in the data stream. Also they may have the ability to detect missing frames and perform error concealment. Such components should report these errors to the client using this error code on a frame basis. Note that the components will in most cases continue normal operation";
+                    return "The stream is found to be corrupt";
                 case PortsNotCompatible:
                     return "Ports being set up for tunneled communication are incompatible";
                 case ResourcesLost:
-                    return "Resources allocated to a component in the OMX_StateIdle state have been lost, which has resulted in the component returning to the OMX_StateLoaded state.";
+                    return "Resources allocated to a component in the OMX_StateIdle state have been lost";
                 case NoMore:
                     return "No more indices can be enumerated";
                 case VersionMismatch:
@@ -138,17 +138,17 @@ namespace Omx {
                 case NotReady:
                     return "The component is not ready to return data at this time";
                 case Timeout:
-                    return "A timeout occurred where the component was unable to process the call in a reasonable amount of time. This could be due to an infinite loop, or busy hardware";
+                    return "A timeout occurred where the component was unable to process the call in a reasonable amount of time";
                 case SameState:
                     return "The component tried to transition into the state that it is currently in";
                 case ResourcesPreempted:
-                    return "Resources allocated to a component in the OMX_StateExecuting or OMX_StatePause states have been pre-empted, causing the component to return to the OMX_StateIdle state";
+                    return "Resources allocated to a component in the OMX_StateExecuting or OMX_StatePause states have been pre-empted";
                 case PortUnresponsiveDuringAllocation:
-                    return "The non-supplier port deemed that it had waited an unusually long time for the supplier port to send it an allocated buffer via an OMX_UseBuffer call. A non-supplier port sends this error to the IL client via the EventHandler callback during the allocation of buffers on a transition from the LOADED to the IDLE state or on a port enable";
+                    return "The non-supplier port deemed that it had waited an unusually long time for the supplier port to send it an allocated buffer via an OMX_UseBuffer call";
                 case PortUnresponsiveDuringDeallocation:
-                    return "The non-supplier port deemed that it had waited an unusually long time for the supplier port to request the de-allocation of a buffer header via a OMX_FreeBuffer call. A non- supplier port sends this error to the IL client via the EventHandler callback during the de-allocation of buffers on a transition from the IDLE to LOADED state or on a port disablement";
+                    return "The non-supplier port deemed that it had waited an unusually long time for the supplier port to request the de-allocation of a buffer header via a OMX_FreeBuffer call";
                 case PortUnresponsiveDuringStop:
-                    return "The supplier port deemed that it had waited an unusually long time for the non-supplier port to return a buffer via an EmptyThisBuffer or FillThisBuffer call. A supplier port sent this error to the IL client via the EventHandler callback during the disabling of a port, either on a transition from the IDLE to LOADED state or on a port disablement";
+                    return "The supplier port deemed that it had waited an unusually long time for the non-supplier port to return a buffer via an EmptyThisBuffer or FillThisBuffer call";
                 case IncorrectStateTransition:
                     return "A state transition was attempted that is not allowed.";
                 case IncorrectStateOperation:
@@ -168,7 +168,7 @@ namespace Omx {
                 case MbErrorsInFrame:
                     return "Errors detected in frame";
                 case FormatNotDetected:
-                    return "OMX IL components performing parsing when reading input buffers or content pipes have the ability to check correct formatting of input data. Such components should report this error to the client (in the form of an OMX_EventError event passed via the EventHandler callback) when it cannot parse or determine the format of the given datastream. This reporting is performed only once in case of file parsing error. In other cases, it is performed on every data unit (e.g. frame) formatting error.";
+                    return "Component cannot parse or determine the format of the given datastream";
                 case ContentPipeOpenFailed:
                     return "Opening the Content Pipe failed";
                 case ContentPipeCreationFailed:

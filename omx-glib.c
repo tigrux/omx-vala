@@ -933,7 +933,7 @@ static const char* omx_error_to_string (OMX_ERRORTYPE self) {
 		}
 		case OMX_ErrorStreamCorrupt:
 		{
-			result = "The stream is found to be corrupt. OMX IL components processing coded data (typically decoders) may have the ability to detect corruption in the data stream. Also they may have the ability to detect missing frames and perform error concealment. Such components should report these errors to the client using this error code on a frame basis. Note that the components will in most cases continue normal operation";
+			result = "The stream is found to be corrupt";
 			return result;
 		}
 		case OMX_ErrorPortsNotCompatible:
@@ -943,7 +943,7 @@ static const char* omx_error_to_string (OMX_ERRORTYPE self) {
 		}
 		case OMX_ErrorResourcesLost:
 		{
-			result = "Resources allocated to a component in the OMX_StateIdle state have been lost, which has resulted in the component returning to the OMX_StateLoaded state.";
+			result = "Resources allocated to a component in the OMX_StateIdle state have been lost";
 			return result;
 		}
 		case OMX_ErrorNoMore:
@@ -963,7 +963,7 @@ static const char* omx_error_to_string (OMX_ERRORTYPE self) {
 		}
 		case OMX_ErrorTimeout:
 		{
-			result = "A timeout occurred where the component was unable to process the call in a reasonable amount of time. This could be due to an infinite loop, or busy hardware";
+			result = "A timeout occurred where the component was unable to process the call in a reasonable amount of time";
 			return result;
 		}
 		case OMX_ErrorSameState:
@@ -973,22 +973,22 @@ static const char* omx_error_to_string (OMX_ERRORTYPE self) {
 		}
 		case OMX_ErrorResourcesPreempted:
 		{
-			result = "Resources allocated to a component in the OMX_StateExecuting or OMX_StatePause states have been pre-empted, causing the component to return to the OMX_StateIdle state";
+			result = "Resources allocated to a component in the OMX_StateExecuting or OMX_StatePause states have been pre-empted";
 			return result;
 		}
 		case OMX_ErrorPortUnresponsiveDuringAllocation:
 		{
-			result = "The non-supplier port deemed that it had waited an unusually long time for the supplier port to send it an allocated buffer via an OMX_UseBuffer call. A non-supplier port sends this error to the IL client via the EventHandler callback during the allocation of buffers on a transition from the LOADED to the IDLE state or on a port enable";
+			result = "The non-supplier port deemed that it had waited an unusually long time for the supplier port to send it an allocated buffer via an OMX_UseBuffer call";
 			return result;
 		}
 		case OMX_ErrorPortUnresponsiveDuringDeallocation:
 		{
-			result = "The non-supplier port deemed that it had waited an unusually long time for the supplier port to request the de-allocation of a buffer header via a OMX_FreeBuffer call. A non- supplier port sends this error to the IL client via the EventHandler callback during the de-allocation of buffers on a transition from the IDLE to LOADED state or on a port disablement";
+			result = "The non-supplier port deemed that it had waited an unusually long time for the supplier port to request the de-allocation of a buffer header via a OMX_FreeBuffer call";
 			return result;
 		}
 		case OMX_ErrorPortUnresponsiveDuringStop:
 		{
-			result = "The supplier port deemed that it had waited an unusually long time for the non-supplier port to return a buffer via an EmptyThisBuffer or FillThisBuffer call. A supplier port sent this error to the IL client via the EventHandler callback during the disabling of a port, either on a transition from the IDLE to LOADED state or on a port disablement";
+			result = "The supplier port deemed that it had waited an unusually long time for the non-supplier port to return a buffer via an EmptyThisBuffer or FillThisBuffer call";
 			return result;
 		}
 		case OMX_ErrorIncorrectStateTransition:
@@ -1038,7 +1038,7 @@ static const char* omx_error_to_string (OMX_ERRORTYPE self) {
 		}
 		case OMX_ErrorFormatNotDetected:
 		{
-			result = "OMX IL components performing parsing when reading input buffers or content pipes have the ability to check correct formatting of input data. Such components should report this error to the client (in the form of an OMX_EventError event passed via the EventHandler callback) when it cannot parse or determine the format of the given datastream. This reporting is performed only once in case of file parsing error. In other cases, it is performed on every data unit (e.g. frame) formatting error.";
+			result = "Component cannot parse or determine the format of the given datastream";
 			return result;
 		}
 		case OMX_ErrorContentPipeOpenFailed:
