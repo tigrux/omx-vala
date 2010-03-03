@@ -105,7 +105,6 @@ namespace GOmx {
 
 
     public class Engine: Object {
-        List<Component> _components_list;
         ComponentList _component_list;
         PortQueue _port_queue;
         bool _transfering;
@@ -138,8 +137,7 @@ namespace GOmx {
 
 
         construct {
-            _components_list = new List<Component>();
-            _component_list = new ComponentList(this);
+            _component_list = new ComponentList();
             _port_queue = new PortQueue(this);
         }
 
@@ -147,20 +145,20 @@ namespace GOmx {
         public void add_component(uint id, Component component) {
             component.id = id;
             component.queue = _port_queue.queue;
-            _components_list.append(component);
+            _component_list.append(component);
             _n_components++;
         }
 
 
         public Component get_component(uint i)
         requires(i < _n_components) {
-            return _components_list.nth_data(i);
+            return _component_list[i];
         }
 
 
         public virtual void buffers_begin_transfer()
         throws Error requires(!_transfering) {
-            foreach(var component in _components_list) {
+            foreach(var component in _component_list) {
                 component.buffers_begin_transfer();
                 break;
             }
@@ -170,34 +168,34 @@ namespace GOmx {
 
         public virtual void init()
         throws Error {
-            foreach(var component in _components_list)
+            foreach(var component in _component_list)
                 component.init();
         }
 
 
         public virtual void set_state(Omx.State state)
         throws Error {
-            foreach(var component in _components_list)
+            foreach(var component in _component_list)
                 component.set_state(state);
         }
 
 
         public virtual void set_state_and_wait(Omx.State state)
         throws Error {
-            foreach(var component in _components_list)
+            foreach(var component in _component_list)
                 component.set_state_and_wait(state);
         }
 
 
         public virtual void wait_for_state_set() {
-            foreach(var component in _components_list)
+            foreach(var component in _component_list)
                 component.wait_for_state();
         }
 
 
         public virtual void free_handles()
         throws Error {
-            foreach(var component in _components_list)
+            foreach(var component in _component_list)
                 component.free_handle();
         }
 
@@ -229,13 +227,18 @@ namespace GOmx {
 
 
         public class ComponentList: Object {
-            public Engine engine {
-                get; construct set;
+            List<Component> _components_list;
+            uint size;
+
+
+            construct {
+                _components_list = new List<Component>();
             }
 
 
-            public ComponentList(Engine engine) {
-                Object(engine: engine);
+            public void append(Component component) {
+                _components_list.append(component);
+                size++;
             }
 
 
@@ -246,13 +249,14 @@ namespace GOmx {
 
             public uint length {
                 get {
-                    return _engine.get_n_components();
+                    return size;
                 }
             }
 
 
-            public new Component get(uint index) {
-                return _engine.get_component(index);
+            public new Component get(uint index)
+            requires(index < size) {
+                return _components_list.nth_data(index);
             }
 
 
@@ -260,7 +264,7 @@ namespace GOmx {
                 weak List<Component> _components_list;
 
                 public Iterator(ComponentList list) {
-                    _components_list = list._engine._components_list;
+                    _components_list = list._components_list;
                 }
 
                 public bool next() {

@@ -87,10 +87,10 @@ namespace GOmx {
 				public GOmx.Component @get ();
 				public bool next ();
 			}
-			public ComponentList (GOmx.Engine engine);
+			public ComponentList ();
+			public void append (GOmx.Component component);
 			public GOmx.Component @get (uint index);
 			public GOmx.Engine.ComponentList.Iterator iterator ();
-			public GOmx.Engine engine { get; set construct; }
 			public uint length { get; }
 		}
 		[CCode (cheader_filename = "omx-glib.h")]

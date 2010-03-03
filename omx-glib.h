@@ -456,13 +456,12 @@ GOmxEngineIterator* g_omx_engine_iterator_construct (GType object_type, GOmxEngi
 gboolean g_omx_engine_iterator_next (GOmxEngineIterator* self);
 GType g_omx_port_get_type (void);
 GOmxPort* g_omx_engine_iterator_get (GOmxEngineIterator* self);
-GOmxEngineComponentList* g_omx_engine_component_list_new (GOmxEngine* engine);
-GOmxEngineComponentList* g_omx_engine_component_list_construct (GType object_type, GOmxEngine* engine);
+void g_omx_engine_component_list_append (GOmxEngineComponentList* self, GOmxComponent* component);
 GType g_omx_engine_component_list_iterator_get_type (void);
 GOmxEngineComponentListIterator* g_omx_engine_component_list_iterator (GOmxEngineComponentList* self);
 GOmxComponent* g_omx_engine_component_list_get (GOmxEngineComponentList* self, guint index);
-GOmxEngine* g_omx_engine_component_list_get_engine (GOmxEngineComponentList* self);
-void g_omx_engine_component_list_set_engine (GOmxEngineComponentList* self, GOmxEngine* value);
+GOmxEngineComponentList* g_omx_engine_component_list_new (void);
+GOmxEngineComponentList* g_omx_engine_component_list_construct (GType object_type);
 guint g_omx_engine_component_list_get_length (GOmxEngineComponentList* self);
 GOmxEngineComponentListIterator* g_omx_engine_component_list_iterator_new (GOmxEngineComponentList* list);
 GOmxEngineComponentListIterator* g_omx_engine_component_list_iterator_construct (GType object_type, GOmxEngineComponentList* list);
