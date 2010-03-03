@@ -44,7 +44,7 @@ public void play(string filename) throws Error {
     engine.set_state_and_wait(Omx.State.Idle);
     engine.set_state_and_wait(Omx.State.Executing);
 
-    engine.begin_transfer();
+    engine.buffers_begin_transfer();
     foreach(var port in engine.ports_with_buffer_done) {
         switch(port.component.id) {
             case AUDIODEC_ID:

@@ -70,7 +70,7 @@ namespace GOmx {
         }
 
 
-        private Core() {
+        protected Core() {
         }
 
 
@@ -112,12 +112,12 @@ namespace GOmx {
         List<Component> _components_list;
         ComponentList _component_list;
         PortQueue _port_queue;
-        bool _started;
+        bool _transfering;
         uint _n_components;
 
-        public bool started {
+        public bool transfering {
             get {
-                return _started;
+                return _transfering;
             }
         }
 
@@ -162,13 +162,13 @@ namespace GOmx {
         }
 
 
-        public virtual void begin_transfer()
-        throws GLib.Error requires(!_started) {
+        public virtual void buffers_begin_transfer()
+        throws GLib.Error requires(!_transfering) {
             foreach(var component in _components_list) {
-                component.begin_transfer();
+                component.buffers_begin_transfer();
                 break;
             }
-            _started = true;
+            _transfering = true;
         }
 
 
@@ -250,7 +250,7 @@ namespace GOmx {
 
             public uint length {
                 get {
-                    return _engine._n_components;
+                    return _engine.get_n_components();
                 }
             }
 
@@ -320,7 +320,7 @@ namespace GOmx {
 
                 public bool next() {
                     if(_eos_found)
-                        _started = false;
+                        _transfering = false;
                     return !_eos_found;
                 }
 
@@ -506,8 +506,9 @@ namespace GOmx {
 
 
         public Port get_port(uint i)
-        requires(i < ports_param.ports) {
-            return _ports[i];
+        requires(i-ports_param.start_port_number < ports_param.ports &&
+                 i-ports_param.start_port_number >= 0) {
+            return _ports[i-ports_param.start_port_number];
         }
 
 
@@ -542,9 +543,11 @@ namespace GOmx {
 
         protected virtual void allocate_ports()
         throws GLib.Error requires(_ports == null) {
-            uint n_ports = ports_param.ports;
-            _ports = new Port[n_ports];
-            for(uint i = 0; i<n_ports; i++) {
+            var first_port = ports_param.start_port_number;
+            var last_port = first_port +  ports_param.ports;
+
+            _ports = new Port[ports_param.ports];
+            for(uint i=first_port; i<last_port; i++) {
                 var port = new Port(this, i);
                 port.init();
                 port.name = "%s_port%u".printf(name, i);
@@ -563,7 +566,7 @@ namespace GOmx {
         }
 
 
-        public virtual void begin_transfer()
+        public virtual void buffers_begin_transfer()
         throws GLib.Error requires(_ports != null) {
             foreach(var port in _ports)
                 switch(port.definition.dir) {
@@ -647,42 +650,42 @@ namespace GOmx {
                 Omx.Event event,
                 EventFunc event_function) {
             switch(event) {
-                case Omx.Event.CmdComplete: {
+                case Omx.Event.CmdComplete:
                     _event_func_0 = event_function;
                     break;
-                }
-                case Omx.Event.Error: {
+
+                case Omx.Event.Error:
                     _event_func_1 = event_function;
                     break;
-                }
-                case Omx.Event.Mark: {
+
+                case Omx.Event.Mark:
                     _event_func_2 = event_function;
                     break;
-                }
-                case Omx.Event.PortSettingsChanged: {
+
+                case Omx.Event.PortSettingsChanged:
                     _event_func_3 = event_function;
                     break;
-                }
-                case Omx.Event.BufferFlag: {
+
+                case Omx.Event.BufferFlag:
                     _event_func_4 = event_function;
                     break;
-                }
-                case Omx.Event.ResourcesAcquired: {
+
+                case Omx.Event.ResourcesAcquired:
                     _event_func_5 = event_function;
                     break;
-                }
-                case Omx.Event.ComponentResumed: {
+
+                case Omx.Event.ComponentResumed:
                     _event_func_6 = event_function;
                     break;
-                }
-                case Omx.Event.DynamicResourcesAvailable: {
+
+                case Omx.Event.DynamicResourcesAvailable:
                     _event_func_7 = event_function;
                     break;
-                }
-                case Omx.Event.PortFormatDetected: {
+
+                case Omx.Event.PortFormatDetected:
                     _event_func_8 = event_function;
                     break;
-                }
+
                 default:
                     break;
             }
@@ -933,7 +936,7 @@ namespace GOmx {
 
         public void allocate_buffers()
         throws GLib.Error requires(_buffers == null) {
-            uint n_buffers = get_n_buffers();
+            uint n_buffers = definition.buffer_count_actual;
             _buffers = new Omx.BufferHeader[n_buffers];
             _buffers_queue = new AsyncQueue<Omx.BufferHeader>();
             for(uint i=0; i<n_buffers; i++) {
@@ -957,7 +960,7 @@ namespace GOmx {
 
         public void use_buffers_of(Port port)
         throws GLib.Error requires(_component != null) {
-            uint n_buffers = get_n_buffers();
+            uint n_buffers = definition.buffer_count_actual;
             _buffers = new Omx.BufferHeader[n_buffers];
             for(uint i=0; i<n_buffers; i++) {
                 var buffer_used = port.get_buffer(i);

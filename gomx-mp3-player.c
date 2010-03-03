@@ -135,7 +135,7 @@ void play (const char* filename, GError** error) {
 		_g_object_unref0 (engine);
 		return;
 	}
-	g_omx_engine_begin_transfer (engine, &_inner_error_);
+	g_omx_engine_buffers_begin_transfer (engine, &_inner_error_);
 	if (_inner_error_ != NULL) {
 		g_propagate_error (error, _inner_error_);
 		_fclose0 (fd);

@@ -28,7 +28,7 @@ namespace GOmx {
 		public Omx.PortParam ports_param;
 		public Component (GOmx.Core core, string comp_name, Omx.Index index);
 		protected virtual void allocate_ports () throws GLib.Error;
-		public virtual void begin_transfer () throws GLib.Error;
+		public virtual void buffers_begin_transfer () throws GLib.Error;
 		public void event_set_function (Omx.Event event, GOmx.Component.EventFunc event_function);
 		public virtual void free_handle () throws GLib.Error;
 		protected virtual void free_ports () throws GLib.Error;
@@ -67,6 +67,7 @@ namespace GOmx {
 		public delegate Omx.Error InitFunc ();
 		[CCode (cheader_filename = "omx-glib.h", instance_pos = -2)]
 		public delegate Omx.Error SetupTunnelFunc (Omx.Handle output, uint32 port_output, Omx.Handle input, uint32 port_input);
+		protected Core ();
 		public void deinit () throws GLib.Error;
 		public void free_handle (Omx.Handle handle) throws GLib.Error;
 		public void get_handle (out Omx.Handle component, string component_name, void* app_data, Omx.Callback callbacks) throws GLib.Error;
@@ -112,7 +113,7 @@ namespace GOmx {
 		}
 		public Engine ();
 		public void add_component (uint id, GOmx.Component component);
-		public virtual void begin_transfer () throws GLib.Error;
+		public virtual void buffers_begin_transfer () throws GLib.Error;
 		public virtual void free_handles () throws GLib.Error;
 		public GOmx.Component get_component (uint i);
 		public uint get_n_components ();
@@ -123,7 +124,7 @@ namespace GOmx {
 		public virtual void wait_for_state_set ();
 		public GOmx.Engine.ComponentList components { get; }
 		public GOmx.Engine.PortQueue ports_with_buffer_done { get; }
-		public bool started { get; }
+		public bool transfering { get; }
 	}
 	[CCode (cheader_filename = "omx-glib.h")]
 	public class ImageComponent : GOmx.Component {
