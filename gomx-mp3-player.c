@@ -6,8 +6,8 @@
 #include <glib-object.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdio.h>
 #include <omx-glib.h>
+#include <stdio.h>
 #include <OMX_Core.h>
 #include <OMX_Component.h>
 
@@ -38,10 +38,27 @@ gint _main (char** args, int args_length1) {
 	{
 		play (args[1], &_inner_error_);
 		if (_inner_error_ != NULL) {
+			if (_inner_error_->domain == G_OMX_ERROR) {
+				goto __catch0_g_omx_error;
+			}
 			goto __catch0_g_error;
 		}
 		result = 0;
 		return result;
+	}
+	goto __finally0;
+	__catch0_g_omx_error:
+	{
+		GError * e;
+		e = _inner_error_;
+		_inner_error_ = NULL;
+		{
+			g_print ("An error of omx occurred\n");
+			g_print ("%s\n", e->message);
+			result = 1;
+			_g_error_free0 (e);
+			return result;
+		}
 	}
 	goto __finally0;
 	__catch0_g_error:
@@ -50,6 +67,7 @@ gint _main (char** args, int args_length1) {
 		e = _inner_error_;
 		_inner_error_ = NULL;
 		{
+			g_print ("An error of glib occurred\n");
 			g_print ("%s\n", e->message);
 			result = 1;
 			_g_error_free0 (e);

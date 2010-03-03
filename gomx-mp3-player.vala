@@ -8,10 +8,17 @@ int main(string[] args) {
         play(args[1]);
         return 0;
     }
-    catch(Error e) {
+    catch(GOmx.Error e) {
+        print("An error of omx occurred\n");
         print("%s\n", e.message);
         return 1;
     }
+    catch(Error e) {
+        print("An error of glib occurred\n");
+        print("%s\n", e.message);
+        return 1;
+    }
+    
 }
 
 
@@ -22,7 +29,7 @@ const string AUDIODEC_COMPONENT = "OMX.st.audio_decoder.mp3.mad";
 const string AUDIOSINK_COMPONENT = "OMX.st.alsa.alsasink";
 
 
-public void play(string filename) throws Error {
+public void play(string filename) throws Error,GOmx.Error {
     var fd = FileStream.open(filename, "rb");
     if(fd == null)
         throw new FileError.FAILED("Error opening %s", filename);
