@@ -11,20 +11,17 @@ simple-mp3-player: simple-mp3-player.o
 
 simple-mp3-player.c: simple-mp3-player.vala libomxil-bellagio.vapi omx.vapi
 	valac -C $^
-	touch $@
 
 
-gomx-mp3-player: gomx-mp3-player.o omx-glib.o
+gomx-mp3-player: gomx-mp3-player.o gomx.o
 	$(CC) `pkg-config $(MODULES) --libs` $^ -o $@
 
-gomx-mp3-player.c: gomx-mp3-player.vala omx.vapi omx-glib.vapi
+gomx-mp3-player.c: gomx-mp3-player.vala omx.vapi gomx.vapi
 	valac -C --thread --pkg gmodule-2.0 $^
-	touch $@
 
-omx-glib.vapi omx-glib.c: omx-glib.vala omx.vapi
-	valac --vapi=omx-glib.vapi --pkg gmodule-2.0 -C -H omx-glib.h $^
-	touch $@
+gomx.vapi gomx.c: gomx.vala omx.vapi
+	valac --vapi=gomx.vapi --pkg gmodule-2.0 -C -H gomx.h $^
 
 
 clean:
-	rm -f *.o *.c *~ simple-mp3-player gomx-mp3-player
+	rm -f *.o *.c *~ simple-mp3-player gomx-mp3-player gomx.vapi gomx.h

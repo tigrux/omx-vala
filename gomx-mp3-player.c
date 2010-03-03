@@ -6,7 +6,7 @@
 #include <glib-object.h>
 #include <stdlib.h>
 #include <string.h>
-#include <omx-glib.h>
+#include <gomx.h>
 #include <stdio.h>
 #include <OMX_Core.h>
 #include <OMX_Component.h>

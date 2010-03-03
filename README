@@ -1,7 +1,10 @@
 omx-vala consists of:
-- Vala bindings for omxil 1.1
-- Vala bindings for Bellagio OpenMaxIL
-- An object oriented library based on gobject
+- omx.vapi
+  Vala bindings for omxil 1.1
+- libomxil-bellagio.vapi
+  Vala bindings for Bellagio OpenMaxIL
+- gomx.vala
+  An object oriented library based on gobject
 
 It currently includes two examples:
 - simple-mp3-player
