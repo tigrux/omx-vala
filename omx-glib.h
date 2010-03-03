@@ -467,12 +467,10 @@ GOmxEngineComponentListIterator* g_omx_engine_component_list_iterator_new (GOmxE
 GOmxEngineComponentListIterator* g_omx_engine_component_list_iterator_construct (GType object_type, GOmxEngineComponentList* list);
 gboolean g_omx_engine_component_list_iterator_next (GOmxEngineComponentListIterator* self);
 GOmxComponent* g_omx_engine_component_list_iterator_get (GOmxEngineComponentListIterator* self);
-GOmxEnginePortQueue* g_omx_engine_port_queue_new (GOmxEngine* engine);
-GOmxEnginePortQueue* g_omx_engine_port_queue_construct (GType object_type, GOmxEngine* engine);
 GType g_omx_engine_port_queue_iterator_get_type (void);
 GOmxEnginePortQueueIterator* g_omx_engine_port_queue_iterator (GOmxEnginePortQueue* self);
-GOmxEngine* g_omx_engine_port_queue_get_engine (GOmxEnginePortQueue* self);
-void g_omx_engine_port_queue_set_engine (GOmxEnginePortQueue* self, GOmxEngine* value);
+GOmxEnginePortQueue* g_omx_engine_port_queue_new (void);
+GOmxEnginePortQueue* g_omx_engine_port_queue_construct (GType object_type);
 GAsyncQueue* g_omx_engine_port_queue_get_queue (GOmxEnginePortQueue* self);
 GOmxEnginePortQueueIterator* g_omx_engine_port_queue_iterator_new (GOmxEnginePortQueue* queue);
 GOmxEnginePortQueueIterator* g_omx_engine_port_queue_iterator_construct (GType object_type, GOmxEnginePortQueue* queue);

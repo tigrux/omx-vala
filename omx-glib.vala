@@ -138,7 +138,7 @@ namespace GOmx {
 
         construct {
             _component_list = new ComponentList();
-            _port_queue = new PortQueue(this);
+            _port_queue = new PortQueue();
         }
 
 
@@ -285,11 +285,6 @@ namespace GOmx {
             AsyncQueue<Port> _queue;
 
 
-            public Engine engine {
-                get; construct set;
-            }
-
-
             public AsyncQueue<Port> queue {
                 get {
                     return _queue;
@@ -298,10 +293,6 @@ namespace GOmx {
 
             construct {
                 _queue = new AsyncQueue<Port>();
-            }
-
-            public PortQueue(Engine engine) {
-                Object(engine: engine);
             }
 
 

@@ -107,9 +107,8 @@ namespace GOmx {
 				public GOmx.Port @get ();
 				public bool next ();
 			}
-			public PortQueue (GOmx.Engine engine);
+			public PortQueue ();
 			public GOmx.Engine.PortQueue.Iterator iterator ();
-			public GOmx.Engine engine { get; set construct; }
 			public GLib.AsyncQueue<GOmx.Port> queue { get; }
 		}
 		public Engine ();
