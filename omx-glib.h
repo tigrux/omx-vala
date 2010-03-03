@@ -58,15 +58,15 @@ typedef struct _GOmxComponentClass GOmxComponentClass;
 typedef struct _GOmxComponentList GOmxComponentList;
 typedef struct _GOmxComponentListClass GOmxComponentListClass;
 
-#define G_OMX_TYPE_PORT_QUEUE (g_omx_port_queue_get_type ())
-#define G_OMX_PORT_QUEUE(obj) (G_TYPE_CHECK_INSTANCE_CAST ((obj), G_OMX_TYPE_PORT_QUEUE, GOmxPortQueue))
-#define G_OMX_PORT_QUEUE_CLASS(klass) (G_TYPE_CHECK_CLASS_CAST ((klass), G_OMX_TYPE_PORT_QUEUE, GOmxPortQueueClass))
-#define G_OMX_IS_PORT_QUEUE(obj) (G_TYPE_CHECK_INSTANCE_TYPE ((obj), G_OMX_TYPE_PORT_QUEUE))
-#define G_OMX_IS_PORT_QUEUE_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((klass), G_OMX_TYPE_PORT_QUEUE))
-#define G_OMX_PORT_QUEUE_GET_CLASS(obj) (G_TYPE_INSTANCE_GET_CLASS ((obj), G_OMX_TYPE_PORT_QUEUE, GOmxPortQueueClass))
+#define G_OMX_TYPE_PORT_DONE_QUEUE (g_omx_port_done_queue_get_type ())
+#define G_OMX_PORT_DONE_QUEUE(obj) (G_TYPE_CHECK_INSTANCE_CAST ((obj), G_OMX_TYPE_PORT_DONE_QUEUE, GOmxPortDoneQueue))
+#define G_OMX_PORT_DONE_QUEUE_CLASS(klass) (G_TYPE_CHECK_CLASS_CAST ((klass), G_OMX_TYPE_PORT_DONE_QUEUE, GOmxPortDoneQueueClass))
+#define G_OMX_IS_PORT_DONE_QUEUE(obj) (G_TYPE_CHECK_INSTANCE_TYPE ((obj), G_OMX_TYPE_PORT_DONE_QUEUE))
+#define G_OMX_IS_PORT_DONE_QUEUE_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((klass), G_OMX_TYPE_PORT_DONE_QUEUE))
+#define G_OMX_PORT_DONE_QUEUE_GET_CLASS(obj) (G_TYPE_INSTANCE_GET_CLASS ((obj), G_OMX_TYPE_PORT_DONE_QUEUE, GOmxPortDoneQueueClass))
 
-typedef struct _GOmxPortQueue GOmxPortQueue;
-typedef struct _GOmxPortQueueClass GOmxPortQueueClass;
+typedef struct _GOmxPortDoneQueue GOmxPortDoneQueue;
+typedef struct _GOmxPortDoneQueueClass GOmxPortDoneQueueClass;
 typedef struct _GOmxComponentListPrivate GOmxComponentListPrivate;
 
 #define G_OMX_COMPONENT_LIST_TYPE_ITERATOR (g_omx_component_list_iterator_get_type ())
@@ -79,17 +79,17 @@ typedef struct _GOmxComponentListPrivate GOmxComponentListPrivate;
 typedef struct _GOmxComponentListIterator GOmxComponentListIterator;
 typedef struct _GOmxComponentListIteratorClass GOmxComponentListIteratorClass;
 typedef struct _GOmxComponentListIteratorPrivate GOmxComponentListIteratorPrivate;
-typedef struct _GOmxPortQueuePrivate GOmxPortQueuePrivate;
+typedef struct _GOmxPortDoneQueuePrivate GOmxPortDoneQueuePrivate;
 
-#define G_OMX_PORT_QUEUE_TYPE_ITERATOR (g_omx_port_queue_iterator_get_type ())
-#define G_OMX_PORT_QUEUE_ITERATOR(obj) (G_TYPE_CHECK_INSTANCE_CAST ((obj), G_OMX_PORT_QUEUE_TYPE_ITERATOR, GOmxPortQueueIterator))
-#define G_OMX_PORT_QUEUE_ITERATOR_CLASS(klass) (G_TYPE_CHECK_CLASS_CAST ((klass), G_OMX_PORT_QUEUE_TYPE_ITERATOR, GOmxPortQueueIteratorClass))
-#define G_OMX_PORT_QUEUE_IS_ITERATOR(obj) (G_TYPE_CHECK_INSTANCE_TYPE ((obj), G_OMX_PORT_QUEUE_TYPE_ITERATOR))
-#define G_OMX_PORT_QUEUE_IS_ITERATOR_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((klass), G_OMX_PORT_QUEUE_TYPE_ITERATOR))
-#define G_OMX_PORT_QUEUE_ITERATOR_GET_CLASS(obj) (G_TYPE_INSTANCE_GET_CLASS ((obj), G_OMX_PORT_QUEUE_TYPE_ITERATOR, GOmxPortQueueIteratorClass))
+#define G_OMX_PORT_DONE_QUEUE_TYPE_ITERATOR (g_omx_port_done_queue_iterator_get_type ())
+#define G_OMX_PORT_DONE_QUEUE_ITERATOR(obj) (G_TYPE_CHECK_INSTANCE_CAST ((obj), G_OMX_PORT_DONE_QUEUE_TYPE_ITERATOR, GOmxPortDoneQueueIterator))
+#define G_OMX_PORT_DONE_QUEUE_ITERATOR_CLASS(klass) (G_TYPE_CHECK_CLASS_CAST ((klass), G_OMX_PORT_DONE_QUEUE_TYPE_ITERATOR, GOmxPortDoneQueueIteratorClass))
+#define G_OMX_PORT_DONE_QUEUE_IS_ITERATOR(obj) (G_TYPE_CHECK_INSTANCE_TYPE ((obj), G_OMX_PORT_DONE_QUEUE_TYPE_ITERATOR))
+#define G_OMX_PORT_DONE_QUEUE_IS_ITERATOR_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((klass), G_OMX_PORT_DONE_QUEUE_TYPE_ITERATOR))
+#define G_OMX_PORT_DONE_QUEUE_ITERATOR_GET_CLASS(obj) (G_TYPE_INSTANCE_GET_CLASS ((obj), G_OMX_PORT_DONE_QUEUE_TYPE_ITERATOR, GOmxPortDoneQueueIteratorClass))
 
-typedef struct _GOmxPortQueueIterator GOmxPortQueueIterator;
-typedef struct _GOmxPortQueueIteratorClass GOmxPortQueueIteratorClass;
+typedef struct _GOmxPortDoneQueueIterator GOmxPortDoneQueueIterator;
+typedef struct _GOmxPortDoneQueueIteratorClass GOmxPortDoneQueueIteratorClass;
 
 #define G_OMX_TYPE_PORT (g_omx_port_get_type ())
 #define G_OMX_PORT(obj) (G_TYPE_CHECK_INSTANCE_CAST ((obj), G_OMX_TYPE_PORT, GOmxPort))
@@ -100,7 +100,7 @@ typedef struct _GOmxPortQueueIteratorClass GOmxPortQueueIteratorClass;
 
 typedef struct _GOmxPort GOmxPort;
 typedef struct _GOmxPortClass GOmxPortClass;
-typedef struct _GOmxPortQueueIteratorPrivate GOmxPortQueueIteratorPrivate;
+typedef struct _GOmxPortDoneQueueIteratorPrivate GOmxPortDoneQueueIteratorPrivate;
 typedef struct _GOmxComponentPrivate GOmxComponentPrivate;
 
 #define G_OMX_TYPE_AUDIO_COMPONENT (g_omx_audio_component_get_type ())
@@ -135,6 +135,17 @@ typedef struct _GOmxImageComponentPrivate GOmxImageComponentPrivate;
 typedef struct _GOmxVideoComponent GOmxVideoComponent;
 typedef struct _GOmxVideoComponentClass GOmxVideoComponentClass;
 typedef struct _GOmxVideoComponentPrivate GOmxVideoComponentPrivate;
+
+#define G_OMX_TYPE_OTHER_COMPONENT (g_omx_other_component_get_type ())
+#define G_OMX_OTHER_COMPONENT(obj) (G_TYPE_CHECK_INSTANCE_CAST ((obj), G_OMX_TYPE_OTHER_COMPONENT, GOmxOtherComponent))
+#define G_OMX_OTHER_COMPONENT_CLASS(klass) (G_TYPE_CHECK_CLASS_CAST ((klass), G_OMX_TYPE_OTHER_COMPONENT, GOmxOtherComponentClass))
+#define G_OMX_IS_OTHER_COMPONENT(obj) (G_TYPE_CHECK_INSTANCE_TYPE ((obj), G_OMX_TYPE_OTHER_COMPONENT))
+#define G_OMX_IS_OTHER_COMPONENT_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((klass), G_OMX_TYPE_OTHER_COMPONENT))
+#define G_OMX_OTHER_COMPONENT_GET_CLASS(obj) (G_TYPE_INSTANCE_GET_CLASS ((obj), G_OMX_TYPE_OTHER_COMPONENT, GOmxOtherComponentClass))
+
+typedef struct _GOmxOtherComponent GOmxOtherComponent;
+typedef struct _GOmxOtherComponentClass GOmxOtherComponentClass;
+typedef struct _GOmxOtherComponentPrivate GOmxOtherComponentPrivate;
 
 #define G_OMX_TYPE_PORT_ARRAY (g_omx_port_array_get_type ())
 #define G_OMX_PORT_ARRAY(obj) (G_TYPE_CHECK_INSTANCE_CAST ((obj), G_OMX_TYPE_PORT_ARRAY, GOmxPortArray))
@@ -258,21 +269,21 @@ struct _GOmxComponentListIteratorClass {
 	GObjectClass parent_class;
 };
 
-struct _GOmxPortQueue {
+struct _GOmxPortDoneQueue {
 	GObject parent_instance;
-	GOmxPortQueuePrivate * priv;
+	GOmxPortDoneQueuePrivate * priv;
 };
 
-struct _GOmxPortQueueClass {
+struct _GOmxPortDoneQueueClass {
 	GObjectClass parent_class;
 };
 
-struct _GOmxPortQueueIterator {
+struct _GOmxPortDoneQueueIterator {
 	GObject parent_instance;
-	GOmxPortQueueIteratorPrivate * priv;
+	GOmxPortDoneQueueIteratorPrivate * priv;
 };
 
-struct _GOmxPortQueueIteratorClass {
+struct _GOmxPortDoneQueueIteratorClass {
 	GObjectClass parent_class;
 };
 
@@ -317,6 +328,15 @@ struct _GOmxVideoComponent {
 };
 
 struct _GOmxVideoComponentClass {
+	GOmxComponentClass parent_class;
+};
+
+struct _GOmxOtherComponent {
+	GOmxComponent parent_instance;
+	GOmxOtherComponentPrivate * priv;
+};
+
+struct _GOmxOtherComponentClass {
 	GOmxComponentClass parent_class;
 };
 
@@ -385,8 +405,8 @@ GOmxEngine* g_omx_engine_new (void);
 GOmxEngine* g_omx_engine_construct (GType object_type);
 GType g_omx_component_list_get_type (void);
 GOmxComponentList* g_omx_engine_get_components (GOmxEngine* self);
-GType g_omx_port_queue_get_type (void);
-GOmxPortQueue* g_omx_engine_get_ports_with_buffer_done (GOmxEngine* self);
+GType g_omx_port_done_queue_get_type (void);
+GOmxPortDoneQueue* g_omx_engine_get_ports_with_buffer_done (GOmxEngine* self);
 void g_omx_component_list_append (GOmxComponentList* self, GOmxComponent* component);
 GType g_omx_component_list_iterator_get_type (void);
 GOmxComponentListIterator* g_omx_component_list_iterator (GOmxComponentList* self);
@@ -398,16 +418,16 @@ GOmxComponentListIterator* g_omx_component_list_iterator_new (GOmxComponentList*
 GOmxComponentListIterator* g_omx_component_list_iterator_construct (GType object_type, GOmxComponentList* list);
 gboolean g_omx_component_list_iterator_next (GOmxComponentListIterator* self);
 GOmxComponent* g_omx_component_list_iterator_get (GOmxComponentListIterator* self);
-GType g_omx_port_queue_iterator_get_type (void);
-GOmxPortQueueIterator* g_omx_port_queue_iterator (GOmxPortQueue* self);
-GOmxPortQueue* g_omx_port_queue_new (void);
-GOmxPortQueue* g_omx_port_queue_construct (GType object_type);
+GType g_omx_port_done_queue_iterator_get_type (void);
+GOmxPortDoneQueueIterator* g_omx_port_done_queue_iterator (GOmxPortDoneQueue* self);
+GOmxPortDoneQueue* g_omx_port_done_queue_new (void);
+GOmxPortDoneQueue* g_omx_port_done_queue_construct (GType object_type);
 GType g_omx_port_get_type (void);
-GAsyncQueue* g_omx_port_queue_get_queue (GOmxPortQueue* self);
-GOmxPortQueueIterator* g_omx_port_queue_iterator_new (GOmxPortQueue* queue);
-GOmxPortQueueIterator* g_omx_port_queue_iterator_construct (GType object_type, GOmxPortQueue* queue);
-gboolean g_omx_port_queue_iterator_next (GOmxPortQueueIterator* self);
-GOmxPort* g_omx_port_queue_iterator_get (GOmxPortQueueIterator* self);
+GAsyncQueue* g_omx_port_done_queue_get_queue (GOmxPortDoneQueue* self);
+GOmxPortDoneQueueIterator* g_omx_port_done_queue_iterator_new (GOmxPortDoneQueue* queue);
+GOmxPortDoneQueueIterator* g_omx_port_done_queue_iterator_construct (GType object_type, GOmxPortDoneQueue* queue);
+gboolean g_omx_port_done_queue_iterator_next (GOmxPortDoneQueueIterator* self);
+GOmxPort* g_omx_port_done_queue_iterator_get (GOmxPortDoneQueueIterator* self);
 GType g_omx_audio_component_get_type (void);
 GOmxAudioComponent* g_omx_audio_component_new (GOmxCore* core, const char* comp_name);
 GOmxAudioComponent* g_omx_audio_component_construct (GType object_type, GOmxCore* core, const char* comp_name);
@@ -417,6 +437,9 @@ GOmxImageComponent* g_omx_image_component_construct (GType object_type, GOmxCore
 GType g_omx_video_component_get_type (void);
 GOmxVideoComponent* g_omx_video_component_new (GOmxCore* core, const char* comp_name);
 GOmxVideoComponent* g_omx_video_component_construct (GType object_type, GOmxCore* core, const char* comp_name);
+GType g_omx_other_component_get_type (void);
+GOmxOtherComponent* g_omx_other_component_new (GOmxCore* core, const char* comp_name);
+GOmxOtherComponent* g_omx_other_component_construct (GType object_type, GOmxCore* core, const char* comp_name);
 GOmxComponent* g_omx_component_new (GOmxCore* core, const char* comp_name, OMX_INDEXTYPE index);
 GOmxComponent* g_omx_component_construct (GType object_type, GOmxCore* core, const char* comp_name, OMX_INDEXTYPE index);
 guint g_omx_component_get_n_ports (GOmxComponent* self);
@@ -434,7 +457,6 @@ OMX_ERRORTYPE g_omx_component_can_set_state (GOmxComponent* self, OMX_STATETYPE 
 void g_omx_component_set_state_and_wait (GOmxComponent* self, OMX_STATETYPE state, GError** error);
 OMX_STATETYPE g_omx_component_get_state (GOmxComponent* self, GError** error);
 void g_omx_component_event_set_function (GOmxComponent* self, OMX_EVENTTYPE event, GOmxComponentEventFunc event_function, void* event_function_target);
-gboolean g_omx_component_get_started (GOmxComponent* self);
 const char* g_omx_component_get_name (GOmxComponent* self);
 void g_omx_component_set_name (GOmxComponent* self, const char* value);
 void* g_omx_component_get_handle (GOmxComponent* self);
@@ -453,13 +475,16 @@ guint g_omx_component_get_pending_state (GOmxComponent* self);
 guint g_omx_component_get_previous_state (GOmxComponent* self);
 gboolean g_omx_component_get_no_allocate_buffers (GOmxComponent* self);
 void g_omx_component_set_no_allocate_buffers (GOmxComponent* self, gboolean value);
-GOmxPortArray* g_omx_port_array_new (guint length, guint start_index);
-GOmxPortArray* g_omx_port_array_construct (GType object_type, guint length, guint start_index);
+GOmxPortArray* g_omx_port_array_new (guint length, guint start);
+GOmxPortArray* g_omx_port_array_construct (GType object_type, guint length, guint start);
 GType g_omx_port_array_iterator_get_type (void);
 GOmxPortArrayIterator* g_omx_port_array_iterator (GOmxPortArray* self);
 GOmxPort* g_omx_port_array_get (GOmxPortArray* self, guint index);
 void g_omx_port_array_set (GOmxPortArray* self, guint index, GOmxPort* port);
+guint g_omx_port_array_get_start (GOmxPortArray* self);
+void g_omx_port_array_set_start (GOmxPortArray* self, guint value);
 guint g_omx_port_array_get_length (GOmxPortArray* self);
+void g_omx_port_array_set_length (GOmxPortArray* self, guint value);
 GOmxPortArrayIterator* g_omx_port_array_iterator_new (GOmxPortArray* array);
 GOmxPortArrayIterator* g_omx_port_array_iterator_construct (GType object_type, GOmxPortArray* array);
 gboolean g_omx_port_array_iterator_next (GOmxPortArrayIterator* self);
@@ -471,7 +496,8 @@ void g_omx_port_get_parameter (GOmxPort* self, GError** error);
 void g_omx_port_set_parameter (GOmxPort* self, GError** error);
 void g_omx_port_allocate_buffers (GOmxPort* self, GError** error);
 void g_omx_port_setup_tunnel_with (GOmxPort* self, GOmxPort* port, GError** error);
-void g_omx_port_use_buffers_of (GOmxPort* self, GOmxPort* port, GError** error);
+void g_omx_port_use_buffers_of_port (GOmxPort* self, GOmxPort* port, GError** error);
+void g_omx_port_use_buffers_of_array (GOmxPort* self, guint8** array, int array_length1, GError** error);
 void g_omx_port_enable (GOmxPort* self, GError** error);
 void g_omx_port_disable (GOmxPort* self, GError** error);
 void g_omx_port_flush (GOmxPort* self, GError** error);

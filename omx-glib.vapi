@@ -39,7 +39,6 @@ namespace GOmx {
 		public GOmx.PortArray ports { get; }
 		public uint previous_state { get; }
 		public GLib.AsyncQueue<GOmx.Port>? queue { get; set; }
-		public bool started { get; }
 	}
 	[CCode (cheader_filename = "omx-glib.h")]
 	public class ComponentList : GLib.Object {
@@ -88,11 +87,15 @@ namespace GOmx {
 		public virtual void set_state_and_wait (Omx.State state) throws GOmx.Error;
 		public virtual void wait_for_state_set ();
 		public GOmx.ComponentList components { get; }
-		public GOmx.PortQueue ports_with_buffer_done { get; }
+		public GOmx.PortDoneQueue ports_with_buffer_done { get; }
 	}
 	[CCode (cheader_filename = "omx-glib.h")]
 	public class ImageComponent : GOmx.Component {
 		public ImageComponent (GOmx.Core core, string comp_name);
+	}
+	[CCode (cheader_filename = "omx-glib.h")]
+	public class OtherComponent : GOmx.Component {
+		public OtherComponent (GOmx.Core core, string comp_name);
 	}
 	[CCode (cheader_filename = "omx-glib.h")]
 	public class Port : GLib.Object {
@@ -115,7 +118,8 @@ namespace GOmx {
 		public void set_buffer_done_function (GOmx.Port.BufferDoneFunc buffer_done_func);
 		public void set_parameter () throws GOmx.Error;
 		public void setup_tunnel_with (GOmx.Port port) throws GOmx.Error;
-		public void use_buffers_of (GOmx.Port port) throws GOmx.Error;
+		public void use_buffers_of_array (uint8[][] array) throws GOmx.Error;
+		public void use_buffers_of_port (GOmx.Port port) throws GOmx.Error;
 		public GOmx.Component component { get; set construct; }
 		public bool eos { get; }
 		public uint index { get; set; }
@@ -131,22 +135,23 @@ namespace GOmx {
 			public GOmx.Port @get ();
 			public bool next ();
 		}
-		public PortArray (uint length, uint start_index = 0);
+		public PortArray (uint length, uint start = 0);
 		public GOmx.Port @get (uint index);
 		public GOmx.PortArray.Iterator iterator ();
 		public void @set (uint index, GOmx.Port port);
-		public uint length { get; }
+		public uint length { get; set construct; }
+		public uint start { get; set construct; }
 	}
 	[CCode (cheader_filename = "omx-glib.h")]
-	public class PortQueue : GLib.Object {
+	public class PortDoneQueue : GLib.Object {
 		[CCode (cheader_filename = "omx-glib.h")]
 		public class Iterator : GLib.Object {
-			public Iterator (GOmx.PortQueue queue);
+			public Iterator (GOmx.PortDoneQueue queue);
 			public GOmx.Port @get ();
 			public bool next ();
 		}
-		public PortQueue ();
-		public GOmx.PortQueue.Iterator iterator ();
+		public PortDoneQueue ();
+		public GOmx.PortDoneQueue.Iterator iterator ();
 		public GLib.AsyncQueue<GOmx.Port> queue { get; }
 	}
 	[CCode (cheader_filename = "omx-glib.h")]

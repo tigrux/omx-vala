@@ -106,7 +106,7 @@ namespace GOmx {
 
     public class Engine: Object {
         ComponentList _components;
-        PortQueue _port_queue;
+        PortDoneQueue _port_queue;
         uint _n_components;
 
 
@@ -117,7 +117,7 @@ namespace GOmx {
         }
 
 
-        public PortQueue ports_with_buffer_done {
+        public PortDoneQueue ports_with_buffer_done {
             get {
                 return _port_queue;
             }
@@ -131,7 +131,7 @@ namespace GOmx {
 
         construct {
             _components = new ComponentList();
-            _port_queue = new PortQueue();
+            _port_queue = new PortDoneQueue();
         }
 
 
@@ -190,7 +190,7 @@ namespace GOmx {
 
     public class ComponentList: Object {
         List<Component> _components_list;
-        uint size;
+        uint _length;
 
 
         construct {
@@ -200,7 +200,7 @@ namespace GOmx {
 
         public void append(Component component) {
             _components_list.append(component);
-            size++;
+            _length++;
         }
 
 
@@ -211,13 +211,13 @@ namespace GOmx {
 
         public uint length {
             get {
-                return size;
+                return _length;
             }
         }
 
 
         public new Component get(uint index)
-        requires(index < size) {
+        requires(index < _length) {
             return _components_list.nth_data(index);
         }
 
@@ -243,7 +243,7 @@ namespace GOmx {
 
 ////////////////////////////////////////////////////////////////////////////////
 
-    public class PortQueue: Object {
+    public class PortDoneQueue: Object {
         AsyncQueue<Port> _queue;
 
 
@@ -267,7 +267,7 @@ namespace GOmx {
             AsyncQueue<Port> _ports_queue;
             bool _eos_found;
 
-            public Iterator(PortQueue queue) {
+            public Iterator(PortDoneQueue queue) {
                 _ports_queue = queue._queue;
             }
 
@@ -285,7 +285,7 @@ namespace GOmx {
         }
     }
 
-
+////////////////////////////////////////////////////////////////////////////////
 
     public class AudioComponent: Component {
         public AudioComponent(Core core, string comp_name) {
@@ -319,6 +319,17 @@ namespace GOmx {
         }
     }
 
+
+    public class OtherComponent: Component {
+        public OtherComponent(Core core, string comp_name) {
+            Object(
+                core: core,
+                component_name: comp_name,
+                init_index: Omx.Index.ParamOtherInit,
+                name: comp_name);
+        }
+    }
+
 ////////////////////////////////////////////////////////////////////////////////
 
     public class Component: Object {
@@ -337,8 +348,10 @@ namespace GOmx {
         weak AsyncQueue<Port> _ports_queue;
         PortArray _ports;
 
+
         public delegate void EventFunc(
             Component component, uint data1, uint data2, void *event_data);
+
 
         EventFunc _event_func_0;
         EventFunc _event_func_1;
@@ -349,15 +362,6 @@ namespace GOmx {
         EventFunc _event_func_6;
         EventFunc _event_func_7;
         EventFunc _event_func_8;
-
-        bool _started;
-
-
-        public bool started {
-            get {
-                return _started;
-            }
-        }
 
 
         public string name {
@@ -748,26 +752,34 @@ namespace GOmx {
 
     public class PortArray: Object {
         Port[] _ports;
-        uint _start_index;
+        uint _start;
+        uint _length;
 
         
-        uint start {
+        public uint start {
             get {
-                return _start_index;
+                return _start;
+            }
+            construct set {
+                _start = value;
             }
         }
 
 
         public uint length {
             get {
-                return _ports.length;
+                return _length;
+            }
+            construct set {
+                _ports = new Port[value];
+                _length = value;
             }
         }
 
 
-        public PortArray(uint length, uint start_index=0) {
-            start_index = _start_index;
-            _ports = new Port[length];
+        public PortArray(uint length, uint start=0) {
+            Object(length: length, start: start);
+            
         }
 
 
@@ -777,13 +789,13 @@ namespace GOmx {
 
 
         public new Port get(uint index)
-        requires(index-_start_index < _ports.length && index-_start_index >=0) {
-            return _ports[index - _start_index];
+        requires(index-_start < _ports.length && index-_start >=0) {
+            return _ports[index-_start];
         }
 
 
         public new void set(uint index, Port port) {
-            _ports[index - _start_index] = port;
+            _ports[index-_start] = port;
         }
 
 
@@ -797,7 +809,7 @@ namespace GOmx {
             }
 
             public bool next() {
-                return _index < _array.length + _array.start;
+                return _index < _array.length + _array._start;
             }
 
             public new Port get() {
@@ -917,7 +929,7 @@ namespace GOmx {
         }
 
 
-        public void use_buffers_of(Port port)
+        public void use_buffers_of_port(Port port)
         throws Error requires(_component != null) {
             uint n_buffers = definition.buffer_count_actual;
             _buffers = new Omx.BufferHeader[n_buffers];
@@ -928,6 +940,21 @@ namespace GOmx {
                         out _buffers[i], definition.port_index,
                         _component, definition.buffer_size,
                         buffer_used.buffer));
+                _buffers_queue.push(_buffers[i]);
+            }
+        }
+
+
+        public void use_buffers_of_array(uint8[][] array)
+        throws Error requires(_component != null) {
+            uint n_buffers = definition.buffer_count_actual;
+            _buffers = new Omx.BufferHeader[n_buffers];
+            for(uint i=0; i<n_buffers; i++) {
+                try_run(
+                    _component.handle.use_buffer(
+                        out _buffers[i], definition.port_index,
+                        _component, definition.buffer_size,
+                        array[i]));
                 _buffers_queue.push(_buffers[i]);
             }
         }
@@ -1113,6 +1140,8 @@ namespace GOmx {
             buffer.set_eos();
     }
 
+
+////////////////////////////////////////////////////////////////////////////////
     
     public weak string command_to_string(Omx.Command command) {
         return command.to_string();
