@@ -1025,7 +1025,7 @@ namespace GOmx {
 
         public Omx.BufferHeader pop_buffer() {
             var buffer = _buffers_queue.pop();
-            if(buffer.eos)
+            if(buffer_is_eos(buffer))
                 _eos = true;
             return buffer;
         }
@@ -1142,7 +1142,7 @@ namespace GOmx {
         buffer.offset = 0;
         buffer.length = fs.read(buffer.buffer);
         if(fs.eof())
-            buffer.set_eos();
+            buffer_set_eos(buffer);
     }
 
 

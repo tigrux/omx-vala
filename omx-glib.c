@@ -773,6 +773,7 @@ void g_omx_port_enable (GOmxPort* self, GError** error);
 void g_omx_port_flush (GOmxPort* self, GError** error);
 void g_omx_port_disable (GOmxPort* self, GError** error);
 guint g_omx_port_get_n_buffers (GOmxPort* self);
+gboolean g_omx_buffer_is_eos (OMX_BUFFERHEADERTYPE* buffer);
 OMX_BUFFERHEADERTYPE* g_omx_port_pop_buffer (GOmxPort* self);
 void g_omx_port_push_buffer (GOmxPort* self, OMX_BUFFERHEADERTYPE* buffer, GError** error);
 void g_omx_port_set_buffer_done_function (GOmxPort* self, GOmxPortBufferDoneFunc buffer_done_func, void* buffer_done_func_target);
@@ -791,7 +792,6 @@ enum  {
 };
 static GObject * g_omx_semaphore_constructor (GType type, guint n_construct_properties, GObjectConstructParam * construct_properties);
 static void g_omx_semaphore_finalize (GObject* obj);
-gboolean g_omx_buffer_is_eos (OMX_BUFFERHEADERTYPE* buffer);
 void g_omx_buffer_set_eos (OMX_BUFFERHEADERTYPE* buffer);
 void g_omx_buffer_copy (OMX_BUFFERHEADERTYPE* dest, OMX_BUFFERHEADERTYPE* source);
 void g_omx_buffer_copy_len (OMX_BUFFERHEADERTYPE* dest, OMX_BUFFERHEADERTYPE* source);
@@ -3625,20 +3625,12 @@ void g_omx_port_free_buffers (GOmxPort* self, GError** error) {
 }
 
 
-static gboolean omx_buffer_header_get_eos (OMX_BUFFERHEADERTYPE* self) {
-	gboolean result;
-	g_return_val_if_fail (self != NULL, FALSE);
-	result = (self->nFlags & OMX_BUFFERFLAG_EOS) != 0;
-	return result;
-}
-
-
 OMX_BUFFERHEADERTYPE* g_omx_port_pop_buffer (GOmxPort* self) {
 	OMX_BUFFERHEADERTYPE* result;
 	OMX_BUFFERHEADERTYPE* buffer;
 	g_return_val_if_fail (self != NULL, NULL);
 	buffer = (OMX_BUFFERHEADERTYPE*) g_async_queue_pop (self->priv->_buffers_queue);
-	if (omx_buffer_header_get_eos (buffer)) {
+	if (g_omx_buffer_is_eos (buffer)) {
 		self->priv->_eos = TRUE;
 	}
 	result = buffer;
@@ -3986,6 +3978,14 @@ GType g_omx_semaphore_get_type (void) {
 }
 
 
+static gboolean omx_buffer_header_get_eos (OMX_BUFFERHEADERTYPE* self) {
+	gboolean result;
+	g_return_val_if_fail (self != NULL, FALSE);
+	result = (self->nFlags & OMX_BUFFERFLAG_EOS) != 0;
+	return result;
+}
+
+
 gboolean g_omx_buffer_is_eos (OMX_BUFFERHEADERTYPE* buffer) {
 	gboolean result;
 	g_return_val_if_fail (buffer != NULL, FALSE);
@@ -4031,7 +4031,7 @@ void g_omx_buffer_read_from_file (OMX_BUFFERHEADERTYPE* buffer, FILE* fs) {
 	buffer->nOffset = (gsize) 0;
 	buffer->nFilledLen = fread (buffer->pBuffer, 1, buffer->nAllocLen, fs);
 	if (feof (fs)) {
-		omx_buffer_header_set_eos (buffer);
+		g_omx_buffer_set_eos (buffer);
 	}
 }
 
