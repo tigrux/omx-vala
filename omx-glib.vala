@@ -107,14 +107,7 @@ namespace GOmx {
     public class Engine: Object {
         ComponentList _component_list;
         PortQueue _port_queue;
-        bool _transfering;
         uint _n_components;
-
-        public bool transfering {
-            get {
-                return _transfering;
-            }
-        }
 
 
         public ComponentList components {
@@ -150,19 +143,12 @@ namespace GOmx {
         }
 
 
-        public Component get_component(uint i)
-        requires(i < _n_components) {
-            return _component_list[i];
-        }
-
-
         public virtual void buffers_begin_transfer()
-        throws Error requires(!_transfering) {
+        throws Error {
             foreach(var component in _component_list) {
                 component.buffers_begin_transfer();
                 break;
             }
-            _transfering = true;
         }
 
 
@@ -198,6 +184,78 @@ namespace GOmx {
             foreach(var component in _component_list)
                 component.free_handle();
         }
+    }
+
+
+
+    public class ComponentList: Object {
+        List<Component> _components_list;
+        uint size;
+
+
+        construct {
+            _components_list = new List<Component>();
+        }
+
+
+        public void append(Component component) {
+            _components_list.append(component);
+            size++;
+        }
+
+
+        public Iterator iterator() {
+            return new Iterator(this);
+        }
+
+
+        public uint length {
+            get {
+                return size;
+            }
+        }
+
+
+        public new Component get(uint index)
+        requires(index < size) {
+            return _components_list.nth_data(index);
+        }
+
+
+        public class Iterator: Object {
+            weak List<Component> _components_list;
+
+            public Iterator(ComponentList list) {
+                _components_list = list._components_list;
+            }
+
+            public bool next() {
+                return _components_list != null;
+            }
+
+            public new Component get() {
+                var component = _components_list.data;
+                _components_list = _components_list.next;
+                return component;
+            }
+        }
+    }
+
+
+
+    public class PortQueue: Object {
+        AsyncQueue<Port> _queue;
+
+
+        public AsyncQueue<Port> queue {
+            get {
+                return _queue;
+            }
+        }
+
+        construct {
+            _queue = new AsyncQueue<Port>();
+        }
 
 
         public Iterator iterator() {
@@ -209,8 +267,8 @@ namespace GOmx {
             AsyncQueue<Port> _ports_queue;
             bool _eos_found;
 
-            public Iterator(Engine engine) {
-                _ports_queue = engine._port_queue.queue;
+            public Iterator(PortQueue queue) {
+                _ports_queue = queue._queue;
             }
 
             public bool next() {
@@ -219,112 +277,14 @@ namespace GOmx {
 
             public new Port get() {
                 var port = _ports_queue.pop();
-                if(port.eos)
+                if(port.eos) {
                     _eos_found = true;
+                }
                 return port;
             }
         }
-
-
-        public class ComponentList: Object {
-            List<Component> _components_list;
-            uint size;
-
-
-            construct {
-                _components_list = new List<Component>();
-            }
-
-
-            public void append(Component component) {
-                _components_list.append(component);
-                size++;
-            }
-
-
-            public Iterator iterator() {
-                return new Iterator(this);
-            }
-
-
-            public uint length {
-                get {
-                    return size;
-                }
-            }
-
-
-            public new Component get(uint index)
-            requires(index < size) {
-                return _components_list.nth_data(index);
-            }
-
-
-            public class Iterator: Object {
-                weak List<Component> _components_list;
-
-                public Iterator(ComponentList list) {
-                    _components_list = list._components_list;
-                }
-
-                public bool next() {
-                    return _components_list != null;
-                }
-
-                public new Component get() {
-                    var component = _components_list.data;
-                    _components_list = _components_list.next;
-                    return component;
-                }
-            }
-        }
-
-
-
-        public class PortQueue: Object {
-            AsyncQueue<Port> _queue;
-
-
-            public AsyncQueue<Port> queue {
-                get {
-                    return _queue;
-                }
-            }
-
-            construct {
-                _queue = new AsyncQueue<Port>();
-            }
-
-
-            public Iterator iterator() {
-                return new Iterator(this);
-            }
-
-
-            public class Iterator: Object {
-                AsyncQueue<Port> _ports_queue;
-                bool _eos_found;
-
-                public Iterator(PortQueue queue) {
-                    _ports_queue = queue._queue;
-                }
-
-                public bool next() {
-                    if(_eos_found)
-                        _transfering = false;
-                    return !_eos_found;
-                }
-
-                public new Port get() {
-                    var port = _ports_queue.pop();
-                    if(port.eos) {
-                        _eos_found = true;
-                    }
-                    return port;
-                }
-            }
-        }
     }
+
 
 
     public class AudioComponent: Component {

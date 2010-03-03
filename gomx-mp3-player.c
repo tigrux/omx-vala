@@ -146,14 +146,14 @@ void play (const char* filename, GError** error) {
 		return;
 	}
 	{
-		GOmxEnginePortQueueIterator* _port_it;
-		_port_it = g_omx_engine_port_queue_iterator (g_omx_engine_get_ports_with_buffer_done (engine));
+		GOmxPortQueueIterator* _port_it;
+		_port_it = g_omx_port_queue_iterator (g_omx_engine_get_ports_with_buffer_done (engine));
 		while (TRUE) {
 			GOmxPort* port;
-			if (!g_omx_engine_port_queue_iterator_next (_port_it)) {
+			if (!g_omx_port_queue_iterator_next (_port_it)) {
 				break;
 			}
-			port = g_omx_engine_port_queue_iterator_get (_port_it);
+			port = g_omx_port_queue_iterator_get (_port_it);
 			switch (g_omx_port_get_component (port)->id) {
 				case AUDIODEC_ID:
 				{
