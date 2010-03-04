@@ -92,8 +92,8 @@ void play (const char* filename, GError** error) {
 	GError * _inner_error_;
 	FILE* fd;
 	GOmxCore* core;
-	GOmxAudioComponent* audiodec;
-	GOmxAudioComponent* audiosink;
+	GOmxAudioComponent* decoder;
+	GOmxAudioComponent* sink;
 	GOmxEngine* engine;
 	g_return_if_fail (filename != NULL);
 	_inner_error_ = NULL;
@@ -114,20 +114,20 @@ void play (const char* filename, GError** error) {
 		_g_object_unref0 (core);
 		return;
 	}
-	audiodec = g_omx_audio_component_new (core, "OMX.st.audio_decoder.mp3.mad");
-	g_omx_component_set_name ((GOmxComponent*) audiodec, "audiodec");
-	audiosink = g_omx_audio_component_new (core, "OMX.st.alsa.alsasink");
-	g_omx_component_set_name ((GOmxComponent*) audiosink, "audiosink");
+	decoder = g_omx_audio_component_new (core, "OMX.st.audio_decoder.mp3.mad");
+	g_omx_component_set_name ((GOmxComponent*) decoder, "decoder");
+	sink = g_omx_audio_component_new (core, "OMX.st.alsa.alsasink");
+	g_omx_component_set_name ((GOmxComponent*) sink, "sink");
 	engine = g_omx_engine_new ();
-	g_omx_engine_add_component (engine, (guint) AUDIODEC_ID, (GOmxComponent*) audiodec);
-	g_omx_engine_add_component (engine, (guint) AUDIOSINK_ID, (GOmxComponent*) audiosink);
+	g_omx_engine_add_component (engine, (guint) AUDIODEC_ID, (GOmxComponent*) decoder);
+	g_omx_engine_add_component (engine, (guint) AUDIOSINK_ID, (GOmxComponent*) sink);
 	g_omx_component_list_init (g_omx_engine_get_components (engine), &_inner_error_);
 	if (_inner_error_ != NULL) {
 		g_propagate_error (error, _inner_error_);
 		_fclose0 (fd);
 		_g_object_unref0 (core);
-		_g_object_unref0 (audiodec);
-		_g_object_unref0 (audiosink);
+		_g_object_unref0 (decoder);
+		_g_object_unref0 (sink);
 		_g_object_unref0 (engine);
 		return;
 	}
@@ -136,8 +136,8 @@ void play (const char* filename, GError** error) {
 		g_propagate_error (error, _inner_error_);
 		_fclose0 (fd);
 		_g_object_unref0 (core);
-		_g_object_unref0 (audiodec);
-		_g_object_unref0 (audiosink);
+		_g_object_unref0 (decoder);
+		_g_object_unref0 (sink);
 		_g_object_unref0 (engine);
 		return;
 	}
@@ -146,8 +146,8 @@ void play (const char* filename, GError** error) {
 		g_propagate_error (error, _inner_error_);
 		_fclose0 (fd);
 		_g_object_unref0 (core);
-		_g_object_unref0 (audiodec);
-		_g_object_unref0 (audiosink);
+		_g_object_unref0 (decoder);
+		_g_object_unref0 (sink);
 		_g_object_unref0 (engine);
 		return;
 	}
@@ -156,8 +156,8 @@ void play (const char* filename, GError** error) {
 		g_propagate_error (error, _inner_error_);
 		_fclose0 (fd);
 		_g_object_unref0 (core);
-		_g_object_unref0 (audiodec);
-		_g_object_unref0 (audiosink);
+		_g_object_unref0 (decoder);
+		_g_object_unref0 (sink);
 		_g_object_unref0 (engine);
 		return;
 	}
@@ -187,8 +187,8 @@ void play (const char* filename, GError** error) {
 									_g_object_unref0 (_port_it);
 									_fclose0 (fd);
 									_g_object_unref0 (core);
-									_g_object_unref0 (audiodec);
-									_g_object_unref0 (audiosink);
+									_g_object_unref0 (decoder);
+									_g_object_unref0 (sink);
 									_g_object_unref0 (engine);
 									return;
 								}
@@ -199,39 +199,39 @@ void play (const char* filename, GError** error) {
 						{
 							{
 								OMX_BUFFERHEADERTYPE* buffer;
-								GOmxPort* audiosink_inport;
-								OMX_BUFFERHEADERTYPE* audiosink_buffer;
+								GOmxPort* sink_inport;
+								OMX_BUFFERHEADERTYPE* sink_buffer;
 								buffer = g_omx_port_pop_buffer (port);
-								audiosink_inport = g_omx_port_array_get (g_omx_component_get_ports ((GOmxComponent*) audiosink), (guint) 0);
-								audiosink_buffer = g_omx_port_pop_buffer (audiosink_inport);
-								g_omx_buffer_copy (audiosink_buffer, buffer);
-								g_omx_port_push_buffer (audiosink_inport, audiosink_buffer, &_inner_error_);
+								sink_inport = g_omx_port_array_get (g_omx_component_get_ports ((GOmxComponent*) sink), (guint) 0);
+								sink_buffer = g_omx_port_pop_buffer (sink_inport);
+								g_omx_buffer_copy (sink_buffer, buffer);
+								g_omx_port_push_buffer (sink_inport, sink_buffer, &_inner_error_);
 								if (_inner_error_ != NULL) {
 									g_propagate_error (error, _inner_error_);
-									_g_object_unref0 (audiosink_inport);
+									_g_object_unref0 (sink_inport);
 									_g_object_unref0 (port);
 									_g_object_unref0 (_port_it);
 									_fclose0 (fd);
 									_g_object_unref0 (core);
-									_g_object_unref0 (audiodec);
-									_g_object_unref0 (audiosink);
+									_g_object_unref0 (decoder);
+									_g_object_unref0 (sink);
 									_g_object_unref0 (engine);
 									return;
 								}
 								g_omx_port_push_buffer (port, buffer, &_inner_error_);
 								if (_inner_error_ != NULL) {
 									g_propagate_error (error, _inner_error_);
-									_g_object_unref0 (audiosink_inport);
+									_g_object_unref0 (sink_inport);
 									_g_object_unref0 (port);
 									_g_object_unref0 (_port_it);
 									_fclose0 (fd);
 									_g_object_unref0 (core);
-									_g_object_unref0 (audiodec);
-									_g_object_unref0 (audiosink);
+									_g_object_unref0 (decoder);
+									_g_object_unref0 (sink);
 									_g_object_unref0 (engine);
 									return;
 								}
-								_g_object_unref0 (audiosink_inport);
+								_g_object_unref0 (sink_inport);
 								break;
 							}
 						}
@@ -266,8 +266,8 @@ void play (const char* filename, GError** error) {
 		g_propagate_error (error, _inner_error_);
 		_fclose0 (fd);
 		_g_object_unref0 (core);
-		_g_object_unref0 (audiodec);
-		_g_object_unref0 (audiosink);
+		_g_object_unref0 (decoder);
+		_g_object_unref0 (sink);
 		_g_object_unref0 (engine);
 		return;
 	}
@@ -276,8 +276,8 @@ void play (const char* filename, GError** error) {
 		g_propagate_error (error, _inner_error_);
 		_fclose0 (fd);
 		_g_object_unref0 (core);
-		_g_object_unref0 (audiodec);
-		_g_object_unref0 (audiosink);
+		_g_object_unref0 (decoder);
+		_g_object_unref0 (sink);
 		_g_object_unref0 (engine);
 		return;
 	}
@@ -286,8 +286,8 @@ void play (const char* filename, GError** error) {
 		g_propagate_error (error, _inner_error_);
 		_fclose0 (fd);
 		_g_object_unref0 (core);
-		_g_object_unref0 (audiodec);
-		_g_object_unref0 (audiosink);
+		_g_object_unref0 (decoder);
+		_g_object_unref0 (sink);
 		_g_object_unref0 (engine);
 		return;
 	}
@@ -296,15 +296,15 @@ void play (const char* filename, GError** error) {
 		g_propagate_error (error, _inner_error_);
 		_fclose0 (fd);
 		_g_object_unref0 (core);
-		_g_object_unref0 (audiodec);
-		_g_object_unref0 (audiosink);
+		_g_object_unref0 (decoder);
+		_g_object_unref0 (sink);
 		_g_object_unref0 (engine);
 		return;
 	}
 	_fclose0 (fd);
 	_g_object_unref0 (core);
-	_g_object_unref0 (audiodec);
-	_g_object_unref0 (audiosink);
+	_g_object_unref0 (decoder);
+	_g_object_unref0 (sink);
 	_g_object_unref0 (engine);
 }
 

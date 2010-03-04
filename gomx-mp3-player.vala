@@ -26,7 +26,7 @@ const int AUDIODEC_ID = 0;
 const int AUDIOSINK_ID = 1;
 
 
-public void play(string filename) throws Error,GOmx.Error {
+public void play(string filename) throws Error, GOmx.Error {
     var fd = FileStream.open(filename, "rb");
     if(fd == null)
         throw new FileError.FAILED("Error opening %s", filename);
@@ -34,17 +34,15 @@ public void play(string filename) throws Error,GOmx.Error {
     var core = GOmx.Core.open("libomxil-bellagio.so.0");
     core.init();
 
-    var audiodec = new GOmx.AudioComponent(core, "OMX.st.audio_decoder.mp3.mad");
-    //audiodec.component_role = "audio_decoder.mp3";
-    audiodec.name = "audiodec";
+    var decoder = new GOmx.AudioComponent(core, "OMX.st.audio_decoder.mp3.mad");
+    decoder.name = "decoder";
 
-    var audiosink = new GOmx.AudioComponent(core,"OMX.st.alsa.alsasink");
-    //audiosink.component_role = "alsa.alsasrc";
-    audiosink.name = "audiosink";
+    var sink = new GOmx.AudioComponent(core, "OMX.st.alsa.alsasink");
+    sink.name = "sink";
 
     var engine = new GOmx.Engine();
-    engine.add_component(AUDIODEC_ID, audiodec);
-    engine.add_component(AUDIOSINK_ID, audiosink);
+    engine.add_component(AUDIODEC_ID, decoder);
+    engine.add_component(AUDIOSINK_ID, sink);
 
     engine.components.init();
     engine.components.set_state_and_wait(Omx.State.Idle);
@@ -63,10 +61,10 @@ public void play(string filename) throws Error,GOmx.Error {
                     }
                     case Omx.Dir.Output: {
                         var buffer = port.pop_buffer();
-                        var audiosink_inport = audiosink.ports[0];
-                        var audiosink_buffer = audiosink_inport.pop_buffer();
-                        GOmx.buffer_copy(audiosink_buffer, buffer);
-                        audiosink_inport.push_buffer(audiosink_buffer);
+                        var sink_inport = sink.ports[0];
+                        var sink_buffer = sink_inport.pop_buffer();
+                        GOmx.buffer_copy(sink_buffer, buffer);
+                        sink_inport.push_buffer(sink_buffer);
                         port.push_buffer(buffer);
                         break;
                     }
