@@ -555,7 +555,7 @@ enum  {
 GType g_omx_port_get_type (void);
 GAsyncQueue* g_omx_port_done_queue_get_queue (GOmxPortDoneQueue* self);
 void g_omx_component_set_queue (GOmxComponent* self, GAsyncQueue* value);
-void g_omx_component_list_append (GOmxComponentList* self, GOmxComponent* component);
+void g_omx_component_list_add (GOmxComponentList* self, GOmxComponent* component);
 void g_omx_engine_add_component (GOmxEngine* self, guint id, GOmxComponent* component);
 static void g_omx_engine_real_add_component (GOmxEngine* self, guint id, GOmxComponent* component);
 GType g_omx_component_list_iterator_get_type (void);
@@ -1040,7 +1040,7 @@ static void g_omx_engine_real_add_component (GOmxEngine* self, guint id, GOmxCom
 	g_return_if_fail (component != NULL);
 	component->id = id;
 	g_omx_component_set_queue (component, g_omx_port_done_queue_get_queue (self->priv->_port_queue));
-	g_omx_component_list_append (self->priv->_components, component);
+	g_omx_component_list_add (self->priv->_components, component);
 }
 
 
@@ -1200,7 +1200,7 @@ static gpointer _g_object_ref0 (gpointer self) {
 }
 
 
-void g_omx_component_list_append (GOmxComponentList* self, GOmxComponent* component) {
+void g_omx_component_list_add (GOmxComponentList* self, GOmxComponent* component) {
 	g_return_if_fail (self != NULL);
 	g_return_if_fail (component != NULL);
 	self->priv->_components_list = g_list_append (self->priv->_components_list, _g_object_ref0 (component));

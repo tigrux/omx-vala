@@ -403,7 +403,7 @@ GType g_omx_component_list_get_type (void);
 GOmxComponentList* g_omx_engine_get_components (GOmxEngine* self);
 GType g_omx_port_done_queue_get_type (void);
 GOmxPortDoneQueue* g_omx_engine_get_ports_with_buffer_done (GOmxEngine* self);
-void g_omx_component_list_append (GOmxComponentList* self, GOmxComponent* component);
+void g_omx_component_list_add (GOmxComponentList* self, GOmxComponent* component);
 GType g_omx_component_list_iterator_get_type (void);
 GOmxComponentListIterator* g_omx_component_list_iterator (GOmxComponentList* self);
 void g_omx_component_list_init (GOmxComponentList* self, GError** error);

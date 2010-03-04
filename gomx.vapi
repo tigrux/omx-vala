@@ -50,7 +50,7 @@ namespace GOmx {
 			public bool next ();
 		}
 		public ComponentList ();
-		public void append (GOmx.Component component);
+		public void add (GOmx.Component component);
 		public void free_handles () throws GOmx.Error;
 		public GOmx.Component @get (uint index);
 		public void init () throws GOmx.Error;

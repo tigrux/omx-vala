@@ -132,7 +132,7 @@ namespace GOmx {
         public virtual void add_component(uint id, Component component) {
             component.id = id;
             component.queue = _port_queue.queue;
-            _components.append(component);
+            _components.add(component);
         }
 
 
@@ -157,7 +157,7 @@ namespace GOmx {
         }
 
 
-        public void append(Component component) {
+        public void add(Component component) {
             _components_list.append(component);
             _length++;
         }
