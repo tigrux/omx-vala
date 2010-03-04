@@ -473,28 +473,39 @@ namespace GOmx {
             try_run(
                 _handle.get_parameter(_init_index, ports_param));
 
-            if(_component_role != null)
-                set_role(_component_role);
+            set_role();
 
             _pending_state = Omx.State.Loaded;
             _current_state = Omx.State.Loaded;
         }
 
 
-        public virtual void set_role(string role)
-        throws Error requires(_handle != null) {
+        public virtual void set_role()
+        requires(_handle != null) {
             var role_param = Omx.Param.ComponentRole();
             role_param.init();
 
-            try_run(
-                _handle.get_parameter(
-                    Omx.Index.ParamStandardComponentRole,
-                    role_param));
-            Posix.strncpy((string)role_param.role, role, Omx.MAX_STRING_SIZE);
-            try_run(
-                _handle.set_parameter(
-                    Omx.Index.ParamStandardComponentRole,
-                    role_param));
+            var role_index = Omx.Index.ParamStandardComponentRole;
+            string role;
+
+            var error = _handle.get_parameter(role_index, role_param);
+            if(error == Omx.Error.None)
+                role = role_param.role;
+            else {
+                _component_role = null;
+                return;
+            }
+
+            if(_component_role == null) {
+                _component_role = role;
+                return;
+            }
+                
+            Posix.strncpy(
+                (string)role_param.role, _component_role, Omx.MAX_STRING_SIZE);
+            error = _handle.set_parameter(role_index, role_param);
+            if(error != Omx.Error.None)
+                _component_role = role;
         }
 
 

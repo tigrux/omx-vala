@@ -298,7 +298,7 @@ struct _GOmxComponent {
 struct _GOmxComponentClass {
 	GObjectClass parent_class;
 	void (*init) (GOmxComponent* self, GError** error);
-	void (*set_role) (GOmxComponent* self, const char* role, GError** error);
+	void (*set_role) (GOmxComponent* self);
 	void (*free_handle) (GOmxComponent* self, GError** error);
 	void (*allocate_ports) (GOmxComponent* self, GError** error);
 	void (*free_ports) (GOmxComponent* self, GError** error);
@@ -450,7 +450,7 @@ GOmxComponent* g_omx_component_new (GOmxCore* core, const char* name, OMX_INDEXT
 GOmxComponent* g_omx_component_construct (GType object_type, GOmxCore* core, const char* name, OMX_INDEXTYPE index);
 guint g_omx_component_get_n_ports (GOmxComponent* self);
 void g_omx_component_init (GOmxComponent* self, GError** error);
-void g_omx_component_set_role (GOmxComponent* self, const char* role, GError** error);
+void g_omx_component_set_role (GOmxComponent* self);
 void g_omx_component_free_handle (GOmxComponent* self, GError** error);
 void g_omx_component_allocate_ports (GOmxComponent* self, GError** error);
 void g_omx_component_free_ports (GOmxComponent* self, GError** error);

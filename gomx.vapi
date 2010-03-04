@@ -22,7 +22,7 @@ namespace GOmx {
 		public uint get_n_ports ();
 		public Omx.State get_state () throws GOmx.Error;
 		public virtual void init () throws GOmx.Error;
-		public virtual void set_role (string role) throws GOmx.Error;
+		public virtual void set_role ();
 		public virtual void set_state (Omx.State state) throws GOmx.Error;
 		public void set_state_and_wait (Omx.State state) throws GOmx.Error;
 		public virtual void wait_for_flush ();

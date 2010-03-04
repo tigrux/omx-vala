@@ -292,7 +292,7 @@ struct _GOmxComponent {
 struct _GOmxComponentClass {
 	GObjectClass parent_class;
 	void (*init) (GOmxComponent* self, GError** error);
-	void (*set_role) (GOmxComponent* self, const char* role, GError** error);
+	void (*set_role) (GOmxComponent* self);
 	void (*free_handle) (GOmxComponent* self, GError** error);
 	void (*allocate_ports) (GOmxComponent* self, GError** error);
 	void (*free_ports) (GOmxComponent* self, GError** error);
@@ -686,9 +686,9 @@ static OMX_ERRORTYPE _g_omx_component_fill_buffer_done_omx_fill_buffer_done_func
 GOmxComponent* g_omx_component_new (GOmxCore* core, const char* name, OMX_INDEXTYPE index);
 GOmxComponent* g_omx_component_construct (GType object_type, GOmxCore* core, const char* name, OMX_INDEXTYPE index);
 guint g_omx_component_get_n_ports (GOmxComponent* self);
-void g_omx_component_set_role (GOmxComponent* self, const char* role, GError** error);
+void g_omx_component_set_role (GOmxComponent* self);
 static void g_omx_component_real_init (GOmxComponent* self, GError** error);
-static void g_omx_component_real_set_role (GOmxComponent* self, const char* role, GError** error);
+static void g_omx_component_real_set_role (GOmxComponent* self);
 static void g_omx_component_real_free_handle (GOmxComponent* self, GError** error);
 GOmxPortArray* g_omx_port_array_new (guint length, guint start);
 GOmxPortArray* g_omx_port_array_construct (GType object_type, guint length, guint start);
@@ -1935,19 +1935,7 @@ static void g_omx_component_real_init (GOmxComponent* self, GError** error) {
 			return;
 		}
 	}
-	if (self->priv->_component_role != NULL) {
-		g_omx_component_set_role (self, self->priv->_component_role, &_inner_error_);
-		if (_inner_error_ != NULL) {
-			if (_inner_error_->domain == G_OMX_ERROR) {
-				g_propagate_error (error, _inner_error_);
-				return;
-			} else {
-				g_critical ("file %s: line %d: uncaught error: %s (%s, %d)", __FILE__, __LINE__, _inner_error_->message, g_quark_to_string (_inner_error_->domain), _inner_error_->code);
-				g_clear_error (&_inner_error_);
-				return;
-			}
-		}
-	}
+	g_omx_component_set_role (self);
 	self->priv->_pending_state = OMX_StateLoaded;
 	self->priv->_current_state = OMX_StateLoaded;
 }
@@ -1959,45 +1947,47 @@ void g_omx_component_init (GOmxComponent* self, GError** error) {
 }
 
 
-static void g_omx_component_real_set_role (GOmxComponent* self, const char* role, GError** error) {
-	GError * _inner_error_;
+static void g_omx_component_real_set_role (GOmxComponent* self) {
 	OMX_PARAM_COMPONENTROLETYPE _tmp0_ = {0};
 	OMX_PARAM_COMPONENTROLETYPE role_param;
+	OMX_INDEXTYPE role_index;
+	char* role;
+	OMX_ERRORTYPE _error_;
 	g_return_if_fail (self != NULL);
-	g_return_if_fail (role != NULL);
-	_inner_error_ = NULL;
 	g_return_if_fail (self->priv->_handle != NULL);
 	role_param = (memset (&_tmp0_, 0, sizeof (OMX_PARAM_COMPONENTROLETYPE)), _tmp0_);
 	omx_structure_init (&role_param);
-	g_omx_try_run (OMX_GetParameter (self->priv->_handle, (guint) OMX_IndexParamStandardComponentRole, &role_param), &_inner_error_);
-	if (_inner_error_ != NULL) {
-		if (_inner_error_->domain == G_OMX_ERROR) {
-			g_propagate_error (error, _inner_error_);
-			return;
-		} else {
-			g_critical ("file %s: line %d: uncaught error: %s (%s, %d)", __FILE__, __LINE__, _inner_error_->message, g_quark_to_string (_inner_error_->domain), _inner_error_->code);
-			g_clear_error (&_inner_error_);
-			return;
-		}
+	role_index = OMX_IndexParamStandardComponentRole;
+	role = NULL;
+	_error_ = OMX_GetParameter (self->priv->_handle, (guint) role_index, &role_param);
+	if (_error_ == OMX_ErrorNone) {
+		char* _tmp1_;
+		role = (_tmp1_ = g_strdup (role_param.cRole), _g_free0 (role), _tmp1_);
+	} else {
+		char* _tmp2_;
+		self->priv->_component_role = (_tmp2_ = NULL, _g_free0 (self->priv->_component_role), _tmp2_);
+		_g_free0 (role);
+		return;
 	}
-	strncpy ((const char*) role_param.cRole, role, (gsize) OMX_MAX_STRINGNAME_SIZE);
-	g_omx_try_run (OMX_SetParameter (self->priv->_handle, (guint) OMX_IndexParamStandardComponentRole, &role_param), &_inner_error_);
-	if (_inner_error_ != NULL) {
-		if (_inner_error_->domain == G_OMX_ERROR) {
-			g_propagate_error (error, _inner_error_);
-			return;
-		} else {
-			g_critical ("file %s: line %d: uncaught error: %s (%s, %d)", __FILE__, __LINE__, _inner_error_->message, g_quark_to_string (_inner_error_->domain), _inner_error_->code);
-			g_clear_error (&_inner_error_);
-			return;
-		}
+	if (self->priv->_component_role == NULL) {
+		char* _tmp3_;
+		self->priv->_component_role = (_tmp3_ = g_strdup (role), _g_free0 (self->priv->_component_role), _tmp3_);
+		_g_free0 (role);
+		return;
 	}
+	strncpy ((const char*) role_param.cRole, self->priv->_component_role, (gsize) OMX_MAX_STRINGNAME_SIZE);
+	_error_ = OMX_SetParameter (self->priv->_handle, (guint) role_index, &role_param);
+	if (_error_ != OMX_ErrorNone) {
+		char* _tmp4_;
+		self->priv->_component_role = (_tmp4_ = g_strdup (role), _g_free0 (self->priv->_component_role), _tmp4_);
+	}
+	_g_free0 (role);
 }
 
 
-void g_omx_component_set_role (GOmxComponent* self, const char* role, GError** error) {
+void g_omx_component_set_role (GOmxComponent* self) {
 	g_return_if_fail (self->priv->_handle != NULL);
-	G_OMX_COMPONENT_GET_CLASS (self)->set_role (self, role, error);
+	G_OMX_COMPONENT_GET_CLASS (self)->set_role (self);
 }
 
 
@@ -2668,7 +2658,7 @@ static OMX_ERRORTYPE g_omx_component_event_handler (GOmxComponent* self, void* c
 		{
 			OMX_ERRORTYPE _error_;
 			_error_ = (OMX_ERRORTYPE) data1;
-			g_critical ("gomx.vala:702: %s", omx_error_to_string (_error_));
+			g_critical ("gomx.vala:713: %s", omx_error_to_string (_error_));
 			if (self->priv->_event_func_1 != NULL) {
 				self->priv->_event_func_1 (self, (guint) data1, (guint) data2, event_data, self->priv->_event_func_1_target);
 			}
