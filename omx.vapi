@@ -3,6 +3,9 @@ namespace Omx {
     [CCode (cname="OMX_ALL")]
     const uint ALL;
 
+    [CCode (cname="OMX_MAX_STRINGNAME_SIZE")]
+    const uint MAX_STRING_SIZE;
+
     [CCode (cname="OMX_COMMANDTYPE", cprefix="OMX_Command")]
     public enum Command {
         StateSet,
@@ -730,6 +733,12 @@ namespace Omx {
 
             [CCode (cname="sFrameSize")]
             public FrameSize frame_size;
+        }
+                
+        [CCode (cname="OMX_PARAM_COMPONENTROLETYPE")]
+        public struct ComponentRole: PortStructure {
+            [CCode (cname="cRole")]
+            public weak string role;
         }
     } //ns Param
 

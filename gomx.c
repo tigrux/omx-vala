@@ -292,6 +292,7 @@ struct _GOmxComponent {
 struct _GOmxComponentClass {
 	GObjectClass parent_class;
 	void (*init) (GOmxComponent* self, GError** error);
+	void (*set_role) (GOmxComponent* self, const char* role, GError** error);
 	void (*free_handle) (GOmxComponent* self, GError** error);
 	void (*allocate_ports) (GOmxComponent* self, GError** error);
 	void (*free_ports) (GOmxComponent* self, GError** error);
@@ -434,6 +435,7 @@ struct _GOmxComponentPrivate {
 	char* _name;
 	GOmxCore* _core;
 	char* _component_name;
+	char* _component_role;
 	guint _init_index;
 	gboolean _no_allocate_buffers;
 };
@@ -637,26 +639,26 @@ GType g_omx_audio_component_get_type (void);
 enum  {
 	G_OMX_AUDIO_COMPONENT_DUMMY_PROPERTY
 };
-GOmxAudioComponent* g_omx_audio_component_new (GOmxCore* core, const char* comp_name);
-GOmxAudioComponent* g_omx_audio_component_construct (GType object_type, GOmxCore* core, const char* comp_name);
+GOmxAudioComponent* g_omx_audio_component_new (GOmxCore* core, const char* name);
+GOmxAudioComponent* g_omx_audio_component_construct (GType object_type, GOmxCore* core, const char* name);
 GType g_omx_image_component_get_type (void);
 enum  {
 	G_OMX_IMAGE_COMPONENT_DUMMY_PROPERTY
 };
-GOmxImageComponent* g_omx_image_component_new (GOmxCore* core, const char* comp_name);
-GOmxImageComponent* g_omx_image_component_construct (GType object_type, GOmxCore* core, const char* comp_name);
+GOmxImageComponent* g_omx_image_component_new (GOmxCore* core, const char* name);
+GOmxImageComponent* g_omx_image_component_construct (GType object_type, GOmxCore* core, const char* name);
 GType g_omx_video_component_get_type (void);
 enum  {
 	G_OMX_VIDEO_COMPONENT_DUMMY_PROPERTY
 };
-GOmxVideoComponent* g_omx_video_component_new (GOmxCore* core, const char* comp_name);
-GOmxVideoComponent* g_omx_video_component_construct (GType object_type, GOmxCore* core, const char* comp_name);
+GOmxVideoComponent* g_omx_video_component_new (GOmxCore* core, const char* name);
+GOmxVideoComponent* g_omx_video_component_construct (GType object_type, GOmxCore* core, const char* name);
 GType g_omx_other_component_get_type (void);
 enum  {
 	G_OMX_OTHER_COMPONENT_DUMMY_PROPERTY
 };
-GOmxOtherComponent* g_omx_other_component_new (GOmxCore* core, const char* comp_name);
-GOmxOtherComponent* g_omx_other_component_construct (GType object_type, GOmxCore* core, const char* comp_name);
+GOmxOtherComponent* g_omx_other_component_new (GOmxCore* core, const char* name);
+GOmxOtherComponent* g_omx_other_component_construct (GType object_type, GOmxCore* core, const char* name);
 GType g_omx_semaphore_get_type (void);
 GType g_omx_port_array_get_type (void);
 #define G_OMX_COMPONENT_GET_PRIVATE(o) (G_TYPE_INSTANCE_GET_PRIVATE ((o), G_OMX_TYPE_COMPONENT, GOmxComponentPrivate))
@@ -668,6 +670,7 @@ enum  {
 	G_OMX_COMPONENT_QUEUE,
 	G_OMX_COMPONENT_CORE,
 	G_OMX_COMPONENT_COMPONENT_NAME,
+	G_OMX_COMPONENT_COMPONENT_ROLE,
 	G_OMX_COMPONENT_CURRENT_STATE,
 	G_OMX_COMPONENT_INIT_INDEX,
 	G_OMX_COMPONENT_PENDING_STATE,
@@ -680,10 +683,12 @@ static OMX_ERRORTYPE g_omx_component_empty_buffer_done (GOmxComponent* self, voi
 static OMX_ERRORTYPE _g_omx_component_empty_buffer_done_omx_empty_buffer_done_func (void* component, gpointer self, OMX_BUFFERHEADERTYPE* buffer);
 static OMX_ERRORTYPE g_omx_component_fill_buffer_done (GOmxComponent* self, void* component, OMX_BUFFERHEADERTYPE* buffer);
 static OMX_ERRORTYPE _g_omx_component_fill_buffer_done_omx_fill_buffer_done_func (void* component, gpointer self, OMX_BUFFERHEADERTYPE* buffer);
-GOmxComponent* g_omx_component_new (GOmxCore* core, const char* comp_name, OMX_INDEXTYPE index);
-GOmxComponent* g_omx_component_construct (GType object_type, GOmxCore* core, const char* comp_name, OMX_INDEXTYPE index);
+GOmxComponent* g_omx_component_new (GOmxCore* core, const char* name, OMX_INDEXTYPE index);
+GOmxComponent* g_omx_component_construct (GType object_type, GOmxCore* core, const char* name, OMX_INDEXTYPE index);
 guint g_omx_component_get_n_ports (GOmxComponent* self);
+void g_omx_component_set_role (GOmxComponent* self, const char* role, GError** error);
 static void g_omx_component_real_init (GOmxComponent* self, GError** error);
+static void g_omx_component_real_set_role (GOmxComponent* self, const char* role, GError** error);
 static void g_omx_component_real_free_handle (GOmxComponent* self, GError** error);
 GOmxPortArray* g_omx_port_array_new (guint length, guint start);
 GOmxPortArray* g_omx_port_array_construct (GType object_type, guint length, guint start);
@@ -729,6 +734,8 @@ GOmxCore* g_omx_component_get_core (GOmxComponent* self);
 void g_omx_component_set_core (GOmxComponent* self, GOmxCore* value);
 const char* g_omx_component_get_component_name (GOmxComponent* self);
 void g_omx_component_set_component_name (GOmxComponent* self, const char* value);
+const char* g_omx_component_get_component_role (GOmxComponent* self);
+void g_omx_component_set_component_role (GOmxComponent* self, const char* value);
 guint g_omx_component_get_current_state (GOmxComponent* self);
 guint g_omx_component_get_init_index (GOmxComponent* self);
 void g_omx_component_set_init_index (GOmxComponent* self, guint value);
@@ -1731,17 +1738,17 @@ static void g_omx_port_done_queue_get_property (GObject * object, guint property
 }
 
 
-GOmxAudioComponent* g_omx_audio_component_construct (GType object_type, GOmxCore* core, const char* comp_name) {
+GOmxAudioComponent* g_omx_audio_component_construct (GType object_type, GOmxCore* core, const char* name) {
 	GOmxAudioComponent * self;
 	g_return_val_if_fail (core != NULL, NULL);
-	g_return_val_if_fail (comp_name != NULL, NULL);
-	self = (GOmxAudioComponent*) g_object_new (object_type, "core", core, "component-name", comp_name, "init-index", OMX_IndexParamAudioInit, "name", comp_name, NULL);
+	g_return_val_if_fail (name != NULL, NULL);
+	self = (GOmxAudioComponent*) g_object_new (object_type, "core", core, "component-name", name, "init-index", OMX_IndexParamAudioInit, "name", name, NULL);
 	return self;
 }
 
 
-GOmxAudioComponent* g_omx_audio_component_new (GOmxCore* core, const char* comp_name) {
-	return g_omx_audio_component_construct (G_OMX_TYPE_AUDIO_COMPONENT, core, comp_name);
+GOmxAudioComponent* g_omx_audio_component_new (GOmxCore* core, const char* name) {
+	return g_omx_audio_component_construct (G_OMX_TYPE_AUDIO_COMPONENT, core, name);
 }
 
 
@@ -1764,17 +1771,17 @@ GType g_omx_audio_component_get_type (void) {
 }
 
 
-GOmxImageComponent* g_omx_image_component_construct (GType object_type, GOmxCore* core, const char* comp_name) {
+GOmxImageComponent* g_omx_image_component_construct (GType object_type, GOmxCore* core, const char* name) {
 	GOmxImageComponent * self;
 	g_return_val_if_fail (core != NULL, NULL);
-	g_return_val_if_fail (comp_name != NULL, NULL);
-	self = (GOmxImageComponent*) g_object_new (object_type, "core", core, "component-name", comp_name, "init-index", OMX_IndexParamImageInit, "name", comp_name, NULL);
+	g_return_val_if_fail (name != NULL, NULL);
+	self = (GOmxImageComponent*) g_object_new (object_type, "core", core, "component-name", name, "init-index", OMX_IndexParamImageInit, "name", name, NULL);
 	return self;
 }
 
 
-GOmxImageComponent* g_omx_image_component_new (GOmxCore* core, const char* comp_name) {
-	return g_omx_image_component_construct (G_OMX_TYPE_IMAGE_COMPONENT, core, comp_name);
+GOmxImageComponent* g_omx_image_component_new (GOmxCore* core, const char* name) {
+	return g_omx_image_component_construct (G_OMX_TYPE_IMAGE_COMPONENT, core, name);
 }
 
 
@@ -1797,17 +1804,17 @@ GType g_omx_image_component_get_type (void) {
 }
 
 
-GOmxVideoComponent* g_omx_video_component_construct (GType object_type, GOmxCore* core, const char* comp_name) {
+GOmxVideoComponent* g_omx_video_component_construct (GType object_type, GOmxCore* core, const char* name) {
 	GOmxVideoComponent * self;
 	g_return_val_if_fail (core != NULL, NULL);
-	g_return_val_if_fail (comp_name != NULL, NULL);
-	self = (GOmxVideoComponent*) g_object_new (object_type, "core", core, "component-name", comp_name, "init-index", OMX_IndexParamVideoInit, "name", comp_name, NULL);
+	g_return_val_if_fail (name != NULL, NULL);
+	self = (GOmxVideoComponent*) g_object_new (object_type, "core", core, "component-name", name, "init-index", OMX_IndexParamVideoInit, "name", name, NULL);
 	return self;
 }
 
 
-GOmxVideoComponent* g_omx_video_component_new (GOmxCore* core, const char* comp_name) {
-	return g_omx_video_component_construct (G_OMX_TYPE_VIDEO_COMPONENT, core, comp_name);
+GOmxVideoComponent* g_omx_video_component_new (GOmxCore* core, const char* name) {
+	return g_omx_video_component_construct (G_OMX_TYPE_VIDEO_COMPONENT, core, name);
 }
 
 
@@ -1830,17 +1837,17 @@ GType g_omx_video_component_get_type (void) {
 }
 
 
-GOmxOtherComponent* g_omx_other_component_construct (GType object_type, GOmxCore* core, const char* comp_name) {
+GOmxOtherComponent* g_omx_other_component_construct (GType object_type, GOmxCore* core, const char* name) {
 	GOmxOtherComponent * self;
 	g_return_val_if_fail (core != NULL, NULL);
-	g_return_val_if_fail (comp_name != NULL, NULL);
-	self = (GOmxOtherComponent*) g_object_new (object_type, "core", core, "component-name", comp_name, "init-index", OMX_IndexParamOtherInit, "name", comp_name, NULL);
+	g_return_val_if_fail (name != NULL, NULL);
+	self = (GOmxOtherComponent*) g_object_new (object_type, "core", core, "component-name", name, "init-index", OMX_IndexParamOtherInit, "name", name, NULL);
 	return self;
 }
 
 
-GOmxOtherComponent* g_omx_other_component_new (GOmxCore* core, const char* comp_name) {
-	return g_omx_other_component_construct (G_OMX_TYPE_OTHER_COMPONENT, core, comp_name);
+GOmxOtherComponent* g_omx_other_component_new (GOmxCore* core, const char* name) {
+	return g_omx_other_component_construct (G_OMX_TYPE_OTHER_COMPONENT, core, name);
 }
 
 
@@ -1878,17 +1885,17 @@ static OMX_ERRORTYPE _g_omx_component_fill_buffer_done_omx_fill_buffer_done_func
 }
 
 
-GOmxComponent* g_omx_component_construct (GType object_type, GOmxCore* core, const char* comp_name, OMX_INDEXTYPE index) {
+GOmxComponent* g_omx_component_construct (GType object_type, GOmxCore* core, const char* name, OMX_INDEXTYPE index) {
 	GOmxComponent * self;
 	g_return_val_if_fail (core != NULL, NULL);
-	g_return_val_if_fail (comp_name != NULL, NULL);
-	self = (GOmxComponent*) g_object_new (object_type, "core", core, "component-name", comp_name, "init-index", index, "name", comp_name, NULL);
+	g_return_val_if_fail (name != NULL, NULL);
+	self = (GOmxComponent*) g_object_new (object_type, "core", core, "component-name", name, "init-index", index, "name", name, NULL);
 	return self;
 }
 
 
-GOmxComponent* g_omx_component_new (GOmxCore* core, const char* comp_name, OMX_INDEXTYPE index) {
-	return g_omx_component_construct (G_OMX_TYPE_COMPONENT, core, comp_name, index);
+GOmxComponent* g_omx_component_new (GOmxCore* core, const char* name, OMX_INDEXTYPE index) {
+	return g_omx_component_construct (G_OMX_TYPE_COMPONENT, core, name, index);
 }
 
 
@@ -1928,6 +1935,19 @@ static void g_omx_component_real_init (GOmxComponent* self, GError** error) {
 			return;
 		}
 	}
+	if (self->priv->_component_role != NULL) {
+		g_omx_component_set_role (self, self->priv->_component_role, &_inner_error_);
+		if (_inner_error_ != NULL) {
+			if (_inner_error_->domain == G_OMX_ERROR) {
+				g_propagate_error (error, _inner_error_);
+				return;
+			} else {
+				g_critical ("file %s: line %d: uncaught error: %s (%s, %d)", __FILE__, __LINE__, _inner_error_->message, g_quark_to_string (_inner_error_->domain), _inner_error_->code);
+				g_clear_error (&_inner_error_);
+				return;
+			}
+		}
+	}
 	self->priv->_pending_state = OMX_StateLoaded;
 	self->priv->_current_state = OMX_StateLoaded;
 }
@@ -1936,6 +1956,48 @@ static void g_omx_component_real_init (GOmxComponent* self, GError** error) {
 void g_omx_component_init (GOmxComponent* self, GError** error) {
 	g_return_if_fail (self->priv->_handle == NULL);
 	G_OMX_COMPONENT_GET_CLASS (self)->init (self, error);
+}
+
+
+static void g_omx_component_real_set_role (GOmxComponent* self, const char* role, GError** error) {
+	GError * _inner_error_;
+	OMX_PARAM_COMPONENTROLETYPE _tmp0_ = {0};
+	OMX_PARAM_COMPONENTROLETYPE role_param;
+	g_return_if_fail (self != NULL);
+	g_return_if_fail (role != NULL);
+	_inner_error_ = NULL;
+	g_return_if_fail (self->priv->_handle != NULL);
+	role_param = (memset (&_tmp0_, 0, sizeof (OMX_PARAM_COMPONENTROLETYPE)), _tmp0_);
+	omx_structure_init (&role_param);
+	g_omx_try_run (OMX_GetParameter (self->priv->_handle, (guint) OMX_IndexParamStandardComponentRole, &role_param), &_inner_error_);
+	if (_inner_error_ != NULL) {
+		if (_inner_error_->domain == G_OMX_ERROR) {
+			g_propagate_error (error, _inner_error_);
+			return;
+		} else {
+			g_critical ("file %s: line %d: uncaught error: %s (%s, %d)", __FILE__, __LINE__, _inner_error_->message, g_quark_to_string (_inner_error_->domain), _inner_error_->code);
+			g_clear_error (&_inner_error_);
+			return;
+		}
+	}
+	strncpy ((const char*) role_param.cRole, role, (gsize) OMX_MAX_STRINGNAME_SIZE);
+	g_omx_try_run (OMX_SetParameter (self->priv->_handle, (guint) OMX_IndexParamStandardComponentRole, &role_param), &_inner_error_);
+	if (_inner_error_ != NULL) {
+		if (_inner_error_->domain == G_OMX_ERROR) {
+			g_propagate_error (error, _inner_error_);
+			return;
+		} else {
+			g_critical ("file %s: line %d: uncaught error: %s (%s, %d)", __FILE__, __LINE__, _inner_error_->message, g_quark_to_string (_inner_error_->domain), _inner_error_->code);
+			g_clear_error (&_inner_error_);
+			return;
+		}
+	}
+}
+
+
+void g_omx_component_set_role (GOmxComponent* self, const char* role, GError** error) {
+	g_return_if_fail (self->priv->_handle != NULL);
+	G_OMX_COMPONENT_GET_CLASS (self)->set_role (self, role, error);
 }
 
 
@@ -2606,7 +2668,7 @@ static OMX_ERRORTYPE g_omx_component_event_handler (GOmxComponent* self, void* c
 		{
 			OMX_ERRORTYPE _error_;
 			_error_ = (OMX_ERRORTYPE) data1;
-			g_critical ("gomx.vala:677: %s", omx_error_to_string (_error_));
+			g_critical ("gomx.vala:702: %s", omx_error_to_string (_error_));
 			if (self->priv->_event_func_1 != NULL) {
 				self->priv->_event_func_1 (self, (guint) data1, (guint) data2, event_data, self->priv->_event_func_1_target);
 			}
@@ -2796,6 +2858,22 @@ void g_omx_component_set_component_name (GOmxComponent* self, const char* value)
 }
 
 
+const char* g_omx_component_get_component_role (GOmxComponent* self) {
+	const char* result;
+	g_return_val_if_fail (self != NULL, NULL);
+	result = self->priv->_component_role;
+	return result;
+}
+
+
+void g_omx_component_set_component_role (GOmxComponent* self, const char* value) {
+	char* _tmp0_;
+	g_return_if_fail (self != NULL);
+	self->priv->_component_role = (_tmp0_ = g_strdup (value), _g_free0 (self->priv->_component_role), _tmp0_);
+	g_object_notify ((GObject *) self, "component-role");
+}
+
+
 guint g_omx_component_get_current_state (GOmxComponent* self) {
 	guint result;
 	g_return_val_if_fail (self != NULL, 0U);
@@ -2876,6 +2954,7 @@ static void g_omx_component_class_init (GOmxComponentClass * klass) {
 	g_omx_component_parent_class = g_type_class_peek_parent (klass);
 	g_type_class_add_private (klass, sizeof (GOmxComponentPrivate));
 	G_OMX_COMPONENT_CLASS (klass)->init = g_omx_component_real_init;
+	G_OMX_COMPONENT_CLASS (klass)->set_role = g_omx_component_real_set_role;
 	G_OMX_COMPONENT_CLASS (klass)->free_handle = g_omx_component_real_free_handle;
 	G_OMX_COMPONENT_CLASS (klass)->allocate_ports = g_omx_component_real_allocate_ports;
 	G_OMX_COMPONENT_CLASS (klass)->free_ports = g_omx_component_real_free_ports;
@@ -2895,6 +2974,7 @@ static void g_omx_component_class_init (GOmxComponentClass * klass) {
 	g_object_class_install_property (G_OBJECT_CLASS (klass), G_OMX_COMPONENT_QUEUE, g_param_spec_pointer ("queue", "queue", "queue", G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK | G_PARAM_STATIC_BLURB | G_PARAM_READABLE | G_PARAM_WRITABLE));
 	g_object_class_install_property (G_OBJECT_CLASS (klass), G_OMX_COMPONENT_CORE, g_param_spec_object ("core", "core", "core", G_OMX_TYPE_CORE, G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK | G_PARAM_STATIC_BLURB | G_PARAM_READABLE | G_PARAM_WRITABLE | G_PARAM_CONSTRUCT));
 	g_object_class_install_property (G_OBJECT_CLASS (klass), G_OMX_COMPONENT_COMPONENT_NAME, g_param_spec_string ("component-name", "component-name", "component-name", NULL, G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK | G_PARAM_STATIC_BLURB | G_PARAM_READABLE | G_PARAM_WRITABLE | G_PARAM_CONSTRUCT));
+	g_object_class_install_property (G_OBJECT_CLASS (klass), G_OMX_COMPONENT_COMPONENT_ROLE, g_param_spec_string ("component-role", "component-role", "component-role", NULL, G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK | G_PARAM_STATIC_BLURB | G_PARAM_READABLE | G_PARAM_WRITABLE | G_PARAM_CONSTRUCT));
 	g_object_class_install_property (G_OBJECT_CLASS (klass), G_OMX_COMPONENT_CURRENT_STATE, g_param_spec_uint ("current-state", "current-state", "current-state", 0, G_MAXUINT, 0U, G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK | G_PARAM_STATIC_BLURB | G_PARAM_READABLE));
 	g_object_class_install_property (G_OBJECT_CLASS (klass), G_OMX_COMPONENT_INIT_INDEX, g_param_spec_uint ("init-index", "init-index", "init-index", 0, G_MAXUINT, 0U, G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK | G_PARAM_STATIC_BLURB | G_PARAM_READABLE | G_PARAM_WRITABLE | G_PARAM_CONSTRUCT));
 	g_object_class_install_property (G_OBJECT_CLASS (klass), G_OMX_COMPONENT_PENDING_STATE, g_param_spec_uint ("pending-state", "pending-state", "pending-state", 0, G_MAXUINT, 0U, G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK | G_PARAM_STATIC_BLURB | G_PARAM_READABLE));
@@ -2954,6 +3034,7 @@ static void g_omx_component_finalize (GObject* obj) {
 	_g_free0 (self->priv->_name);
 	_g_object_unref0 (self->priv->_core);
 	_g_free0 (self->priv->_component_name);
+	_g_free0 (self->priv->_component_role);
 	G_OBJECT_CLASS (g_omx_component_parent_class)->finalize (obj);
 }
 
@@ -2989,6 +3070,9 @@ static void g_omx_component_get_property (GObject * object, guint property_id, G
 		break;
 		case G_OMX_COMPONENT_COMPONENT_NAME:
 		g_value_set_string (value, g_omx_component_get_component_name (self));
+		break;
+		case G_OMX_COMPONENT_COMPONENT_ROLE:
+		g_value_set_string (value, g_omx_component_get_component_role (self));
 		break;
 		case G_OMX_COMPONENT_CURRENT_STATE:
 		g_value_set_uint (value, g_omx_component_get_current_state (self));
@@ -3027,6 +3111,9 @@ static void g_omx_component_set_property (GObject * object, guint property_id, c
 		break;
 		case G_OMX_COMPONENT_COMPONENT_NAME:
 		g_omx_component_set_component_name (self, g_value_get_string (value));
+		break;
+		case G_OMX_COMPONENT_COMPONENT_ROLE:
+		g_omx_component_set_component_role (self, g_value_get_string (value));
 		break;
 		case G_OMX_COMPONENT_INIT_INDEX:
 		g_omx_component_set_init_index (self, g_value_get_uint (value));

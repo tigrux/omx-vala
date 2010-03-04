@@ -288,45 +288,45 @@ namespace GOmx {
 ////////////////////////////////////////////////////////////////////////////////
 
     public class AudioComponent: Component {
-        public AudioComponent(Core core, string comp_name) {
+        public AudioComponent(Core core, string name) {
             Object(
                 core: core,
-                component_name: comp_name,
+                component_name: name,
                 init_index: Omx.Index.ParamAudioInit,
-                name: comp_name);
+                name: name);
         }
     }
 
 
     public class ImageComponent: Component {
-        public ImageComponent(Core core, string comp_name) {
+        public ImageComponent(Core core, string name) {
             Object(
                 core: core,
-                component_name: comp_name,
+                component_name: name,
                 init_index: Omx.Index.ParamImageInit,
-                name: comp_name);
+                name: name);
         }
     }
 
 
     public class VideoComponent: Component {
-        public VideoComponent(Core core, string comp_name) {
+        public VideoComponent(Core core, string name) {
             Object(
                 core: core,
-                component_name: comp_name,
+                component_name: name,
                 init_index: Omx.Index.ParamVideoInit,
-                name: comp_name);
+                name: name);
         }
     }
 
 
     public class OtherComponent: Component {
-        public OtherComponent(Core core, string comp_name) {
+        public OtherComponent(Core core, string name) {
             Object(
                 core: core,
-                component_name: comp_name,
+                component_name: name,
                 init_index: Omx.Index.ParamOtherInit,
-                name: comp_name);
+                name: name);
         }
     }
 
@@ -403,6 +403,10 @@ namespace GOmx {
         }
 
 
+        public string? component_role {
+            get; set construct;
+        }
+
         public uint current_state {
             get {
                 return _current_state;
@@ -444,12 +448,13 @@ namespace GOmx {
         }
 
 
-        public Component(Core core, string comp_name, Omx.Index index) {
+        public Component(
+                Core core, string name, Omx.Index index) {
             Object(
                 core: core,
-                component_name: comp_name,
+                component_name: name,
                 init_index: index,
-                name: comp_name);
+                name: name);
         }
 
 
@@ -466,10 +471,30 @@ namespace GOmx {
 
             ports_param.init();
             try_run(
-                _handle.get_parameter(
-                    _init_index, ports_param));
+                _handle.get_parameter(_init_index, ports_param));
+
+            if(_component_role != null)
+                set_role(_component_role);
+
             _pending_state = Omx.State.Loaded;
             _current_state = Omx.State.Loaded;
+        }
+
+
+        public virtual void set_role(string role)
+        throws Error requires(_handle != null) {
+            var role_param = Omx.Param.ComponentRole();
+            role_param.init();
+
+            try_run(
+                _handle.get_parameter(
+                    Omx.Index.ParamStandardComponentRole,
+                    role_param));
+            Posix.strncpy((string)role_param.role, role, Omx.MAX_STRING_SIZE);
+            try_run(
+                _handle.set_parameter(
+                    Omx.Index.ParamStandardComponentRole,
+                    role_param));
         }
 
 

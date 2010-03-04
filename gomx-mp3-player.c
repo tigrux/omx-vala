@@ -21,8 +21,6 @@ void play (const char* filename, GError** error);
 gint _main (char** args, int args_length1);
 #define AUDIODEC_ID 0
 #define AUDIOSINK_ID 1
-#define AUDIODEC_COMPONENT "OMX.st.audio_decoder.mp3.mad"
-#define AUDIOSINK_COMPONENT "OMX.st.alsa.alsasink"
 
 
 
@@ -116,9 +114,9 @@ void play (const char* filename, GError** error) {
 		_g_object_unref0 (core);
 		return;
 	}
-	audiodec = g_omx_audio_component_new (core, AUDIODEC_COMPONENT);
+	audiodec = g_omx_audio_component_new (core, "OMX.st.audio_decoder.mp3.mad");
 	g_omx_component_set_name ((GOmxComponent*) audiodec, "audiodec");
-	audiosink = g_omx_audio_component_new (core, AUDIOSINK_COMPONENT);
+	audiosink = g_omx_audio_component_new (core, "OMX.st.alsa.alsasink");
 	g_omx_component_set_name ((GOmxComponent*) audiosink, "audiosink");
 	engine = g_omx_engine_new ();
 	g_omx_engine_add_component (engine, (guint) AUDIODEC_ID, (GOmxComponent*) audiodec);

@@ -4,7 +4,7 @@
 namespace GOmx {
 	[CCode (cheader_filename = "gomx.h")]
 	public class AudioComponent : GOmx.Component {
-		public AudioComponent (GOmx.Core core, string comp_name);
+		public AudioComponent (GOmx.Core core, string name);
 	}
 	[CCode (cheader_filename = "gomx.h")]
 	public class Component : GLib.Object {
@@ -12,7 +12,7 @@ namespace GOmx {
 		public delegate void EventFunc (GOmx.Component component, uint data1, uint data2, void* event_data);
 		public uint id;
 		public Omx.PortParam ports_param;
-		public Component (GOmx.Core core, string comp_name, Omx.Index index);
+		public Component (GOmx.Core core, string name, Omx.Index index);
 		protected virtual void allocate_ports () throws GOmx.Error;
 		public virtual void buffers_begin_transfer () throws GOmx.Error;
 		public Omx.Error can_set_state (Omx.State next_state);
@@ -22,12 +22,14 @@ namespace GOmx {
 		public uint get_n_ports ();
 		public Omx.State get_state () throws GOmx.Error;
 		public virtual void init () throws GOmx.Error;
+		public virtual void set_role (string role) throws GOmx.Error;
 		public virtual void set_state (Omx.State state) throws GOmx.Error;
 		public void set_state_and_wait (Omx.State state) throws GOmx.Error;
 		public virtual void wait_for_flush ();
 		public virtual void wait_for_port () throws GOmx.Error;
 		public virtual void wait_for_state ();
 		public string component_name { get; set construct; }
+		public string? component_role { get; set construct; }
 		public GOmx.Core core { get; set construct; }
 		public uint current_state { get; }
 		public Omx.Handle handle { get; }
@@ -90,11 +92,11 @@ namespace GOmx {
 	}
 	[CCode (cheader_filename = "gomx.h")]
 	public class ImageComponent : GOmx.Component {
-		public ImageComponent (GOmx.Core core, string comp_name);
+		public ImageComponent (GOmx.Core core, string name);
 	}
 	[CCode (cheader_filename = "gomx.h")]
 	public class OtherComponent : GOmx.Component {
-		public OtherComponent (GOmx.Core core, string comp_name);
+		public OtherComponent (GOmx.Core core, string name);
 	}
 	[CCode (cheader_filename = "gomx.h")]
 	public class Port : GLib.Object {
@@ -162,7 +164,7 @@ namespace GOmx {
 	}
 	[CCode (cheader_filename = "gomx.h")]
 	public class VideoComponent : GOmx.Component {
-		public VideoComponent (GOmx.Core core, string comp_name);
+		public VideoComponent (GOmx.Core core, string name);
 	}
 	[CCode (cprefix = "G_OMX_ERROR_", cheader_filename = "gomx.h")]
 	public errordomain Error {

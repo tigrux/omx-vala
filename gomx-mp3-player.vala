@@ -25,9 +25,6 @@ int main(string[] args) {
 const int AUDIODEC_ID = 0;
 const int AUDIOSINK_ID = 1;
 
-const string AUDIODEC_COMPONENT = "OMX.st.audio_decoder.mp3.mad";
-const string AUDIOSINK_COMPONENT = "OMX.st.alsa.alsasink";
-
 
 public void play(string filename) throws Error,GOmx.Error {
     var fd = FileStream.open(filename, "rb");
@@ -37,10 +34,12 @@ public void play(string filename) throws Error,GOmx.Error {
     var core = GOmx.Core.open("libomxil-bellagio.so.0");
     core.init();
 
-    var audiodec = new GOmx.AudioComponent(core, AUDIODEC_COMPONENT);
+    var audiodec = new GOmx.AudioComponent(core, "OMX.st.audio_decoder.mp3.mad");
+    //audiodec.component_role = "audio_decoder.mp3";
     audiodec.name = "audiodec";
 
-    var audiosink = new GOmx.AudioComponent(core, AUDIOSINK_COMPONENT);
+    var audiosink = new GOmx.AudioComponent(core,"OMX.st.alsa.alsasink");
+    //audiosink.component_role = "alsa.alsasrc";
     audiosink.name = "audiosink";
 
     var engine = new GOmx.Engine();
