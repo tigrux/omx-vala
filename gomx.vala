@@ -441,8 +441,7 @@ namespace GOmx {
         }
 
 
-        public Component(
-                Core core, string name, Omx.Index index) {
+        public Component(Core core, string name, Omx.Index index) {
             Object(
                 core: core,
                 component_name: name,
@@ -493,9 +492,9 @@ namespace GOmx {
                 _component_role = role;
                 return;
             }
-                
-            Posix.strncpy(
-                (string)role_param.role, _component_role, Omx.MAX_STRING_SIZE);
+
+            var max_size = Omx.MAX_STRING_SIZE;
+            Posix.strncpy((string)role_param.role, _component_role, max_size);
             error = _handle.set_parameter(role_index, role_param);
             if(error != Omx.Error.None)
                 _component_role = role;
@@ -823,7 +822,8 @@ namespace GOmx {
         }
 
 
-        public new void set(uint index, Port port) {
+        public new void set(uint index, Port port)
+        requires(index-_start < _ports.length && index-_start >=0) {
             _ports[index-_start] = port;
         }
 
@@ -914,11 +914,11 @@ namespace GOmx {
 
         public void init()
         throws Error {
-            get_parameter();
+            get_definition();
         }
 
 
-        public void get_parameter()
+        public void get_definition()
         throws Error {
             try_run(
                 _component.handle.get_parameter(
@@ -926,7 +926,7 @@ namespace GOmx {
         }
 
 
-        public void set_parameter()
+        public void set_definition()
         throws Error {
             try_run(
                 _component.handle.set_parameter(
@@ -1002,27 +1002,27 @@ namespace GOmx {
         public void enable()
         throws Error requires(_component != null) {
             definition.enabled = true;
-            set_parameter();
+            set_definition();
             try_run(
                 _component.handle.send_command(Omx.Command.PortEnable, index));
             allocate_buffers();
             if(_component.current_state != Omx.State.Loaded)
                 buffers_begin_transfer();
             _component.wait_for_port();
-            get_parameter();
+            get_definition();
         }
 
 
         public void disable()
         throws Error requires(_component != null) {
             definition.enabled = false;
-            set_parameter();
+            set_definition();
             try_run(
                 _component.handle.send_command(Omx.Command.PortDisable, index));
             flush();
             free_buffers();
             _component.wait_for_port();    
-            get_parameter();        
+            get_definition();        
         }
 
 

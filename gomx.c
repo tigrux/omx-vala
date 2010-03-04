@@ -769,8 +769,8 @@ enum  {
 	G_OMX_PORT_EOS,
 	G_OMX_PORT_QUEUE
 };
-void g_omx_port_get_parameter (GOmxPort* self, GError** error);
-void g_omx_port_set_parameter (GOmxPort* self, GError** error);
+void g_omx_port_get_definition (GOmxPort* self, GError** error);
+void g_omx_port_set_definition (GOmxPort* self, GError** error);
 guint g_omx_port_get_index (GOmxPort* self);
 void g_omx_port_setup_tunnel_with_port (GOmxPort* self, GOmxPort* port, GError** error);
 void g_omx_port_use_buffers_of_port (GOmxPort* self, GOmxPort* port, GError** error);
@@ -1897,6 +1897,7 @@ static void g_omx_component_real_set_role (GOmxComponent* self) {
 	OMX_INDEXTYPE role_index;
 	char* role;
 	OMX_ERRORTYPE _error_;
+	guint max_size;
 	g_return_if_fail (self != NULL);
 	g_return_if_fail (self->priv->_handle != NULL);
 	role_param = (memset (&_tmp0_, 0, sizeof (OMX_PARAM_COMPONENTROLETYPE)), _tmp0_);
@@ -1919,7 +1920,8 @@ static void g_omx_component_real_set_role (GOmxComponent* self) {
 		_g_free0 (role);
 		return;
 	}
-	strncpy ((const char*) role_param.cRole, self->priv->_component_role, (gsize) OMX_MAX_STRINGNAME_SIZE);
+	max_size = OMX_MAX_STRINGNAME_SIZE;
+	strncpy ((const char*) role_param.cRole, self->priv->_component_role, (gsize) max_size);
 	_error_ = OMX_SetParameter (self->priv->_handle, (guint) role_index, &role_param);
 	if (_error_ != OMX_ErrorNone) {
 		char* _tmp4_;
@@ -2602,7 +2604,7 @@ static OMX_ERRORTYPE g_omx_component_event_handler (GOmxComponent* self, void* c
 		{
 			OMX_ERRORTYPE _error_;
 			_error_ = (OMX_ERRORTYPE) data1;
-			g_critical ("gomx.vala:706: %s", omx_error_to_string (_error_));
+			g_critical ("gomx.vala:705: %s", omx_error_to_string (_error_));
 			if (self->priv->_event_func_1 != NULL) {
 				self->priv->_event_func_1 (self, (guint) data1, (guint) data2, event_data, self->priv->_event_func_1_target);
 			}
@@ -3096,6 +3098,7 @@ void g_omx_port_array_set (GOmxPortArray* self, guint index, GOmxPort* port) {
 	GOmxPort* *_tmp0_;
 	g_return_if_fail (self != NULL);
 	g_return_if_fail (port != NULL);
+	g_return_if_fail (((index - self->priv->_start) < self->priv->_ports_length1) && ((index - self->priv->_start) >= 0));
 	_tmp0_ = &self->priv->_ports[index - self->priv->_start];
 	(*_tmp0_) = (_tmp1_ = _g_object_ref0 (port), _g_object_unref0 ((*_tmp0_)), _tmp1_);
 }
@@ -3280,7 +3283,7 @@ void g_omx_port_init (GOmxPort* self, GError** error) {
 	GError * _inner_error_;
 	g_return_if_fail (self != NULL);
 	_inner_error_ = NULL;
-	g_omx_port_get_parameter (self, &_inner_error_);
+	g_omx_port_get_definition (self, &_inner_error_);
 	if (_inner_error_ != NULL) {
 		if (_inner_error_->domain == G_OMX_ERROR) {
 			g_propagate_error (error, _inner_error_);
@@ -3294,7 +3297,7 @@ void g_omx_port_init (GOmxPort* self, GError** error) {
 }
 
 
-void g_omx_port_get_parameter (GOmxPort* self, GError** error) {
+void g_omx_port_get_definition (GOmxPort* self, GError** error) {
 	GError * _inner_error_;
 	g_return_if_fail (self != NULL);
 	_inner_error_ = NULL;
@@ -3312,7 +3315,7 @@ void g_omx_port_get_parameter (GOmxPort* self, GError** error) {
 }
 
 
-void g_omx_port_set_parameter (GOmxPort* self, GError** error) {
+void g_omx_port_set_definition (GOmxPort* self, GError** error) {
 	GError * _inner_error_;
 	g_return_if_fail (self != NULL);
 	_inner_error_ = NULL;
@@ -3472,7 +3475,7 @@ void g_omx_port_enable (GOmxPort* self, GError** error) {
 	_inner_error_ = NULL;
 	g_return_if_fail (self->priv->_component != NULL);
 	self->definition.bEnabled = TRUE;
-	g_omx_port_set_parameter (self, &_inner_error_);
+	g_omx_port_set_definition (self, &_inner_error_);
 	if (_inner_error_ != NULL) {
 		if (_inner_error_->domain == G_OMX_ERROR) {
 			g_propagate_error (error, _inner_error_);
@@ -3529,7 +3532,7 @@ void g_omx_port_enable (GOmxPort* self, GError** error) {
 			return;
 		}
 	}
-	g_omx_port_get_parameter (self, &_inner_error_);
+	g_omx_port_get_definition (self, &_inner_error_);
 	if (_inner_error_ != NULL) {
 		if (_inner_error_->domain == G_OMX_ERROR) {
 			g_propagate_error (error, _inner_error_);
@@ -3549,7 +3552,7 @@ void g_omx_port_disable (GOmxPort* self, GError** error) {
 	_inner_error_ = NULL;
 	g_return_if_fail (self->priv->_component != NULL);
 	self->definition.bEnabled = FALSE;
-	g_omx_port_set_parameter (self, &_inner_error_);
+	g_omx_port_set_definition (self, &_inner_error_);
 	if (_inner_error_ != NULL) {
 		if (_inner_error_->domain == G_OMX_ERROR) {
 			g_propagate_error (error, _inner_error_);
@@ -3604,7 +3607,7 @@ void g_omx_port_disable (GOmxPort* self, GError** error) {
 			return;
 		}
 	}
-	g_omx_port_get_parameter (self, &_inner_error_);
+	g_omx_port_get_definition (self, &_inner_error_);
 	if (_inner_error_ != NULL) {
 		if (_inner_error_->domain == G_OMX_ERROR) {
 			g_propagate_error (error, _inner_error_);
