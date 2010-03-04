@@ -37,6 +37,16 @@ typedef struct _GOmxEngine GOmxEngine;
 typedef struct _GOmxEngineClass GOmxEngineClass;
 typedef struct _GOmxEnginePrivate GOmxEnginePrivate;
 
+#define G_OMX_TYPE_COMPONENT (g_omx_component_get_type ())
+#define G_OMX_COMPONENT(obj) (G_TYPE_CHECK_INSTANCE_CAST ((obj), G_OMX_TYPE_COMPONENT, GOmxComponent))
+#define G_OMX_COMPONENT_CLASS(klass) (G_TYPE_CHECK_CLASS_CAST ((klass), G_OMX_TYPE_COMPONENT, GOmxComponentClass))
+#define G_OMX_IS_COMPONENT(obj) (G_TYPE_CHECK_INSTANCE_TYPE ((obj), G_OMX_TYPE_COMPONENT))
+#define G_OMX_IS_COMPONENT_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((klass), G_OMX_TYPE_COMPONENT))
+#define G_OMX_COMPONENT_GET_CLASS(obj) (G_TYPE_INSTANCE_GET_CLASS ((obj), G_OMX_TYPE_COMPONENT, GOmxComponentClass))
+
+typedef struct _GOmxComponent GOmxComponent;
+typedef struct _GOmxComponentClass GOmxComponentClass;
+
 #define G_OMX_TYPE_COMPONENT_LIST (g_omx_component_list_get_type ())
 #define G_OMX_COMPONENT_LIST(obj) (G_TYPE_CHECK_INSTANCE_CAST ((obj), G_OMX_TYPE_COMPONENT_LIST, GOmxComponentList))
 #define G_OMX_COMPONENT_LIST_CLASS(klass) (G_TYPE_CHECK_CLASS_CAST ((klass), G_OMX_TYPE_COMPONENT_LIST, GOmxComponentListClass))
@@ -56,16 +66,6 @@ typedef struct _GOmxComponentListClass GOmxComponentListClass;
 
 typedef struct _GOmxPortDoneQueue GOmxPortDoneQueue;
 typedef struct _GOmxPortDoneQueueClass GOmxPortDoneQueueClass;
-
-#define G_OMX_TYPE_COMPONENT (g_omx_component_get_type ())
-#define G_OMX_COMPONENT(obj) (G_TYPE_CHECK_INSTANCE_CAST ((obj), G_OMX_TYPE_COMPONENT, GOmxComponent))
-#define G_OMX_COMPONENT_CLASS(klass) (G_TYPE_CHECK_CLASS_CAST ((klass), G_OMX_TYPE_COMPONENT, GOmxComponentClass))
-#define G_OMX_IS_COMPONENT(obj) (G_TYPE_CHECK_INSTANCE_TYPE ((obj), G_OMX_TYPE_COMPONENT))
-#define G_OMX_IS_COMPONENT_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((klass), G_OMX_TYPE_COMPONENT))
-#define G_OMX_COMPONENT_GET_CLASS(obj) (G_TYPE_INSTANCE_GET_CLASS ((obj), G_OMX_TYPE_COMPONENT, GOmxComponentClass))
-
-typedef struct _GOmxComponent GOmxComponent;
-typedef struct _GOmxComponentClass GOmxComponentClass;
 typedef struct _GOmxComponentPrivate GOmxComponentPrivate;
 
 #define G_OMX_TYPE_PORT (g_omx_port_get_type ())
@@ -267,6 +267,7 @@ struct _GOmxEngine {
 
 struct _GOmxEngineClass {
 	GObjectClass parent_class;
+	void (*add_component) (GOmxEngine* self, guint id, GOmxComponent* component);
 	void (*buffers_begin_transfer) (GOmxEngine* self, GError** error);
 	void (*init) (GOmxEngine* self, GError** error);
 	void (*set_state) (GOmxEngine* self, OMX_STATETYPE state, GError** error);
@@ -295,7 +296,11 @@ struct _GOmxComponentClass {
 	void (*allocate_ports) (GOmxComponent* self, GError** error);
 	void (*free_ports) (GOmxComponent* self, GError** error);
 	void (*buffers_begin_transfer) (GOmxComponent* self, GError** error);
+	void (*wait_for_state) (GOmxComponent* self);
+	void (*wait_for_port) (GOmxComponent* self, GError** error);
+	void (*wait_for_flush) (GOmxComponent* self);
 	void (*set_state) (GOmxComponent* self, OMX_STATETYPE state, GError** error);
+	OMX_ERRORTYPE (*buffer_done) (GOmxComponent* self, GOmxPort* port, OMX_BUFFERHEADERTYPE* buffer);
 };
 
 struct _GOmxComponentList {
@@ -541,6 +546,7 @@ GModule* g_omx_core_get_module (GOmxCore* self);
 static void g_omx_core_finalize (GObject* obj);
 static void g_omx_core_get_property (GObject * object, guint property_id, GValue * value, GParamSpec * pspec);
 GType g_omx_engine_get_type (void);
+GType g_omx_component_get_type (void);
 GType g_omx_component_list_get_type (void);
 GType g_omx_port_done_queue_get_type (void);
 #define G_OMX_ENGINE_GET_PRIVATE(o) (G_TYPE_INSTANCE_GET_PRIVATE ((o), G_OMX_TYPE_ENGINE, GOmxEnginePrivate))
@@ -550,12 +556,12 @@ enum  {
 	G_OMX_ENGINE_PORTS_WITH_BUFFER_DONE
 };
 guint g_omx_engine_get_n_components (GOmxEngine* self);
-GType g_omx_component_get_type (void);
 GType g_omx_port_get_type (void);
 GAsyncQueue* g_omx_port_done_queue_get_queue (GOmxPortDoneQueue* self);
 void g_omx_component_set_queue (GOmxComponent* self, GAsyncQueue* value);
 void g_omx_component_list_append (GOmxComponentList* self, GOmxComponent* component);
 void g_omx_engine_add_component (GOmxEngine* self, guint id, GOmxComponent* component);
+static void g_omx_engine_real_add_component (GOmxEngine* self, guint id, GOmxComponent* component);
 GType g_omx_component_list_iterator_get_type (void);
 GOmxComponentListIterator* g_omx_component_list_iterator (GOmxComponentList* self);
 gboolean g_omx_component_list_iterator_next (GOmxComponentListIterator* self);
@@ -678,7 +684,6 @@ GOmxComponent* g_omx_component_new (GOmxCore* core, const char* comp_name, OMX_I
 GOmxComponent* g_omx_component_construct (GType object_type, GOmxCore* core, const char* comp_name, OMX_INDEXTYPE index);
 guint g_omx_component_get_n_ports (GOmxComponent* self);
 static void g_omx_component_real_init (GOmxComponent* self, GError** error);
-void g_omx_component_send_command (GOmxComponent* self, OMX_COMMANDTYPE cmd, guint param, void* cmd_data, GError** error);
 static void g_omx_component_real_free_handle (GOmxComponent* self, GError** error);
 GOmxPortArray* g_omx_port_array_new (guint length, guint start);
 GOmxPortArray* g_omx_port_array_construct (GType object_type, guint length, guint start);
@@ -701,8 +706,11 @@ static void g_omx_component_real_free_ports (GOmxComponent* self, GError** error
 void g_omx_port_buffers_begin_transfer (GOmxPort* self, GError** error);
 static void g_omx_component_real_buffers_begin_transfer (GOmxComponent* self, GError** error);
 void g_omx_semaphore_down (GOmxSemaphore* self);
+static void g_omx_component_real_wait_for_state (GOmxComponent* self);
 void g_omx_component_wait_for_port (GOmxComponent* self, GError** error);
+static void g_omx_component_real_wait_for_port (GOmxComponent* self, GError** error);
 void g_omx_component_wait_for_flush (GOmxComponent* self);
+static void g_omx_component_real_wait_for_flush (GOmxComponent* self);
 OMX_ERRORTYPE g_omx_component_can_set_state (GOmxComponent* self, OMX_STATETYPE next_state);
 static void g_omx_component_real_set_state (GOmxComponent* self, OMX_STATETYPE state, GError** error);
 OMX_STATETYPE g_omx_component_get_state (GOmxComponent* self, GError** error);
@@ -712,6 +720,7 @@ GOmxPort* g_omx_port_array_get (GOmxPortArray* self, guint index);
 static OMX_ERRORTYPE g_omx_component_buffer_done (GOmxComponent* self, GOmxPort* port, OMX_BUFFERHEADERTYPE* buffer);
 GAsyncQueue* g_omx_port_get_queue (GOmxPort* self);
 void g_omx_port_buffer_done (GOmxPort* self, OMX_BUFFERHEADERTYPE* buffer);
+static OMX_ERRORTYPE g_omx_component_real_buffer_done (GOmxComponent* self, GOmxPort* port, OMX_BUFFERHEADERTYPE* buffer);
 void g_omx_component_set_name (GOmxComponent* self, const char* value);
 void* g_omx_component_get_handle (GOmxComponent* self);
 GOmxPortArray* g_omx_component_get_ports (GOmxComponent* self);
@@ -1037,13 +1046,18 @@ guint g_omx_engine_get_n_components (GOmxEngine* self) {
 }
 
 
-void g_omx_engine_add_component (GOmxEngine* self, guint id, GOmxComponent* component) {
+static void g_omx_engine_real_add_component (GOmxEngine* self, guint id, GOmxComponent* component) {
 	g_return_if_fail (self != NULL);
 	g_return_if_fail (component != NULL);
 	component->id = id;
 	g_omx_component_set_queue (component, g_omx_port_done_queue_get_queue (self->priv->_port_queue));
 	g_omx_component_list_append (self->priv->_components, component);
 	self->priv->_n_components++;
+}
+
+
+void g_omx_engine_add_component (GOmxEngine* self, guint id, GOmxComponent* component) {
+	G_OMX_ENGINE_GET_CLASS (self)->add_component (self, id, component);
 }
 
 
@@ -1320,6 +1334,7 @@ static GObject * g_omx_engine_constructor (GType type, guint n_construct_propert
 static void g_omx_engine_class_init (GOmxEngineClass * klass) {
 	g_omx_engine_parent_class = g_type_class_peek_parent (klass);
 	g_type_class_add_private (klass, sizeof (GOmxEnginePrivate));
+	G_OMX_ENGINE_CLASS (klass)->add_component = g_omx_engine_real_add_component;
 	G_OMX_ENGINE_CLASS (klass)->buffers_begin_transfer = g_omx_engine_real_buffers_begin_transfer;
 	G_OMX_ENGINE_CLASS (klass)->init = g_omx_engine_real_init;
 	G_OMX_ENGINE_CLASS (klass)->set_state = g_omx_engine_real_set_state;
@@ -1924,13 +1939,6 @@ void g_omx_component_init (GOmxComponent* self, GError** error) {
 }
 
 
-void g_omx_component_send_command (GOmxComponent* self, OMX_COMMANDTYPE cmd, guint param, void* cmd_data, GError** error) {
-	g_return_if_fail (self != NULL);
-	g_return_if_fail (self->priv->_handle != NULL);
-	OMX_SendCommand (self->priv->_handle, cmd, param, cmd_data);
-}
-
-
 static void g_omx_component_real_free_handle (GOmxComponent* self, GError** error) {
 	GError * _inner_error_;
 	g_return_if_fail (self != NULL);
@@ -2106,22 +2114,38 @@ void g_omx_component_buffers_begin_transfer (GOmxComponent* self, GError** error
 }
 
 
-void g_omx_component_wait_for_state (GOmxComponent* self) {
+static void g_omx_component_real_wait_for_state (GOmxComponent* self) {
 	g_return_if_fail (self != NULL);
 	g_omx_semaphore_down (self->priv->_wait_for_state_sem);
 }
 
 
-void g_omx_component_wait_for_port (GOmxComponent* self, GError** error) {
+void g_omx_component_wait_for_state (GOmxComponent* self) {
+	G_OMX_COMPONENT_GET_CLASS (self)->wait_for_state (self);
+}
+
+
+static void g_omx_component_real_wait_for_port (GOmxComponent* self, GError** error) {
 	g_return_if_fail (self != NULL);
 	g_return_if_fail (self->priv->_ports != NULL);
 	g_omx_semaphore_down (self->priv->_wait_for_port_sem);
 }
 
 
-void g_omx_component_wait_for_flush (GOmxComponent* self) {
+void g_omx_component_wait_for_port (GOmxComponent* self, GError** error) {
+	g_return_if_fail (self->priv->_ports != NULL);
+	G_OMX_COMPONENT_GET_CLASS (self)->wait_for_port (self, error);
+}
+
+
+static void g_omx_component_real_wait_for_flush (GOmxComponent* self) {
 	g_return_if_fail (self != NULL);
 	g_omx_semaphore_down (self->priv->_wait_for_flush_sem);
+}
+
+
+void g_omx_component_wait_for_flush (GOmxComponent* self) {
+	G_OMX_COMPONENT_GET_CLASS (self)->wait_for_flush (self);
 }
 
 
@@ -2143,7 +2167,7 @@ static void g_omx_component_real_set_state (GOmxComponent* self, OMX_STATETYPE s
 		}
 	}
 	self->priv->_pending_state = state;
-	g_omx_component_send_command (self, OMX_CommandStateSet, (guint) state, NULL, &_inner_error_);
+	g_omx_try_run (OMX_SendCommand (self->priv->_handle, OMX_CommandStateSet, (guint) state, NULL), &_inner_error_);
 	if (_inner_error_ != NULL) {
 		if (_inner_error_->domain == G_OMX_ERROR) {
 			g_propagate_error (error, _inner_error_);
@@ -2582,7 +2606,7 @@ static OMX_ERRORTYPE g_omx_component_event_handler (GOmxComponent* self, void* c
 		{
 			OMX_ERRORTYPE _error_;
 			_error_ = (OMX_ERRORTYPE) data1;
-			g_critical ("gomx.vala:683: %s", omx_error_to_string (_error_));
+			g_critical ("gomx.vala:677: %s", omx_error_to_string (_error_));
 			if (self->priv->_event_func_1 != NULL) {
 				self->priv->_event_func_1 (self, (guint) data1, (guint) data2, event_data, self->priv->_event_func_1_target);
 			}
@@ -2673,7 +2697,7 @@ static OMX_ERRORTYPE g_omx_component_fill_buffer_done (GOmxComponent* self, void
 }
 
 
-static OMX_ERRORTYPE g_omx_component_buffer_done (GOmxComponent* self, GOmxPort* port, OMX_BUFFERHEADERTYPE* buffer) {
+static OMX_ERRORTYPE g_omx_component_real_buffer_done (GOmxComponent* self, GOmxPort* port, OMX_BUFFERHEADERTYPE* buffer) {
 	OMX_ERRORTYPE result;
 	g_return_val_if_fail (self != NULL, 0);
 	g_return_val_if_fail (port != NULL, 0);
@@ -2685,6 +2709,11 @@ static OMX_ERRORTYPE g_omx_component_buffer_done (GOmxComponent* self, GOmxPort*
 	g_omx_port_buffer_done (port, buffer);
 	result = OMX_ErrorNone;
 	return result;
+}
+
+
+OMX_ERRORTYPE g_omx_component_buffer_done (GOmxComponent* self, GOmxPort* port, OMX_BUFFERHEADERTYPE* buffer) {
+	return G_OMX_COMPONENT_GET_CLASS (self)->buffer_done (self, port, buffer);
 }
 
 
@@ -2851,7 +2880,11 @@ static void g_omx_component_class_init (GOmxComponentClass * klass) {
 	G_OMX_COMPONENT_CLASS (klass)->allocate_ports = g_omx_component_real_allocate_ports;
 	G_OMX_COMPONENT_CLASS (klass)->free_ports = g_omx_component_real_free_ports;
 	G_OMX_COMPONENT_CLASS (klass)->buffers_begin_transfer = g_omx_component_real_buffers_begin_transfer;
+	G_OMX_COMPONENT_CLASS (klass)->wait_for_state = g_omx_component_real_wait_for_state;
+	G_OMX_COMPONENT_CLASS (klass)->wait_for_port = g_omx_component_real_wait_for_port;
+	G_OMX_COMPONENT_CLASS (klass)->wait_for_flush = g_omx_component_real_wait_for_flush;
 	G_OMX_COMPONENT_CLASS (klass)->set_state = g_omx_component_real_set_state;
+	G_OMX_COMPONENT_CLASS (klass)->buffer_done = g_omx_component_real_buffer_done;
 	G_OBJECT_CLASS (klass)->get_property = g_omx_component_get_property;
 	G_OBJECT_CLASS (klass)->set_property = g_omx_component_set_property;
 	G_OBJECT_CLASS (klass)->constructor = g_omx_component_constructor;
@@ -3429,7 +3462,7 @@ void g_omx_port_enable (GOmxPort* self, GError** error) {
 			return;
 		}
 	}
-	g_omx_component_send_command (self->priv->_component, OMX_CommandPortEnable, g_omx_port_get_index (self), NULL, &_inner_error_);
+	g_omx_try_run (OMX_SendCommand (g_omx_component_get_handle (self->priv->_component), OMX_CommandPortEnable, g_omx_port_get_index (self), NULL), &_inner_error_);
 	if (_inner_error_ != NULL) {
 		if (_inner_error_->domain == G_OMX_ERROR) {
 			g_propagate_error (error, _inner_error_);
@@ -3506,7 +3539,7 @@ void g_omx_port_disable (GOmxPort* self, GError** error) {
 			return;
 		}
 	}
-	g_omx_component_send_command (self->priv->_component, OMX_CommandPortDisable, g_omx_port_get_index (self), NULL, &_inner_error_);
+	g_omx_try_run (OMX_SendCommand (g_omx_component_get_handle (self->priv->_component), OMX_CommandPortDisable, g_omx_port_get_index (self), NULL), &_inner_error_);
 	if (_inner_error_ != NULL) {
 		if (_inner_error_->domain == G_OMX_ERROR) {
 			g_propagate_error (error, _inner_error_);
@@ -3569,7 +3602,7 @@ void g_omx_port_flush (GOmxPort* self, GError** error) {
 	g_return_if_fail (self != NULL);
 	_inner_error_ = NULL;
 	g_return_if_fail (self->priv->_component != NULL);
-	g_omx_component_send_command (self->priv->_component, OMX_CommandFlush, g_omx_port_get_index (self), NULL, &_inner_error_);
+	g_omx_try_run (OMX_SendCommand (g_omx_component_get_handle (self->priv->_component), OMX_CommandFlush, g_omx_port_get_index (self), NULL), &_inner_error_);
 	if (_inner_error_ != NULL) {
 		if (_inner_error_->domain == G_OMX_ERROR) {
 			g_propagate_error (error, _inner_error_);
@@ -4042,7 +4075,7 @@ void g_omx_buffer_read_from_file (OMX_BUFFERHEADERTYPE* buffer, FILE* fs) {
 	buffer->nOffset = (gsize) 0;
 	buffer->nFilledLen = fread (buffer->pBuffer, 1, buffer->nAllocLen, fs);
 	if (feof (fs)) {
-		g_omx_buffer_set_eos (buffer);
+		omx_buffer_header_set_eos (buffer);
 	}
 }
 

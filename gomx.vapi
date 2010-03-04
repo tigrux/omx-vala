@@ -22,12 +22,11 @@ namespace GOmx {
 		public uint get_n_ports ();
 		public Omx.State get_state () throws GOmx.Error;
 		public virtual void init () throws GOmx.Error;
-		public void send_command (Omx.Command cmd, uint param, void* cmd_data = null) throws GOmx.Error;
 		public virtual void set_state (Omx.State state) throws GOmx.Error;
 		public void set_state_and_wait (Omx.State state) throws GOmx.Error;
-		public void wait_for_flush ();
-		public void wait_for_port () throws GOmx.Error;
-		public void wait_for_state ();
+		public virtual void wait_for_flush ();
+		public virtual void wait_for_port () throws GOmx.Error;
+		public virtual void wait_for_state ();
 		public string component_name { get; set construct; }
 		public GOmx.Core core { get; set construct; }
 		public uint current_state { get; }
@@ -78,7 +77,7 @@ namespace GOmx {
 	[CCode (cheader_filename = "gomx.h")]
 	public class Engine : GLib.Object {
 		public Engine ();
-		public void add_component (uint id, GOmx.Component component);
+		public virtual void add_component (uint id, GOmx.Component component);
 		public virtual void buffers_begin_transfer () throws GOmx.Error;
 		public virtual void free_handles () throws GOmx.Error;
 		public uint get_n_components ();

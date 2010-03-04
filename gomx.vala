@@ -135,7 +135,7 @@ namespace GOmx {
         }
 
 
-        public void add_component(uint id, Component component) {
+        public virtual void add_component(uint id, Component component) {
             component.id = id;
             component.queue = _port_queue.queue;
             _components.append(component);
@@ -473,13 +473,6 @@ namespace GOmx {
         }
 
 
-        public void send_command(
-            Omx.Command cmd, uint param, void *cmd_data=null)
-        throws Error requires(_handle != null) {
-            _handle.send_command(cmd, param, cmd_data);
-        }
-
-
         public virtual void free_handle()
         throws Error requires(_handle != null) {
             _core.free_handle(_handle);
@@ -521,18 +514,18 @@ namespace GOmx {
         }
 
 
-        public void wait_for_state() {
+        public virtual void wait_for_state() {
             _wait_for_state_sem.down();
         }
 
 
-        public void wait_for_port()
+        public virtual void wait_for_port()
         throws Error requires(_ports != null) {
             _wait_for_port_sem.down();
         }
 
 
-        public void wait_for_flush() {
+        public virtual void wait_for_flush() {
             _wait_for_flush_sem.down();
         }
 
@@ -541,7 +534,8 @@ namespace GOmx {
         throws Error requires(_handle != null) {
             try_run(can_set_state(state));
             _pending_state = state;
-            send_command(Omx.Command.StateSet, state);
+            try_run(
+                _handle.send_command(Omx.Command.StateSet, state));
             if(_current_state == Omx.State.Loaded &&
                _pending_state == Omx.State.Idle)
                 allocate_ports();
@@ -743,7 +737,7 @@ namespace GOmx {
         }
 
 
-        Omx.Error buffer_done(
+        virtual Omx.Error buffer_done(
                 Port port,
                 Omx.BufferHeader buffer) {
             port.queue.push(buffer);
@@ -980,7 +974,8 @@ namespace GOmx {
         throws Error requires(_component != null) {
             definition.enabled = true;
             set_parameter();
-            _component.send_command(Omx.Command.PortEnable, index);
+            try_run(
+                _component.handle.send_command(Omx.Command.PortEnable, index));
             allocate_buffers();
             if(_component.current_state != Omx.State.Loaded)
                 buffers_begin_transfer();
@@ -993,7 +988,8 @@ namespace GOmx {
         throws Error requires(_component != null) {
             definition.enabled = false;
             set_parameter();
-            _component.send_command(Omx.Command.PortDisable, index);
+            try_run(
+                _component.handle.send_command(Omx.Command.PortDisable, index));
             flush();
             free_buffers();
             _component.wait_for_port();    
@@ -1003,7 +999,8 @@ namespace GOmx {
 
         public void flush()
         throws Error requires(_component != null) {
-            _component.send_command(Omx.Command.Flush, index);
+            try_run(
+                _component.handle.send_command(Omx.Command.Flush, index));
             _component.wait_for_flush();
         }
 
@@ -1086,7 +1083,6 @@ namespace GOmx {
         Mutex _mutex;
         int counter;
 
-
         construct {
             _cond = new Cond();
             _mutex = new Mutex();
@@ -1148,7 +1144,7 @@ namespace GOmx {
         buffer.offset = 0;
         buffer.length = fs.read(buffer.buffer);
         if(fs.eof())
-            buffer_set_eos(buffer);
+            buffer.set_eos();
     }
 
 

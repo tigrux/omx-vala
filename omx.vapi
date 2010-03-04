@@ -384,7 +384,7 @@ namespace Omx {
     [CCode (cname="void", type_id="G_TYPE_POINTER", set_value_function="g_value_set_pointer", param_spec_function="g_param_spec_pointer", ref_function="", unref_function="")]
     public class Handle {
         [CCode (cname="OMX_SendCommand")]
-        public Error send_command(Command cmd, uint param, void *cmd_data);
+        public Error send_command(Command cmd, uint param, void *cmd_data=null);
 
         [CCode (cname="OMX_GetState")]
         public Error get_state(out State state);

@@ -243,6 +243,7 @@ struct _GOmxEngine {
 
 struct _GOmxEngineClass {
 	GObjectClass parent_class;
+	void (*add_component) (GOmxEngine* self, guint id, GOmxComponent* component);
 	void (*buffers_begin_transfer) (GOmxEngine* self, GError** error);
 	void (*init) (GOmxEngine* self, GError** error);
 	void (*set_state) (GOmxEngine* self, OMX_STATETYPE state, GError** error);
@@ -301,7 +302,11 @@ struct _GOmxComponentClass {
 	void (*allocate_ports) (GOmxComponent* self, GError** error);
 	void (*free_ports) (GOmxComponent* self, GError** error);
 	void (*buffers_begin_transfer) (GOmxComponent* self, GError** error);
+	void (*wait_for_state) (GOmxComponent* self);
+	void (*wait_for_port) (GOmxComponent* self, GError** error);
+	void (*wait_for_flush) (GOmxComponent* self);
 	void (*set_state) (GOmxComponent* self, OMX_STATETYPE state, GError** error);
+	OMX_ERRORTYPE (*buffer_done) (GOmxComponent* self, GOmxPort* port, OMX_BUFFERHEADERTYPE* buffer);
 };
 
 struct _GOmxAudioComponent {
@@ -392,8 +397,8 @@ GOmxCore* g_omx_core_new (void);
 GOmxCore* g_omx_core_construct (GType object_type);
 GModule* g_omx_core_get_module (GOmxCore* self);
 GType g_omx_engine_get_type (void);
-guint g_omx_engine_get_n_components (GOmxEngine* self);
 GType g_omx_component_get_type (void);
+guint g_omx_engine_get_n_components (GOmxEngine* self);
 void g_omx_engine_add_component (GOmxEngine* self, guint id, GOmxComponent* component);
 void g_omx_engine_buffers_begin_transfer (GOmxEngine* self, GError** error);
 void g_omx_engine_init (GOmxEngine* self, GError** error);
@@ -444,7 +449,6 @@ GOmxComponent* g_omx_component_new (GOmxCore* core, const char* comp_name, OMX_I
 GOmxComponent* g_omx_component_construct (GType object_type, GOmxCore* core, const char* comp_name, OMX_INDEXTYPE index);
 guint g_omx_component_get_n_ports (GOmxComponent* self);
 void g_omx_component_init (GOmxComponent* self, GError** error);
-void g_omx_component_send_command (GOmxComponent* self, OMX_COMMANDTYPE cmd, guint param, void* cmd_data, GError** error);
 void g_omx_component_free_handle (GOmxComponent* self, GError** error);
 void g_omx_component_allocate_ports (GOmxComponent* self, GError** error);
 void g_omx_component_free_ports (GOmxComponent* self, GError** error);
