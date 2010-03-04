@@ -51,8 +51,13 @@ namespace GOmx {
 		}
 		public ComponentList ();
 		public void append (GOmx.Component component);
+		public void free_handles () throws GOmx.Error;
 		public GOmx.Component @get (uint index);
+		public void init () throws GOmx.Error;
 		public GOmx.ComponentList.Iterator iterator ();
+		public virtual void set_state (Omx.State state) throws GOmx.Error;
+		public void set_state_and_wait (Omx.State state) throws GOmx.Error;
+		public void wait_for_state_set ();
 		public uint length { get; }
 	}
 	[CCode (cheader_filename = "gomx.h")]
@@ -81,12 +86,6 @@ namespace GOmx {
 		public Engine ();
 		public virtual void add_component (uint id, GOmx.Component component);
 		public virtual void buffers_begin_transfer () throws GOmx.Error;
-		public virtual void free_handles () throws GOmx.Error;
-		public uint get_n_components ();
-		public virtual void init () throws GOmx.Error;
-		public virtual void set_state (Omx.State state) throws GOmx.Error;
-		public virtual void set_state_and_wait (Omx.State state) throws GOmx.Error;
-		public virtual void wait_for_state_set ();
 		public GOmx.ComponentList components { get; }
 		public GOmx.PortDoneQueue ports_with_buffer_done { get; }
 	}

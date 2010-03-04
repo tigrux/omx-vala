@@ -107,7 +107,6 @@ namespace GOmx {
     public class Engine: Object {
         ComponentList _components;
         PortDoneQueue _port_queue;
-        uint _n_components;
 
 
         public ComponentList components {
@@ -124,11 +123,6 @@ namespace GOmx {
         }
 
 
-        public uint get_n_components() {
-            return _n_components;
-        }
-
-
         construct {
             _components = new ComponentList();
             _port_queue = new PortDoneQueue();
@@ -139,7 +133,6 @@ namespace GOmx {
             component.id = id;
             component.queue = _port_queue.queue;
             _components.append(component);
-            _n_components++;
         }
 
 
@@ -149,40 +142,6 @@ namespace GOmx {
                 component.buffers_begin_transfer();
                 break;
             }
-        }
-
-
-        public virtual void init()
-        throws Error {
-            foreach(var component in _components)
-                component.init();
-        }
-
-
-        public virtual void set_state(Omx.State state)
-        throws Error {
-            foreach(var component in _components)
-                component.set_state(state);
-        }
-
-
-        public virtual void set_state_and_wait(Omx.State state)
-        throws Error {
-            foreach(var component in _components)
-                component.set_state_and_wait(state);
-        }
-
-
-        public virtual void wait_for_state_set() {
-            foreach(var component in _components)
-                component.wait_for_state();
-        }
-
-
-        public virtual void free_handles()
-        throws Error {
-            foreach(var component in _components)
-                component.free_handle();
         }
     }
 
@@ -213,6 +172,40 @@ namespace GOmx {
             get {
                 return _length;
             }
+        }
+
+
+        public void init()
+        throws Error {
+            foreach(var component in _components_list)
+                component.init();
+        }
+
+
+        public virtual void set_state(Omx.State state)
+        throws Error {
+            foreach(var component in _components_list)
+                component.set_state(state);
+        }
+
+
+        public void set_state_and_wait(Omx.State state)
+        throws Error {
+            foreach(var component in _components_list)
+                component.set_state_and_wait(state);
+        }
+
+
+        public void wait_for_state_set() {
+            foreach(var component in _components_list)
+                component.wait_for_state();
+        }
+
+
+        public void free_handles()
+        throws Error {
+            foreach(var component in _components_list)
+                component.free_handle();
         }
 
 
@@ -490,7 +483,7 @@ namespace GOmx {
 
             var error = _handle.get_parameter(role_index, role_param);
             if(error == Omx.Error.None)
-                role = role_param.role;
+                role = (string)role_param.role;
             else {
                 _component_role = null;
                 return;

@@ -11,6 +11,7 @@ omx-mp3-player: omx-mp3-player.o
 
 omx-mp3-player.c: omx-mp3-player.vala libomxil-bellagio.vapi omx.vapi
 	valac -C $^
+	touch $@
 
 
 gomx-mp3-player: gomx-mp3-player.o gomx.o
@@ -18,9 +19,13 @@ gomx-mp3-player: gomx-mp3-player.o gomx.o
 
 gomx-mp3-player.c: gomx-mp3-player.vala omx.vapi gomx.vapi
 	valac -C --thread --pkg gmodule-2.0 $^
+	touch $@
 
-gomx.vapi gomx.c: gomx.vala omx.vapi
+gomx.c: gomx.vapi
+
+gomx.vapi: gomx.vala omx.vapi
 	valac --vapi=gomx.vapi --pkg gmodule-2.0 --pkg posix -C -H gomx.h $^
+	touch $@
 
 
 clean:

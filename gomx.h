@@ -245,11 +245,6 @@ struct _GOmxEngineClass {
 	GObjectClass parent_class;
 	void (*add_component) (GOmxEngine* self, guint id, GOmxComponent* component);
 	void (*buffers_begin_transfer) (GOmxEngine* self, GError** error);
-	void (*init) (GOmxEngine* self, GError** error);
-	void (*set_state) (GOmxEngine* self, OMX_STATETYPE state, GError** error);
-	void (*set_state_and_wait) (GOmxEngine* self, OMX_STATETYPE state, GError** error);
-	void (*wait_for_state_set) (GOmxEngine* self);
-	void (*free_handles) (GOmxEngine* self, GError** error);
 };
 
 struct _GOmxComponentList {
@@ -259,6 +254,7 @@ struct _GOmxComponentList {
 
 struct _GOmxComponentListClass {
 	GObjectClass parent_class;
+	void (*set_state) (GOmxComponentList* self, OMX_STATETYPE state, GError** error);
 };
 
 struct _GOmxComponentListIterator {
@@ -399,14 +395,8 @@ GOmxCore* g_omx_core_construct (GType object_type);
 GModule* g_omx_core_get_module (GOmxCore* self);
 GType g_omx_engine_get_type (void);
 GType g_omx_component_get_type (void);
-guint g_omx_engine_get_n_components (GOmxEngine* self);
 void g_omx_engine_add_component (GOmxEngine* self, guint id, GOmxComponent* component);
 void g_omx_engine_buffers_begin_transfer (GOmxEngine* self, GError** error);
-void g_omx_engine_init (GOmxEngine* self, GError** error);
-void g_omx_engine_set_state (GOmxEngine* self, OMX_STATETYPE state, GError** error);
-void g_omx_engine_set_state_and_wait (GOmxEngine* self, OMX_STATETYPE state, GError** error);
-void g_omx_engine_wait_for_state_set (GOmxEngine* self);
-void g_omx_engine_free_handles (GOmxEngine* self, GError** error);
 GOmxEngine* g_omx_engine_new (void);
 GOmxEngine* g_omx_engine_construct (GType object_type);
 GType g_omx_component_list_get_type (void);
@@ -416,6 +406,11 @@ GOmxPortDoneQueue* g_omx_engine_get_ports_with_buffer_done (GOmxEngine* self);
 void g_omx_component_list_append (GOmxComponentList* self, GOmxComponent* component);
 GType g_omx_component_list_iterator_get_type (void);
 GOmxComponentListIterator* g_omx_component_list_iterator (GOmxComponentList* self);
+void g_omx_component_list_init (GOmxComponentList* self, GError** error);
+void g_omx_component_list_set_state (GOmxComponentList* self, OMX_STATETYPE state, GError** error);
+void g_omx_component_list_set_state_and_wait (GOmxComponentList* self, OMX_STATETYPE state, GError** error);
+void g_omx_component_list_wait_for_state_set (GOmxComponentList* self);
+void g_omx_component_list_free_handles (GOmxComponentList* self, GError** error);
 GOmxComponent* g_omx_component_list_get (GOmxComponentList* self, guint index);
 GOmxComponentList* g_omx_component_list_new (void);
 GOmxComponentList* g_omx_component_list_construct (GType object_type);

@@ -46,9 +46,9 @@ public void play(string filename) throws Error,GOmx.Error {
     engine.add_component(AUDIODEC_ID, audiodec);
     engine.add_component(AUDIOSINK_ID, audiosink);
 
-    engine.init();
-    engine.set_state_and_wait(Omx.State.Idle);
-    engine.set_state_and_wait(Omx.State.Executing);
+    engine.components.init();
+    engine.components.set_state_and_wait(Omx.State.Idle);
+    engine.components.set_state_and_wait(Omx.State.Executing);
 
     engine.buffers_begin_transfer();
     foreach(var port in engine.ports_with_buffer_done) {
@@ -85,10 +85,9 @@ public void play(string filename) throws Error,GOmx.Error {
         }
     }
 
-    engine.set_state_and_wait(Omx.State.Idle);
-    engine.set_state_and_wait(Omx.State.Loaded);
-
-    engine.free_handles();
+    engine.components.set_state_and_wait(Omx.State.Idle);
+    engine.components.set_state_and_wait(Omx.State.Loaded);
+    engine.components.free_handles();
     core.deinit();
 }
 

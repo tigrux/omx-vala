@@ -121,7 +121,7 @@ void play (const char* filename, GError** error) {
 	engine = g_omx_engine_new ();
 	g_omx_engine_add_component (engine, (guint) AUDIODEC_ID, (GOmxComponent*) audiodec);
 	g_omx_engine_add_component (engine, (guint) AUDIOSINK_ID, (GOmxComponent*) audiosink);
-	g_omx_engine_init (engine, &_inner_error_);
+	g_omx_component_list_init (g_omx_engine_get_components (engine), &_inner_error_);
 	if (_inner_error_ != NULL) {
 		g_propagate_error (error, _inner_error_);
 		_fclose0 (fd);
@@ -131,7 +131,7 @@ void play (const char* filename, GError** error) {
 		_g_object_unref0 (engine);
 		return;
 	}
-	g_omx_engine_set_state_and_wait (engine, OMX_StateIdle, &_inner_error_);
+	g_omx_component_list_set_state_and_wait (g_omx_engine_get_components (engine), OMX_StateIdle, &_inner_error_);
 	if (_inner_error_ != NULL) {
 		g_propagate_error (error, _inner_error_);
 		_fclose0 (fd);
@@ -141,7 +141,7 @@ void play (const char* filename, GError** error) {
 		_g_object_unref0 (engine);
 		return;
 	}
-	g_omx_engine_set_state_and_wait (engine, OMX_StateExecuting, &_inner_error_);
+	g_omx_component_list_set_state_and_wait (g_omx_engine_get_components (engine), OMX_StateExecuting, &_inner_error_);
 	if (_inner_error_ != NULL) {
 		g_propagate_error (error, _inner_error_);
 		_fclose0 (fd);
@@ -261,7 +261,7 @@ void play (const char* filename, GError** error) {
 		}
 		_g_object_unref0 (_port_it);
 	}
-	g_omx_engine_set_state_and_wait (engine, OMX_StateIdle, &_inner_error_);
+	g_omx_component_list_set_state_and_wait (g_omx_engine_get_components (engine), OMX_StateIdle, &_inner_error_);
 	if (_inner_error_ != NULL) {
 		g_propagate_error (error, _inner_error_);
 		_fclose0 (fd);
@@ -271,7 +271,7 @@ void play (const char* filename, GError** error) {
 		_g_object_unref0 (engine);
 		return;
 	}
-	g_omx_engine_set_state_and_wait (engine, OMX_StateLoaded, &_inner_error_);
+	g_omx_component_list_set_state_and_wait (g_omx_engine_get_components (engine), OMX_StateLoaded, &_inner_error_);
 	if (_inner_error_ != NULL) {
 		g_propagate_error (error, _inner_error_);
 		_fclose0 (fd);
@@ -281,7 +281,7 @@ void play (const char* filename, GError** error) {
 		_g_object_unref0 (engine);
 		return;
 	}
-	g_omx_engine_free_handles (engine, &_inner_error_);
+	g_omx_component_list_free_handles (g_omx_engine_get_components (engine), &_inner_error_);
 	if (_inner_error_ != NULL) {
 		g_propagate_error (error, _inner_error_);
 		_fclose0 (fd);

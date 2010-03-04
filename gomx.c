@@ -269,17 +269,11 @@ struct _GOmxEngineClass {
 	GObjectClass parent_class;
 	void (*add_component) (GOmxEngine* self, guint id, GOmxComponent* component);
 	void (*buffers_begin_transfer) (GOmxEngine* self, GError** error);
-	void (*init) (GOmxEngine* self, GError** error);
-	void (*set_state) (GOmxEngine* self, OMX_STATETYPE state, GError** error);
-	void (*set_state_and_wait) (GOmxEngine* self, OMX_STATETYPE state, GError** error);
-	void (*wait_for_state_set) (GOmxEngine* self);
-	void (*free_handles) (GOmxEngine* self, GError** error);
 };
 
 struct _GOmxEnginePrivate {
 	GOmxComponentList* _components;
 	GOmxPortDoneQueue* _port_queue;
-	guint _n_components;
 };
 
 struct _GOmxComponent {
@@ -311,6 +305,7 @@ struct _GOmxComponentList {
 
 struct _GOmxComponentListClass {
 	GObjectClass parent_class;
+	void (*set_state) (GOmxComponentList* self, OMX_STATETYPE state, GError** error);
 };
 
 struct _GOmxComponentListPrivate {
@@ -557,7 +552,6 @@ enum  {
 	G_OMX_ENGINE_COMPONENTS,
 	G_OMX_ENGINE_PORTS_WITH_BUFFER_DONE
 };
-guint g_omx_engine_get_n_components (GOmxEngine* self);
 GType g_omx_port_get_type (void);
 GAsyncQueue* g_omx_port_done_queue_get_queue (GOmxPortDoneQueue* self);
 void g_omx_component_set_queue (GOmxComponent* self, GAsyncQueue* value);
@@ -571,21 +565,6 @@ GOmxComponent* g_omx_component_list_iterator_get (GOmxComponentListIterator* sel
 void g_omx_component_buffers_begin_transfer (GOmxComponent* self, GError** error);
 void g_omx_engine_buffers_begin_transfer (GOmxEngine* self, GError** error);
 static void g_omx_engine_real_buffers_begin_transfer (GOmxEngine* self, GError** error);
-void g_omx_component_init (GOmxComponent* self, GError** error);
-void g_omx_engine_init (GOmxEngine* self, GError** error);
-static void g_omx_engine_real_init (GOmxEngine* self, GError** error);
-void g_omx_component_set_state (GOmxComponent* self, OMX_STATETYPE state, GError** error);
-void g_omx_engine_set_state (GOmxEngine* self, OMX_STATETYPE state, GError** error);
-static void g_omx_engine_real_set_state (GOmxEngine* self, OMX_STATETYPE state, GError** error);
-void g_omx_component_set_state_and_wait (GOmxComponent* self, OMX_STATETYPE state, GError** error);
-void g_omx_engine_set_state_and_wait (GOmxEngine* self, OMX_STATETYPE state, GError** error);
-static void g_omx_engine_real_set_state_and_wait (GOmxEngine* self, OMX_STATETYPE state, GError** error);
-void g_omx_component_wait_for_state (GOmxComponent* self);
-void g_omx_engine_wait_for_state_set (GOmxEngine* self);
-static void g_omx_engine_real_wait_for_state_set (GOmxEngine* self);
-void g_omx_component_free_handle (GOmxComponent* self, GError** error);
-void g_omx_engine_free_handles (GOmxEngine* self, GError** error);
-static void g_omx_engine_real_free_handles (GOmxEngine* self, GError** error);
 GOmxEngine* g_omx_engine_new (void);
 GOmxEngine* g_omx_engine_construct (GType object_type);
 GOmxComponentList* g_omx_engine_get_components (GOmxEngine* self);
@@ -605,6 +584,17 @@ enum  {
 static void _g_list_free_g_object_unref (GList* self);
 GOmxComponentListIterator* g_omx_component_list_iterator_new (GOmxComponentList* list);
 GOmxComponentListIterator* g_omx_component_list_iterator_construct (GType object_type, GOmxComponentList* list);
+void g_omx_component_init (GOmxComponent* self, GError** error);
+void g_omx_component_list_init (GOmxComponentList* self, GError** error);
+void g_omx_component_set_state (GOmxComponent* self, OMX_STATETYPE state, GError** error);
+void g_omx_component_list_set_state (GOmxComponentList* self, OMX_STATETYPE state, GError** error);
+static void g_omx_component_list_real_set_state (GOmxComponentList* self, OMX_STATETYPE state, GError** error);
+void g_omx_component_set_state_and_wait (GOmxComponent* self, OMX_STATETYPE state, GError** error);
+void g_omx_component_list_set_state_and_wait (GOmxComponentList* self, OMX_STATETYPE state, GError** error);
+void g_omx_component_wait_for_state (GOmxComponent* self);
+void g_omx_component_list_wait_for_state_set (GOmxComponentList* self);
+void g_omx_component_free_handle (GOmxComponent* self, GError** error);
+void g_omx_component_list_free_handles (GOmxComponentList* self, GError** error);
 GOmxComponent* g_omx_component_list_get (GOmxComponentList* self, guint index);
 guint g_omx_component_list_get_length (GOmxComponentList* self);
 static GObject * g_omx_component_list_constructor (GType type, guint n_construct_properties, GObjectConstructParam * construct_properties);
@@ -1045,21 +1035,12 @@ static void g_omx_core_get_property (GObject * object, guint property_id, GValue
 }
 
 
-guint g_omx_engine_get_n_components (GOmxEngine* self) {
-	guint result;
-	g_return_val_if_fail (self != NULL, 0U);
-	result = self->priv->_n_components;
-	return result;
-}
-
-
 static void g_omx_engine_real_add_component (GOmxEngine* self, guint id, GOmxComponent* component) {
 	g_return_if_fail (self != NULL);
 	g_return_if_fail (component != NULL);
 	component->id = id;
 	g_omx_component_set_queue (component, g_omx_port_done_queue_get_queue (self->priv->_port_queue));
 	g_omx_component_list_append (self->priv->_components, component);
-	self->priv->_n_components++;
 }
 
 
@@ -1106,190 +1087,6 @@ static void g_omx_engine_real_buffers_begin_transfer (GOmxEngine* self, GError**
 
 void g_omx_engine_buffers_begin_transfer (GOmxEngine* self, GError** error) {
 	G_OMX_ENGINE_GET_CLASS (self)->buffers_begin_transfer (self, error);
-}
-
-
-static void g_omx_engine_real_init (GOmxEngine* self, GError** error) {
-	GError * _inner_error_;
-	g_return_if_fail (self != NULL);
-	_inner_error_ = NULL;
-	{
-		GOmxComponentListIterator* _component_it;
-		_component_it = g_omx_component_list_iterator (self->priv->_components);
-		while (TRUE) {
-			GOmxComponent* component;
-			if (!g_omx_component_list_iterator_next (_component_it)) {
-				break;
-			}
-			component = g_omx_component_list_iterator_get (_component_it);
-			g_omx_component_init (component, &_inner_error_);
-			if (_inner_error_ != NULL) {
-				if (_inner_error_->domain == G_OMX_ERROR) {
-					g_propagate_error (error, _inner_error_);
-					_g_object_unref0 (component);
-					_g_object_unref0 (_component_it);
-					return;
-				} else {
-					_g_object_unref0 (component);
-					_g_object_unref0 (_component_it);
-					g_critical ("file %s: line %d: uncaught error: %s (%s, %d)", __FILE__, __LINE__, _inner_error_->message, g_quark_to_string (_inner_error_->domain), _inner_error_->code);
-					g_clear_error (&_inner_error_);
-					return;
-				}
-			}
-			_g_object_unref0 (component);
-		}
-		_g_object_unref0 (_component_it);
-	}
-}
-
-
-void g_omx_engine_init (GOmxEngine* self, GError** error) {
-	G_OMX_ENGINE_GET_CLASS (self)->init (self, error);
-}
-
-
-static void g_omx_engine_real_set_state (GOmxEngine* self, OMX_STATETYPE state, GError** error) {
-	GError * _inner_error_;
-	g_return_if_fail (self != NULL);
-	_inner_error_ = NULL;
-	{
-		GOmxComponentListIterator* _component_it;
-		_component_it = g_omx_component_list_iterator (self->priv->_components);
-		while (TRUE) {
-			GOmxComponent* component;
-			if (!g_omx_component_list_iterator_next (_component_it)) {
-				break;
-			}
-			component = g_omx_component_list_iterator_get (_component_it);
-			g_omx_component_set_state (component, state, &_inner_error_);
-			if (_inner_error_ != NULL) {
-				if (_inner_error_->domain == G_OMX_ERROR) {
-					g_propagate_error (error, _inner_error_);
-					_g_object_unref0 (component);
-					_g_object_unref0 (_component_it);
-					return;
-				} else {
-					_g_object_unref0 (component);
-					_g_object_unref0 (_component_it);
-					g_critical ("file %s: line %d: uncaught error: %s (%s, %d)", __FILE__, __LINE__, _inner_error_->message, g_quark_to_string (_inner_error_->domain), _inner_error_->code);
-					g_clear_error (&_inner_error_);
-					return;
-				}
-			}
-			_g_object_unref0 (component);
-		}
-		_g_object_unref0 (_component_it);
-	}
-}
-
-
-void g_omx_engine_set_state (GOmxEngine* self, OMX_STATETYPE state, GError** error) {
-	G_OMX_ENGINE_GET_CLASS (self)->set_state (self, state, error);
-}
-
-
-static void g_omx_engine_real_set_state_and_wait (GOmxEngine* self, OMX_STATETYPE state, GError** error) {
-	GError * _inner_error_;
-	g_return_if_fail (self != NULL);
-	_inner_error_ = NULL;
-	{
-		GOmxComponentListIterator* _component_it;
-		_component_it = g_omx_component_list_iterator (self->priv->_components);
-		while (TRUE) {
-			GOmxComponent* component;
-			if (!g_omx_component_list_iterator_next (_component_it)) {
-				break;
-			}
-			component = g_omx_component_list_iterator_get (_component_it);
-			g_omx_component_set_state_and_wait (component, state, &_inner_error_);
-			if (_inner_error_ != NULL) {
-				if (_inner_error_->domain == G_OMX_ERROR) {
-					g_propagate_error (error, _inner_error_);
-					_g_object_unref0 (component);
-					_g_object_unref0 (_component_it);
-					return;
-				} else {
-					_g_object_unref0 (component);
-					_g_object_unref0 (_component_it);
-					g_critical ("file %s: line %d: uncaught error: %s (%s, %d)", __FILE__, __LINE__, _inner_error_->message, g_quark_to_string (_inner_error_->domain), _inner_error_->code);
-					g_clear_error (&_inner_error_);
-					return;
-				}
-			}
-			_g_object_unref0 (component);
-		}
-		_g_object_unref0 (_component_it);
-	}
-}
-
-
-void g_omx_engine_set_state_and_wait (GOmxEngine* self, OMX_STATETYPE state, GError** error) {
-	G_OMX_ENGINE_GET_CLASS (self)->set_state_and_wait (self, state, error);
-}
-
-
-static void g_omx_engine_real_wait_for_state_set (GOmxEngine* self) {
-	g_return_if_fail (self != NULL);
-	{
-		GOmxComponentListIterator* _component_it;
-		_component_it = g_omx_component_list_iterator (self->priv->_components);
-		while (TRUE) {
-			GOmxComponent* component;
-			if (!g_omx_component_list_iterator_next (_component_it)) {
-				break;
-			}
-			component = g_omx_component_list_iterator_get (_component_it);
-			g_omx_component_wait_for_state (component);
-			_g_object_unref0 (component);
-		}
-		_g_object_unref0 (_component_it);
-	}
-}
-
-
-void g_omx_engine_wait_for_state_set (GOmxEngine* self) {
-	G_OMX_ENGINE_GET_CLASS (self)->wait_for_state_set (self);
-}
-
-
-static void g_omx_engine_real_free_handles (GOmxEngine* self, GError** error) {
-	GError * _inner_error_;
-	g_return_if_fail (self != NULL);
-	_inner_error_ = NULL;
-	{
-		GOmxComponentListIterator* _component_it;
-		_component_it = g_omx_component_list_iterator (self->priv->_components);
-		while (TRUE) {
-			GOmxComponent* component;
-			if (!g_omx_component_list_iterator_next (_component_it)) {
-				break;
-			}
-			component = g_omx_component_list_iterator_get (_component_it);
-			g_omx_component_free_handle (component, &_inner_error_);
-			if (_inner_error_ != NULL) {
-				if (_inner_error_->domain == G_OMX_ERROR) {
-					g_propagate_error (error, _inner_error_);
-					_g_object_unref0 (component);
-					_g_object_unref0 (_component_it);
-					return;
-				} else {
-					_g_object_unref0 (component);
-					_g_object_unref0 (_component_it);
-					g_critical ("file %s: line %d: uncaught error: %s (%s, %d)", __FILE__, __LINE__, _inner_error_->message, g_quark_to_string (_inner_error_->domain), _inner_error_->code);
-					g_clear_error (&_inner_error_);
-					return;
-				}
-			}
-			_g_object_unref0 (component);
-		}
-		_g_object_unref0 (_component_it);
-	}
-}
-
-
-void g_omx_engine_free_handles (GOmxEngine* self, GError** error) {
-	G_OMX_ENGINE_GET_CLASS (self)->free_handles (self, error);
 }
 
 
@@ -1343,11 +1140,6 @@ static void g_omx_engine_class_init (GOmxEngineClass * klass) {
 	g_type_class_add_private (klass, sizeof (GOmxEnginePrivate));
 	G_OMX_ENGINE_CLASS (klass)->add_component = g_omx_engine_real_add_component;
 	G_OMX_ENGINE_CLASS (klass)->buffers_begin_transfer = g_omx_engine_real_buffers_begin_transfer;
-	G_OMX_ENGINE_CLASS (klass)->init = g_omx_engine_real_init;
-	G_OMX_ENGINE_CLASS (klass)->set_state = g_omx_engine_real_set_state;
-	G_OMX_ENGINE_CLASS (klass)->set_state_and_wait = g_omx_engine_real_set_state_and_wait;
-	G_OMX_ENGINE_CLASS (klass)->wait_for_state_set = g_omx_engine_real_wait_for_state_set;
-	G_OMX_ENGINE_CLASS (klass)->free_handles = g_omx_engine_real_free_handles;
 	G_OBJECT_CLASS (klass)->get_property = g_omx_engine_get_property;
 	G_OBJECT_CLASS (klass)->constructor = g_omx_engine_constructor;
 	G_OBJECT_CLASS (klass)->finalize = g_omx_engine_finalize;
@@ -1421,6 +1213,157 @@ GOmxComponentListIterator* g_omx_component_list_iterator (GOmxComponentList* sel
 	g_return_val_if_fail (self != NULL, NULL);
 	result = g_omx_component_list_iterator_new (self);
 	return result;
+}
+
+
+void g_omx_component_list_init (GOmxComponentList* self, GError** error) {
+	GError * _inner_error_;
+	g_return_if_fail (self != NULL);
+	_inner_error_ = NULL;
+	{
+		GList* component_collection;
+		GList* component_it;
+		component_collection = self->priv->_components_list;
+		for (component_it = component_collection; component_it != NULL; component_it = component_it->next) {
+			GOmxComponent* component;
+			component = _g_object_ref0 ((GOmxComponent*) component_it->data);
+			{
+				g_omx_component_init (component, &_inner_error_);
+				if (_inner_error_ != NULL) {
+					if (_inner_error_->domain == G_OMX_ERROR) {
+						g_propagate_error (error, _inner_error_);
+						_g_object_unref0 (component);
+						return;
+					} else {
+						_g_object_unref0 (component);
+						g_critical ("file %s: line %d: uncaught error: %s (%s, %d)", __FILE__, __LINE__, _inner_error_->message, g_quark_to_string (_inner_error_->domain), _inner_error_->code);
+						g_clear_error (&_inner_error_);
+						return;
+					}
+				}
+				_g_object_unref0 (component);
+			}
+		}
+	}
+}
+
+
+static void g_omx_component_list_real_set_state (GOmxComponentList* self, OMX_STATETYPE state, GError** error) {
+	GError * _inner_error_;
+	g_return_if_fail (self != NULL);
+	_inner_error_ = NULL;
+	{
+		GList* component_collection;
+		GList* component_it;
+		component_collection = self->priv->_components_list;
+		for (component_it = component_collection; component_it != NULL; component_it = component_it->next) {
+			GOmxComponent* component;
+			component = _g_object_ref0 ((GOmxComponent*) component_it->data);
+			{
+				g_omx_component_set_state (component, state, &_inner_error_);
+				if (_inner_error_ != NULL) {
+					if (_inner_error_->domain == G_OMX_ERROR) {
+						g_propagate_error (error, _inner_error_);
+						_g_object_unref0 (component);
+						return;
+					} else {
+						_g_object_unref0 (component);
+						g_critical ("file %s: line %d: uncaught error: %s (%s, %d)", __FILE__, __LINE__, _inner_error_->message, g_quark_to_string (_inner_error_->domain), _inner_error_->code);
+						g_clear_error (&_inner_error_);
+						return;
+					}
+				}
+				_g_object_unref0 (component);
+			}
+		}
+	}
+}
+
+
+void g_omx_component_list_set_state (GOmxComponentList* self, OMX_STATETYPE state, GError** error) {
+	G_OMX_COMPONENT_LIST_GET_CLASS (self)->set_state (self, state, error);
+}
+
+
+void g_omx_component_list_set_state_and_wait (GOmxComponentList* self, OMX_STATETYPE state, GError** error) {
+	GError * _inner_error_;
+	g_return_if_fail (self != NULL);
+	_inner_error_ = NULL;
+	{
+		GList* component_collection;
+		GList* component_it;
+		component_collection = self->priv->_components_list;
+		for (component_it = component_collection; component_it != NULL; component_it = component_it->next) {
+			GOmxComponent* component;
+			component = _g_object_ref0 ((GOmxComponent*) component_it->data);
+			{
+				g_omx_component_set_state_and_wait (component, state, &_inner_error_);
+				if (_inner_error_ != NULL) {
+					if (_inner_error_->domain == G_OMX_ERROR) {
+						g_propagate_error (error, _inner_error_);
+						_g_object_unref0 (component);
+						return;
+					} else {
+						_g_object_unref0 (component);
+						g_critical ("file %s: line %d: uncaught error: %s (%s, %d)", __FILE__, __LINE__, _inner_error_->message, g_quark_to_string (_inner_error_->domain), _inner_error_->code);
+						g_clear_error (&_inner_error_);
+						return;
+					}
+				}
+				_g_object_unref0 (component);
+			}
+		}
+	}
+}
+
+
+void g_omx_component_list_wait_for_state_set (GOmxComponentList* self) {
+	g_return_if_fail (self != NULL);
+	{
+		GList* component_collection;
+		GList* component_it;
+		component_collection = self->priv->_components_list;
+		for (component_it = component_collection; component_it != NULL; component_it = component_it->next) {
+			GOmxComponent* component;
+			component = _g_object_ref0 ((GOmxComponent*) component_it->data);
+			{
+				g_omx_component_wait_for_state (component);
+				_g_object_unref0 (component);
+			}
+		}
+	}
+}
+
+
+void g_omx_component_list_free_handles (GOmxComponentList* self, GError** error) {
+	GError * _inner_error_;
+	g_return_if_fail (self != NULL);
+	_inner_error_ = NULL;
+	{
+		GList* component_collection;
+		GList* component_it;
+		component_collection = self->priv->_components_list;
+		for (component_it = component_collection; component_it != NULL; component_it = component_it->next) {
+			GOmxComponent* component;
+			component = _g_object_ref0 ((GOmxComponent*) component_it->data);
+			{
+				g_omx_component_free_handle (component, &_inner_error_);
+				if (_inner_error_ != NULL) {
+					if (_inner_error_->domain == G_OMX_ERROR) {
+						g_propagate_error (error, _inner_error_);
+						_g_object_unref0 (component);
+						return;
+					} else {
+						_g_object_unref0 (component);
+						g_critical ("file %s: line %d: uncaught error: %s (%s, %d)", __FILE__, __LINE__, _inner_error_->message, g_quark_to_string (_inner_error_->domain), _inner_error_->code);
+						g_clear_error (&_inner_error_);
+						return;
+					}
+				}
+				_g_object_unref0 (component);
+			}
+		}
+	}
 }
 
 
@@ -1533,6 +1476,7 @@ GType g_omx_component_list_iterator_get_type (void) {
 static void g_omx_component_list_class_init (GOmxComponentListClass * klass) {
 	g_omx_component_list_parent_class = g_type_class_peek_parent (klass);
 	g_type_class_add_private (klass, sizeof (GOmxComponentListPrivate));
+	G_OMX_COMPONENT_LIST_CLASS (klass)->set_state = g_omx_component_list_real_set_state;
 	G_OBJECT_CLASS (klass)->get_property = g_omx_component_list_get_property;
 	G_OBJECT_CLASS (klass)->constructor = g_omx_component_list_constructor;
 	G_OBJECT_CLASS (klass)->finalize = g_omx_component_list_finalize;
@@ -1962,7 +1906,7 @@ static void g_omx_component_real_set_role (GOmxComponent* self) {
 	_error_ = OMX_GetParameter (self->priv->_handle, (guint) role_index, &role_param);
 	if (_error_ == OMX_ErrorNone) {
 		char* _tmp1_;
-		role = (_tmp1_ = g_strdup (role_param.cRole), _g_free0 (role), _tmp1_);
+		role = (_tmp1_ = g_strdup ((const char*) role_param.cRole), _g_free0 (role), _tmp1_);
 	} else {
 		char* _tmp2_;
 		self->priv->_component_role = (_tmp2_ = NULL, _g_free0 (self->priv->_component_role), _tmp2_);
@@ -2658,7 +2602,7 @@ static OMX_ERRORTYPE g_omx_component_event_handler (GOmxComponent* self, void* c
 		{
 			OMX_ERRORTYPE _error_;
 			_error_ = (OMX_ERRORTYPE) data1;
-			g_critical ("gomx.vala:713: %s", omx_error_to_string (_error_));
+			g_critical ("gomx.vala:706: %s", omx_error_to_string (_error_));
 			if (self->priv->_event_func_1 != NULL) {
 				self->priv->_event_func_1 (self, (guint) data1, (guint) data2, event_data, self->priv->_event_func_1_target);
 			}
