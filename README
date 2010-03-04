@@ -3,12 +3,12 @@ omx-vala consists of:
   Vala bindings for omxil 1.1
 - libomxil-bellagio.vapi
   Vala bindings for Bellagio OpenMaxIL
-- gomx.vala
-  An object oriented library based on gobject
+- gomx.vapi
+  An object oriented wrapper for omx, based on gobject
 
 It currently includes two examples:
-- simple-mp3-player
-  Bare example, uses only the plain omx api
+- omx-mp3-player
+  Bare example, uses only the plain omx.vapi
 - gomx-mp3-player
-  Object oriented example, uses the omx-glib api
+  Object oriented example, uses the gomx.vapi
 
