@@ -398,6 +398,7 @@ GType g_omx_engine_get_type (void);
 GType g_omx_component_get_type (void);
 void g_omx_engine_add_component (GOmxEngine* self, GOmxComponent* component);
 GOmxComponent* g_omx_engine_get (GOmxEngine* self, const char* name);
+gboolean g_omx_engine_contains (GOmxEngine* self, const char* name);
 GOmxEngine* g_omx_engine_new (void);
 GOmxEngine* g_omx_engine_construct (GType object_type);
 GType g_omx_component_list_get_type (void);

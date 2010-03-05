@@ -27,13 +27,13 @@ namespace GOmx {
 		public virtual void wait_for_flush ();
 		public virtual void wait_for_port () throws GOmx.Error;
 		public virtual void wait_for_state ();
-		public string component_name { get; set construct; }
-		public string? component_role { get; set construct; }
+		public string component_name { get; set; }
+		public string? component_role { get; set; }
 		public GOmx.Core core { get; }
 		public uint current_state { get; }
 		public Omx.Handle handle { get; }
-		public uint init_index { get; set construct; }
-		public string library { get; set construct; }
+		public uint init_index { get; set; }
+		public string library { get; set; }
 		public uint n_ports { get; }
 		public string name { get; set; }
 		public bool no_allocate_buffers { get; set; }
@@ -87,6 +87,7 @@ namespace GOmx {
 	public class Engine : GLib.Object {
 		public Engine ();
 		public virtual void add_component (GOmx.Component component);
+		public bool contains (string name);
 		public GOmx.Component @get (string name);
 		public GOmx.ComponentList components { get; }
 		public GOmx.PortDoneQueue ports_with_buffer_done { get; }
@@ -122,7 +123,7 @@ namespace GOmx {
 		public void use_buffers_of_array (uint8[][] array) throws GOmx.Error;
 		public void use_buffers_of_port (GOmx.Port port) throws GOmx.Error;
 		public uint buffer_size { get; }
-		public GOmx.Component component { get; set construct; }
+		public GOmx.Component component { get; set; }
 		public bool eos { get; }
 		public uint index { get; set; }
 		public bool is_input { get; }
@@ -144,8 +145,8 @@ namespace GOmx {
 		public GOmx.Port @get (uint index);
 		public GOmx.PortArray.Iterator iterator ();
 		public void @set (uint index, GOmx.Port port);
-		public uint length { get; set construct; }
-		public uint start { get; set construct; }
+		public uint length { get; set; }
+		public uint start { get; set; }
 	}
 	[CCode (cheader_filename = "gomx.h")]
 	public class PortDoneQueue : GLib.Object {

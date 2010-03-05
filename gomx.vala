@@ -23,10 +23,9 @@ namespace GOmx {
 
         public static Core load_library(string library_name)
         throws GLib.FileError, Error {
-            lock(_common_table) {
+            lock(_common_table)
                 if(_common_table == null)
                     _common_table = new LibraryTable();
-            }
             var core = _common_table[library_name];
             if(core == null) {
                 core = Core.open(library_name);
@@ -37,18 +36,16 @@ namespace GOmx {
 
 
         public static Core? get_library(string library_name) {
-            if(_common_table == null)
-                return null;
             return _common_table[library_name];
         }
 
 
-        public new Core get(string library_name) {
+        new Core? get(string library_name) {
             return _core_table.lookup(library_name);
         }
 
 
-        public new void set(string library_name, Core core) {
+        new void set(string library_name, Core core) {
             _core_table.insert(library_name, core);
         }
     }
@@ -166,7 +163,7 @@ namespace GOmx {
 
             if(symbol == null)
                 throw new GLib.FileError.INVAL(
-                    "Could not fine symbol '%s' in module '%s'", name, soname);
+                    "Could not fine symbol '%s' in library '%s'", name, soname);
 
             core._module = (owned)module;
             return core;
@@ -205,6 +202,12 @@ namespace GOmx {
 
         public virtual void add_component(Component component) {
             component.queue = _port_queue.queue;
+            if(component.name == "" || component.name == null)
+                component.name =
+                    "%s%u".printf(component.component_name, component.id);
+            if(component.name in this)
+                component.name =
+                    "%s%02u".printf(component.component_name, component.id);
             _components.add(component);
             _components_table.insert(component.name, component);
         }
@@ -212,6 +215,11 @@ namespace GOmx {
 
         public new Component get(string name) {
             return _components_table.lookup(name);
+        }
+
+
+        public bool contains(string name) {
+            return _components_table.lookup(name) != null;
         }
     }
 
@@ -470,17 +478,17 @@ namespace GOmx {
 
 
         public string library {
-            get; construct set;
+            get; set;
         }
 
 
         public string component_name {
-            get; set construct;
+            get; set;
         }
 
 
         public string? component_role {
-            get; set construct;
+            get; set;
         }
 
         public uint current_state {
@@ -491,7 +499,7 @@ namespace GOmx {
 
 
         public uint init_index {
-            get; set construct;
+            get; set;
         }
 
 
@@ -521,6 +529,9 @@ namespace GOmx {
             _current_state = Omx.State.Invalid;
             _previous_state = Omx.State.Invalid;
             _pending_state = Omx.State.Invalid;
+            _name = "";
+            _library = "";
+            _component_name = "";
         }
 
 
@@ -548,6 +559,7 @@ namespace GOmx {
             if(_core == null)
                 throw new Error.BadParameter(
                     "No core for library '%s'", _library);
+            print("comp_name = %s\n", _component_name);
             _core.get_handle(
                 out _handle, _component_name,
                 this, callbacks);
@@ -879,7 +891,7 @@ namespace GOmx {
             get {
                 return _start;
             }
-            construct set {
+            set {
                 _start = value;
             }
         }
@@ -889,7 +901,7 @@ namespace GOmx {
             get {
                 return _length;
             }
-            construct set {
+            set {
                 _ports = new Port[value];
                 _length = value;
             }
@@ -958,7 +970,7 @@ namespace GOmx {
 
 
         public Component component {
-            get; construct set;
+            get; set;
         }
 
 
@@ -1007,6 +1019,7 @@ namespace GOmx {
 
 
         construct {
+            _name = "";
             definition.init();
         }
 
@@ -1359,5 +1372,6 @@ namespace GOmx {
     }
 
 ////////////////////////////////////////////////////////////////////////////////
+
 }
 

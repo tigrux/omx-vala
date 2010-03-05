@@ -21,6 +21,7 @@ gomx-mp3-player.c: gomx-mp3-player.vala omx.vapi gomx.vapi
 	valac -C --thread --pkg gmodule-2.0 $^
 	touch $@
 
+
 gomx.vapi: gomx.c
 
 gomx.c: gomx.vala omx.vapi
