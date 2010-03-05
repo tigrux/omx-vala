@@ -575,7 +575,7 @@ namespace GOmx {
         }
 
 
-        public virtual void set_role()
+        protected virtual void set_role()
         requires(_handle != null) {
             var role_param = Omx.Param.ComponentRole();
             role_param.init();

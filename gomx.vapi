@@ -21,7 +21,7 @@ namespace GOmx {
 		protected virtual void free_ports () throws GOmx.Error;
 		public Omx.State get_state () throws GOmx.Error;
 		public virtual void init () throws GOmx.Error;
-		public virtual void set_role ();
+		protected virtual void set_role ();
 		public virtual void set_state (Omx.State state) throws GOmx.Error;
 		public void set_state_and_wait (Omx.State state) throws GOmx.Error;
 		public virtual void wait_for_flush ();
