@@ -1,6 +1,67 @@
 [CCode (lower_case_cprefix = "g_omx_")]
 namespace GOmx {
 
+    public Core load_library(string library_name)
+    throws GLib.FileError, Error {
+        return LibraryTable.load_library(library_name);
+    }
+
+
+////////////////////////////////////////////////////////////////////////////////
+
+    class LibraryTable: Object {
+        GLib.HashTable<string,Core> _core_table;
+        static LibraryTable _library_table;
+
+
+        construct {
+            _core_table = new GLib.HashTable<string,Core>(str_hash, str_equal);
+        }
+
+
+        public static Core load_library(string library_name)
+        throws GLib.FileError, Error {
+            lock(_library_table) {
+                if(_library_table == null)
+                    _library_table = new LibraryTable();
+            }
+            var core = _library_table[library_name];
+            if(core == null)
+                core = _library_table.add_library(library_name);
+            return core;
+        }
+
+
+        public static Core? get_library(string library_name) {
+            if(_library_table == null)
+                return null;
+            return _library_table[library_name];
+        }
+
+
+        public Core add_library(string library_name) throws Error, FileError {
+            Core core;
+            core = _core_table.lookup(library_name);
+            if(core != null)
+                return core;
+            core = Core.open(library_name);
+            set(library_name, core);
+            return core;
+        }
+
+
+        public new Core get(string library_name) {
+            return _core_table.lookup(library_name);
+        }
+
+
+        public new void set(string library_name, Core core) {
+            _core_table.insert(library_name, core);
+        }
+    }
+
+////////////////////////////////////////////////////////////////////////////////
+
     public class Core: Object {
         Module _module;
 
@@ -70,32 +131,49 @@ namespace GOmx {
         }
 
 
-        public static Core? open(string soname) {
+        public static Core open (string soname)
+        throws GLib.FileError {
             var core = new Core();
 
             var module = Module.open(soname, ModuleFlags.BIND_LAZY);
-            return_val_if_fail(module != null, null);
+            if(module == null)
+                throw new FileError.FAILED(
+                    "Could not open library '%s'", soname);
 
+            string name;
             void *symbol;
-            module.symbol ("OMX_Init", out symbol);
-            return_val_if_fail(symbol != null, null);
+
+            name = "OMX_Init";
+            module.symbol(name, out symbol);
             core._init_func = (InitFunc)symbol;
 
-            module.symbol ("OMX_Deinit", out symbol);
-            return_val_if_fail(symbol != null, null);
-            core._deinit_func = (DeinitFunc)symbol;
+            if(symbol != null) {
+                name = "OMX_Deinit";
+                module.symbol(name, out symbol);
+                core._deinit_func = (DeinitFunc)symbol;
+            }
 
-            module.symbol ("OMX_GetHandle", out symbol);
-            return_val_if_fail(symbol != null, null);
-            core._get_handle_func = (GetHandleFunc)symbol;
+            if(symbol != null) {
+                name = "OMX_GetHandle";
+                module.symbol(name, out symbol);
+                core._get_handle_func = (GetHandleFunc)symbol;
+            }
 
-            module.symbol ("OMX_FreeHandle", out symbol);
-            return_val_if_fail(symbol != null, null);
-            core._free_handle_func = (FreeHandleFunc)symbol;
+            if(symbol != null) {
+                name = "OMX_FreeHandle";
+                module.symbol(name, out symbol);
+                core._free_handle_func = (FreeHandleFunc)symbol;
+            }
 
-            module.symbol ("OMX_SetupTunnel", out symbol);
-            return_val_if_fail(symbol != null, null);
-            core._setup_tunnel_func = (SetupTunnelFunc)symbol;
+            if(symbol != null) {
+                name = "OMX_SetupTunnel";
+                module.symbol(name, out symbol);
+                core._setup_tunnel_func = (SetupTunnelFunc)symbol;
+            }
+
+            if(symbol == null)
+                throw new GLib.FileError.INVAL(
+                    "Could not fine symbol '%s' in module '%s'", name, soname);
 
             core._module = (owned)module;
             return core;
@@ -133,15 +211,6 @@ namespace GOmx {
             component.id = id;
             component.queue = _port_queue.queue;
             _components.add(component);
-        }
-
-
-        public virtual void buffers_begin_transfer()
-        throws Error {
-            foreach(var component in _components) {
-                component.buffers_begin_transfer();
-                break;
-            }
         }
     }
 
@@ -199,6 +268,15 @@ namespace GOmx {
         public void wait_for_state_set() {
             foreach(var component in _components_list)
                 component.wait_for_state();
+        }
+
+
+        public virtual void buffers_begin_transfer()
+        throws Error {
+            foreach(var component in _components_list) {
+                component.buffers_begin_transfer();
+                break;
+            }
         }
 
 
@@ -281,9 +359,8 @@ namespace GOmx {
 ////////////////////////////////////////////////////////////////////////////////
 
     public class AudioComponent: Component {
-        public AudioComponent(Core core, string name) {
+        public AudioComponent(string name) {
             Object(
-                core: core,
                 component_name: name,
                 init_index: Omx.Index.ParamAudioInit,
                 name: name);
@@ -292,9 +369,8 @@ namespace GOmx {
 
 
     public class ImageComponent: Component {
-        public ImageComponent(Core core, string name) {
+        public ImageComponent(string name) {
             Object(
-                core: core,
                 component_name: name,
                 init_index: Omx.Index.ParamImageInit,
                 name: name);
@@ -303,9 +379,8 @@ namespace GOmx {
 
 
     public class VideoComponent: Component {
-        public VideoComponent(Core core, string name) {
+        public VideoComponent(string name) {
             Object(
-                core: core,
                 component_name: name,
                 init_index: Omx.Index.ParamVideoInit,
                 name: name);
@@ -314,9 +389,8 @@ namespace GOmx {
 
 
     public class OtherComponent: Component {
-        public OtherComponent(Core core, string name) {
+        public OtherComponent(string name) {
             Object(
-                core: core,
                 component_name: name,
                 init_index: Omx.Index.ParamOtherInit,
                 name: name);
@@ -329,6 +403,7 @@ namespace GOmx {
         public Omx.PortParam ports_param;
         public uint id;
         Omx.Handle _handle;
+        Core _core;
 
         Omx.State _current_state;
         Omx.State _previous_state;
@@ -387,6 +462,13 @@ namespace GOmx {
 
 
         public Core core {
+            get {
+                return _core;
+            }
+        }
+
+
+        public string library {
             get; construct set;
         }
 
@@ -441,22 +523,30 @@ namespace GOmx {
         }
 
 
-        public Component(Core core, string name, Omx.Index index) {
+        public Component(string name, Omx.Index index) {
             Object(
-                core: core,
                 component_name: name,
                 init_index: index,
                 name: name);
         }
 
 
-        public uint get_n_ports() {
-            return ports_param.ports;
+        public uint n_ports {
+            get {
+                return ports_param.ports;
+            }
         }
 
 
         public virtual void init()
         throws Error requires(_handle == null) {
+            if(_library == null)
+                throw new Error.BadParameter(
+                    "'%s' is not a registed core library", _library);
+            _core = LibraryTable.get_library(_library);
+            if(_core == null)
+                throw new Error.BadParameter(
+                    "No core for library '%s'", _library);
             _core.get_handle(
                 out _handle, _component_name,
                 this, callbacks);
@@ -783,7 +873,7 @@ namespace GOmx {
         uint _start;
         uint _length;
 
-        
+
         public uint start {
             get {
                 return _start;
@@ -807,7 +897,7 @@ namespace GOmx {
 
         public PortArray(uint length, uint start=0) {
             Object(length: length, start: start);
-            
+
         }
 
 
@@ -881,7 +971,7 @@ namespace GOmx {
             get {
                 return definition.port_index;
             }
-            
+
             set {
                 definition.port_index = value;
             }
@@ -1021,8 +1111,8 @@ namespace GOmx {
                 _component.handle.send_command(Omx.Command.PortDisable, index));
             flush();
             free_buffers();
-            _component.wait_for_port();    
-            get_definition();        
+            _component.wait_for_port();
+            get_definition();
         }
 
 
@@ -1034,13 +1124,17 @@ namespace GOmx {
         }
 
 
-        public uint get_n_buffers() {
-            return definition.buffer_count_actual;
+        public uint n_buffers {
+            get {
+                return definition.buffer_count_actual;
+            }
         }
 
 
-        public uint get_buffer_size() {
-            return definition.buffer_size;
+        public uint buffer_size {
+            get {
+                return definition.buffer_size;
+            }
         }
 
 
@@ -1178,7 +1272,7 @@ namespace GOmx {
 
 
 ////////////////////////////////////////////////////////////////////////////////
-    
+
     public weak string command_to_string(Omx.Command command) {
         return command.to_string();
     }
@@ -1249,5 +1343,7 @@ namespace GOmx {
             throw (Error)error;
         }
     }
+
+////////////////////////////////////////////////////////////////////////////////
 }
 

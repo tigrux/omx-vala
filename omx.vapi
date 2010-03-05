@@ -215,7 +215,8 @@ namespace Omx {
         public uint32 port_index;
     }
 
-    [CCode (cname="OMX_BUFFERHEADERTYPE", default_value="NULL", ref_function = "", unref_function = "")]
+    [Compact]
+    [CCode (cname="OMX_BUFFERHEADERTYPE", ref_function = "", unref_function = "")]
     public class BufferHeader {
         [CCode (cname="nSize")]
         public ulong size;

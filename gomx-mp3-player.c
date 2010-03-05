@@ -13,6 +13,7 @@
 
 #define _g_error_free0(var) ((var == NULL) ? NULL : (var = (g_error_free (var), NULL)))
 #define _fclose0(var) ((var == NULL) ? NULL : (var = (fclose (var), NULL)))
+#define _g_free0(var) (var = (g_free (var), NULL))
 #define _g_object_unref0(var) ((var == NULL) ? NULL : (var = (g_object_unref (var), NULL)))
 
 
@@ -39,7 +40,12 @@ gint _main (char** args, int args_length1) {
 			if (_inner_error_->domain == G_OMX_ERROR) {
 				goto __catch0_g_omx_error;
 			}
-			goto __catch0_g_error;
+			if (_inner_error_->domain == G_FILE_ERROR) {
+				goto __catch0_g_file_error;
+			}
+			g_critical ("file %s: line %d: unexpected error: %s (%s, %d)", __FILE__, __LINE__, _inner_error_->message, g_quark_to_string (_inner_error_->domain), _inner_error_->code);
+			g_clear_error (&_inner_error_);
+			return 0;
 		}
 		result = 0;
 		return result;
@@ -51,7 +57,7 @@ gint _main (char** args, int args_length1) {
 		e = _inner_error_;
 		_inner_error_ = NULL;
 		{
-			g_print ("An error of omx occurred\n");
+			g_print ("Omx error caught\n");
 			g_print ("%s\n", e->message);
 			result = 1;
 			_g_error_free0 (e);
@@ -59,13 +65,13 @@ gint _main (char** args, int args_length1) {
 		}
 	}
 	goto __finally0;
-	__catch0_g_error:
+	__catch0_g_file_error:
 	{
 		GError * e;
 		e = _inner_error_;
 		_inner_error_ = NULL;
 		{
-			g_print ("An error of glib occurred\n");
+			g_print ("File error caught\n");
 			g_print ("%s\n", e->message);
 			result = 1;
 			_g_error_free0 (e);
@@ -91,76 +97,167 @@ int main (int argc, char ** argv) {
 void play (const char* filename, GError** error) {
 	GError * _inner_error_;
 	FILE* fd;
+	char* library;
 	GOmxCore* core;
 	GOmxAudioComponent* decoder;
 	GOmxAudioComponent* sink;
 	GOmxEngine* engine;
+	gint n_buffers_in;
+	gint n_buffers_out;
 	g_return_if_fail (filename != NULL);
 	_inner_error_ = NULL;
 	fd = fopen (filename, "rb");
 	if (fd == NULL) {
 		_inner_error_ = g_error_new (G_FILE_ERROR, G_FILE_ERROR_FAILED, "Error opening %s", filename);
 		{
+			if ((_inner_error_->domain == G_FILE_ERROR) || (_inner_error_->domain == G_OMX_ERROR)) {
+				g_propagate_error (error, _inner_error_);
+				_fclose0 (fd);
+				return;
+			} else {
+				_fclose0 (fd);
+				g_critical ("file %s: line %d: uncaught error: %s (%s, %d)", __FILE__, __LINE__, _inner_error_->message, g_quark_to_string (_inner_error_->domain), _inner_error_->code);
+				g_clear_error (&_inner_error_);
+				return;
+			}
+		}
+	}
+	library = g_strdup ("libomxil-bellagio.so.0");
+	core = g_omx_load_library (library, &_inner_error_);
+	if (_inner_error_ != NULL) {
+		if ((_inner_error_->domain == G_FILE_ERROR) || (_inner_error_->domain == G_OMX_ERROR)) {
 			g_propagate_error (error, _inner_error_);
 			_fclose0 (fd);
+			_g_free0 (library);
+			return;
+		} else {
+			_fclose0 (fd);
+			_g_free0 (library);
+			g_critical ("file %s: line %d: uncaught error: %s (%s, %d)", __FILE__, __LINE__, _inner_error_->message, g_quark_to_string (_inner_error_->domain), _inner_error_->code);
+			g_clear_error (&_inner_error_);
 			return;
 		}
 	}
-	core = g_omx_core_open ("libomxil-bellagio.so.0");
 	g_omx_core_init (core, &_inner_error_);
 	if (_inner_error_ != NULL) {
-		g_propagate_error (error, _inner_error_);
-		_fclose0 (fd);
-		_g_object_unref0 (core);
-		return;
+		if ((_inner_error_->domain == G_FILE_ERROR) || (_inner_error_->domain == G_OMX_ERROR)) {
+			g_propagate_error (error, _inner_error_);
+			_fclose0 (fd);
+			_g_free0 (library);
+			_g_object_unref0 (core);
+			return;
+		} else {
+			_fclose0 (fd);
+			_g_free0 (library);
+			_g_object_unref0 (core);
+			g_critical ("file %s: line %d: uncaught error: %s (%s, %d)", __FILE__, __LINE__, _inner_error_->message, g_quark_to_string (_inner_error_->domain), _inner_error_->code);
+			g_clear_error (&_inner_error_);
+			return;
+		}
 	}
-	decoder = g_omx_audio_component_new (core, "OMX.st.audio_decoder.mp3.mad");
+	decoder = g_omx_audio_component_new ("OMX.st.audio_decoder.mp3.mad");
 	g_omx_component_set_name ((GOmxComponent*) decoder, "decoder");
-	sink = g_omx_audio_component_new (core, "OMX.st.alsa.alsasink");
+	g_omx_component_set_library ((GOmxComponent*) decoder, library);
+	sink = g_omx_audio_component_new ("OMX.st.alsa.alsasink");
 	g_omx_component_set_name ((GOmxComponent*) sink, "sink");
+	g_omx_component_set_library ((GOmxComponent*) sink, library);
 	engine = g_omx_engine_new ();
 	g_omx_engine_add_component (engine, (guint) AUDIODEC_ID, (GOmxComponent*) decoder);
 	g_omx_engine_add_component (engine, (guint) AUDIOSINK_ID, (GOmxComponent*) sink);
 	g_omx_component_list_init (g_omx_engine_get_components (engine), &_inner_error_);
 	if (_inner_error_ != NULL) {
-		g_propagate_error (error, _inner_error_);
-		_fclose0 (fd);
-		_g_object_unref0 (core);
-		_g_object_unref0 (decoder);
-		_g_object_unref0 (sink);
-		_g_object_unref0 (engine);
-		return;
+		if ((_inner_error_->domain == G_FILE_ERROR) || (_inner_error_->domain == G_OMX_ERROR)) {
+			g_propagate_error (error, _inner_error_);
+			_fclose0 (fd);
+			_g_free0 (library);
+			_g_object_unref0 (core);
+			_g_object_unref0 (decoder);
+			_g_object_unref0 (sink);
+			_g_object_unref0 (engine);
+			return;
+		} else {
+			_fclose0 (fd);
+			_g_free0 (library);
+			_g_object_unref0 (core);
+			_g_object_unref0 (decoder);
+			_g_object_unref0 (sink);
+			_g_object_unref0 (engine);
+			g_critical ("file %s: line %d: uncaught error: %s (%s, %d)", __FILE__, __LINE__, _inner_error_->message, g_quark_to_string (_inner_error_->domain), _inner_error_->code);
+			g_clear_error (&_inner_error_);
+			return;
+		}
 	}
 	g_omx_component_list_set_state_and_wait (g_omx_engine_get_components (engine), OMX_StateIdle, &_inner_error_);
 	if (_inner_error_ != NULL) {
-		g_propagate_error (error, _inner_error_);
-		_fclose0 (fd);
-		_g_object_unref0 (core);
-		_g_object_unref0 (decoder);
-		_g_object_unref0 (sink);
-		_g_object_unref0 (engine);
-		return;
+		if ((_inner_error_->domain == G_FILE_ERROR) || (_inner_error_->domain == G_OMX_ERROR)) {
+			g_propagate_error (error, _inner_error_);
+			_fclose0 (fd);
+			_g_free0 (library);
+			_g_object_unref0 (core);
+			_g_object_unref0 (decoder);
+			_g_object_unref0 (sink);
+			_g_object_unref0 (engine);
+			return;
+		} else {
+			_fclose0 (fd);
+			_g_free0 (library);
+			_g_object_unref0 (core);
+			_g_object_unref0 (decoder);
+			_g_object_unref0 (sink);
+			_g_object_unref0 (engine);
+			g_critical ("file %s: line %d: uncaught error: %s (%s, %d)", __FILE__, __LINE__, _inner_error_->message, g_quark_to_string (_inner_error_->domain), _inner_error_->code);
+			g_clear_error (&_inner_error_);
+			return;
+		}
 	}
 	g_omx_component_list_set_state_and_wait (g_omx_engine_get_components (engine), OMX_StateExecuting, &_inner_error_);
 	if (_inner_error_ != NULL) {
-		g_propagate_error (error, _inner_error_);
-		_fclose0 (fd);
-		_g_object_unref0 (core);
-		_g_object_unref0 (decoder);
-		_g_object_unref0 (sink);
-		_g_object_unref0 (engine);
-		return;
+		if ((_inner_error_->domain == G_FILE_ERROR) || (_inner_error_->domain == G_OMX_ERROR)) {
+			g_propagate_error (error, _inner_error_);
+			_fclose0 (fd);
+			_g_free0 (library);
+			_g_object_unref0 (core);
+			_g_object_unref0 (decoder);
+			_g_object_unref0 (sink);
+			_g_object_unref0 (engine);
+			return;
+		} else {
+			_fclose0 (fd);
+			_g_free0 (library);
+			_g_object_unref0 (core);
+			_g_object_unref0 (decoder);
+			_g_object_unref0 (sink);
+			_g_object_unref0 (engine);
+			g_critical ("file %s: line %d: uncaught error: %s (%s, %d)", __FILE__, __LINE__, _inner_error_->message, g_quark_to_string (_inner_error_->domain), _inner_error_->code);
+			g_clear_error (&_inner_error_);
+			return;
+		}
 	}
-	g_omx_engine_buffers_begin_transfer (engine, &_inner_error_);
+	g_omx_component_list_buffers_begin_transfer (g_omx_engine_get_components (engine), &_inner_error_);
 	if (_inner_error_ != NULL) {
-		g_propagate_error (error, _inner_error_);
-		_fclose0 (fd);
-		_g_object_unref0 (core);
-		_g_object_unref0 (decoder);
-		_g_object_unref0 (sink);
-		_g_object_unref0 (engine);
-		return;
+		if ((_inner_error_->domain == G_FILE_ERROR) || (_inner_error_->domain == G_OMX_ERROR)) {
+			g_propagate_error (error, _inner_error_);
+			_fclose0 (fd);
+			_g_free0 (library);
+			_g_object_unref0 (core);
+			_g_object_unref0 (decoder);
+			_g_object_unref0 (sink);
+			_g_object_unref0 (engine);
+			return;
+		} else {
+			_fclose0 (fd);
+			_g_free0 (library);
+			_g_object_unref0 (core);
+			_g_object_unref0 (decoder);
+			_g_object_unref0 (sink);
+			_g_object_unref0 (engine);
+			g_critical ("file %s: line %d: uncaught error: %s (%s, %d)", __FILE__, __LINE__, _inner_error_->message, g_quark_to_string (_inner_error_->domain), _inner_error_->code);
+			g_clear_error (&_inner_error_);
+			return;
+		}
 	}
+	n_buffers_in = 0;
+	n_buffers_out = 0;
 	{
 		GOmxPortDoneQueueIterator* _port_it;
 		_port_it = g_omx_port_done_queue_iterator (g_omx_engine_get_ports_with_buffer_done (engine));
@@ -178,19 +275,35 @@ void play (const char* filename, GError** error) {
 						{
 							{
 								OMX_BUFFERHEADERTYPE* buffer;
+								n_buffers_in++;
 								buffer = g_omx_port_pop_buffer (port);
 								g_omx_buffer_read_from_file (buffer, fd);
 								g_omx_port_push_buffer (port, buffer, &_inner_error_);
 								if (_inner_error_ != NULL) {
-									g_propagate_error (error, _inner_error_);
-									_g_object_unref0 (port);
-									_g_object_unref0 (_port_it);
-									_fclose0 (fd);
-									_g_object_unref0 (core);
-									_g_object_unref0 (decoder);
-									_g_object_unref0 (sink);
-									_g_object_unref0 (engine);
-									return;
+									if ((_inner_error_->domain == G_FILE_ERROR) || (_inner_error_->domain == G_OMX_ERROR)) {
+										g_propagate_error (error, _inner_error_);
+										_g_object_unref0 (port);
+										_g_object_unref0 (_port_it);
+										_fclose0 (fd);
+										_g_free0 (library);
+										_g_object_unref0 (core);
+										_g_object_unref0 (decoder);
+										_g_object_unref0 (sink);
+										_g_object_unref0 (engine);
+										return;
+									} else {
+										_g_object_unref0 (port);
+										_g_object_unref0 (_port_it);
+										_fclose0 (fd);
+										_g_free0 (library);
+										_g_object_unref0 (core);
+										_g_object_unref0 (decoder);
+										_g_object_unref0 (sink);
+										_g_object_unref0 (engine);
+										g_critical ("file %s: line %d: uncaught error: %s (%s, %d)", __FILE__, __LINE__, _inner_error_->message, g_quark_to_string (_inner_error_->domain), _inner_error_->code);
+										g_clear_error (&_inner_error_);
+										return;
+									}
 								}
 								break;
 							}
@@ -207,29 +320,61 @@ void play (const char* filename, GError** error) {
 								g_omx_buffer_copy (sink_buffer, buffer);
 								g_omx_port_push_buffer (sink_inport, sink_buffer, &_inner_error_);
 								if (_inner_error_ != NULL) {
-									g_propagate_error (error, _inner_error_);
-									_g_object_unref0 (sink_inport);
-									_g_object_unref0 (port);
-									_g_object_unref0 (_port_it);
-									_fclose0 (fd);
-									_g_object_unref0 (core);
-									_g_object_unref0 (decoder);
-									_g_object_unref0 (sink);
-									_g_object_unref0 (engine);
-									return;
+									if ((_inner_error_->domain == G_FILE_ERROR) || (_inner_error_->domain == G_OMX_ERROR)) {
+										g_propagate_error (error, _inner_error_);
+										_g_object_unref0 (sink_inport);
+										_g_object_unref0 (port);
+										_g_object_unref0 (_port_it);
+										_fclose0 (fd);
+										_g_free0 (library);
+										_g_object_unref0 (core);
+										_g_object_unref0 (decoder);
+										_g_object_unref0 (sink);
+										_g_object_unref0 (engine);
+										return;
+									} else {
+										_g_object_unref0 (sink_inport);
+										_g_object_unref0 (port);
+										_g_object_unref0 (_port_it);
+										_fclose0 (fd);
+										_g_free0 (library);
+										_g_object_unref0 (core);
+										_g_object_unref0 (decoder);
+										_g_object_unref0 (sink);
+										_g_object_unref0 (engine);
+										g_critical ("file %s: line %d: uncaught error: %s (%s, %d)", __FILE__, __LINE__, _inner_error_->message, g_quark_to_string (_inner_error_->domain), _inner_error_->code);
+										g_clear_error (&_inner_error_);
+										return;
+									}
 								}
 								g_omx_port_push_buffer (port, buffer, &_inner_error_);
 								if (_inner_error_ != NULL) {
-									g_propagate_error (error, _inner_error_);
-									_g_object_unref0 (sink_inport);
-									_g_object_unref0 (port);
-									_g_object_unref0 (_port_it);
-									_fclose0 (fd);
-									_g_object_unref0 (core);
-									_g_object_unref0 (decoder);
-									_g_object_unref0 (sink);
-									_g_object_unref0 (engine);
-									return;
+									if ((_inner_error_->domain == G_FILE_ERROR) || (_inner_error_->domain == G_OMX_ERROR)) {
+										g_propagate_error (error, _inner_error_);
+										_g_object_unref0 (sink_inport);
+										_g_object_unref0 (port);
+										_g_object_unref0 (_port_it);
+										_fclose0 (fd);
+										_g_free0 (library);
+										_g_object_unref0 (core);
+										_g_object_unref0 (decoder);
+										_g_object_unref0 (sink);
+										_g_object_unref0 (engine);
+										return;
+									} else {
+										_g_object_unref0 (sink_inport);
+										_g_object_unref0 (port);
+										_g_object_unref0 (_port_it);
+										_fclose0 (fd);
+										_g_free0 (library);
+										_g_object_unref0 (core);
+										_g_object_unref0 (decoder);
+										_g_object_unref0 (sink);
+										_g_object_unref0 (engine);
+										g_critical ("file %s: line %d: uncaught error: %s (%s, %d)", __FILE__, __LINE__, _inner_error_->message, g_quark_to_string (_inner_error_->domain), _inner_error_->code);
+										g_clear_error (&_inner_error_);
+										return;
+									}
 								}
 								_g_object_unref0 (sink_inport);
 								break;
@@ -247,6 +392,7 @@ void play (const char* filename, GError** error) {
 					switch (port->definition.eDir) {
 						case OMX_DirInput:
 						{
+							n_buffers_out++;
 							break;
 						}
 						default:
@@ -261,47 +407,102 @@ void play (const char* filename, GError** error) {
 		}
 		_g_object_unref0 (_port_it);
 	}
+	g_print ("%d buffers were read\n", n_buffers_in);
+	g_print ("%d buffers were rendered\n", n_buffers_out);
 	g_omx_component_list_set_state_and_wait (g_omx_engine_get_components (engine), OMX_StateIdle, &_inner_error_);
 	if (_inner_error_ != NULL) {
-		g_propagate_error (error, _inner_error_);
-		_fclose0 (fd);
-		_g_object_unref0 (core);
-		_g_object_unref0 (decoder);
-		_g_object_unref0 (sink);
-		_g_object_unref0 (engine);
-		return;
+		if ((_inner_error_->domain == G_FILE_ERROR) || (_inner_error_->domain == G_OMX_ERROR)) {
+			g_propagate_error (error, _inner_error_);
+			_fclose0 (fd);
+			_g_free0 (library);
+			_g_object_unref0 (core);
+			_g_object_unref0 (decoder);
+			_g_object_unref0 (sink);
+			_g_object_unref0 (engine);
+			return;
+		} else {
+			_fclose0 (fd);
+			_g_free0 (library);
+			_g_object_unref0 (core);
+			_g_object_unref0 (decoder);
+			_g_object_unref0 (sink);
+			_g_object_unref0 (engine);
+			g_critical ("file %s: line %d: uncaught error: %s (%s, %d)", __FILE__, __LINE__, _inner_error_->message, g_quark_to_string (_inner_error_->domain), _inner_error_->code);
+			g_clear_error (&_inner_error_);
+			return;
+		}
 	}
 	g_omx_component_list_set_state_and_wait (g_omx_engine_get_components (engine), OMX_StateLoaded, &_inner_error_);
 	if (_inner_error_ != NULL) {
-		g_propagate_error (error, _inner_error_);
-		_fclose0 (fd);
-		_g_object_unref0 (core);
-		_g_object_unref0 (decoder);
-		_g_object_unref0 (sink);
-		_g_object_unref0 (engine);
-		return;
+		if ((_inner_error_->domain == G_FILE_ERROR) || (_inner_error_->domain == G_OMX_ERROR)) {
+			g_propagate_error (error, _inner_error_);
+			_fclose0 (fd);
+			_g_free0 (library);
+			_g_object_unref0 (core);
+			_g_object_unref0 (decoder);
+			_g_object_unref0 (sink);
+			_g_object_unref0 (engine);
+			return;
+		} else {
+			_fclose0 (fd);
+			_g_free0 (library);
+			_g_object_unref0 (core);
+			_g_object_unref0 (decoder);
+			_g_object_unref0 (sink);
+			_g_object_unref0 (engine);
+			g_critical ("file %s: line %d: uncaught error: %s (%s, %d)", __FILE__, __LINE__, _inner_error_->message, g_quark_to_string (_inner_error_->domain), _inner_error_->code);
+			g_clear_error (&_inner_error_);
+			return;
+		}
 	}
 	g_omx_component_list_free_handles (g_omx_engine_get_components (engine), &_inner_error_);
 	if (_inner_error_ != NULL) {
-		g_propagate_error (error, _inner_error_);
-		_fclose0 (fd);
-		_g_object_unref0 (core);
-		_g_object_unref0 (decoder);
-		_g_object_unref0 (sink);
-		_g_object_unref0 (engine);
-		return;
+		if ((_inner_error_->domain == G_FILE_ERROR) || (_inner_error_->domain == G_OMX_ERROR)) {
+			g_propagate_error (error, _inner_error_);
+			_fclose0 (fd);
+			_g_free0 (library);
+			_g_object_unref0 (core);
+			_g_object_unref0 (decoder);
+			_g_object_unref0 (sink);
+			_g_object_unref0 (engine);
+			return;
+		} else {
+			_fclose0 (fd);
+			_g_free0 (library);
+			_g_object_unref0 (core);
+			_g_object_unref0 (decoder);
+			_g_object_unref0 (sink);
+			_g_object_unref0 (engine);
+			g_critical ("file %s: line %d: uncaught error: %s (%s, %d)", __FILE__, __LINE__, _inner_error_->message, g_quark_to_string (_inner_error_->domain), _inner_error_->code);
+			g_clear_error (&_inner_error_);
+			return;
+		}
 	}
 	g_omx_core_deinit (core, &_inner_error_);
 	if (_inner_error_ != NULL) {
-		g_propagate_error (error, _inner_error_);
-		_fclose0 (fd);
-		_g_object_unref0 (core);
-		_g_object_unref0 (decoder);
-		_g_object_unref0 (sink);
-		_g_object_unref0 (engine);
-		return;
+		if ((_inner_error_->domain == G_FILE_ERROR) || (_inner_error_->domain == G_OMX_ERROR)) {
+			g_propagate_error (error, _inner_error_);
+			_fclose0 (fd);
+			_g_free0 (library);
+			_g_object_unref0 (core);
+			_g_object_unref0 (decoder);
+			_g_object_unref0 (sink);
+			_g_object_unref0 (engine);
+			return;
+		} else {
+			_fclose0 (fd);
+			_g_free0 (library);
+			_g_object_unref0 (core);
+			_g_object_unref0 (decoder);
+			_g_object_unref0 (sink);
+			_g_object_unref0 (engine);
+			g_critical ("file %s: line %d: uncaught error: %s (%s, %d)", __FILE__, __LINE__, _inner_error_->message, g_quark_to_string (_inner_error_->domain), _inner_error_->code);
+			g_clear_error (&_inner_error_);
+			return;
+		}
 	}
 	_fclose0 (fd);
+	_g_free0 (library);
 	_g_object_unref0 (core);
 	_g_object_unref0 (decoder);
 	_g_object_unref0 (sink);

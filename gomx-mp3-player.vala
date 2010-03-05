@@ -9,51 +9,59 @@ int main(string[] args) {
         return 0;
     }
     catch(GOmx.Error e) {
-        print("An error of omx occurred\n");
+        print("Omx error caught\n");
         print("%s\n", e.message);
         return 1;
     }
-    catch(Error e) {
-        print("An error of glib occurred\n");
+    catch(FileError e) {
+        print("File error caught\n");
         print("%s\n", e.message);
         return 1;
     }
-    
+
 }
 
 
 const int AUDIODEC_ID = 0;
 const int AUDIOSINK_ID = 1;
 
-
-public void play(string filename) throws Error, GOmx.Error {
+public void play(string filename) throws FileError, GOmx.Error {
     var fd = FileStream.open(filename, "rb");
     if(fd == null)
         throw new FileError.FAILED("Error opening %s", filename);
 
-    var core = GOmx.Core.open("libomxil-bellagio.so.0");
+    var library = "libomxil-bellagio.so.0";
+    GOmx.Core core = GOmx.load_library(library);
+
     core.init();
 
-    var decoder = new GOmx.AudioComponent(core, "OMX.st.audio_decoder.mp3.mad");
+    var decoder = new GOmx.AudioComponent("OMX.st.audio_decoder.mp3.mad");
     decoder.name = "decoder";
+    decoder.library = library;
 
-    var sink = new GOmx.AudioComponent(core, "OMX.st.alsa.alsasink");
+    var sink = new GOmx.AudioComponent("OMX.st.alsa.alsasink");
     sink.name = "sink";
+    sink.library = library;
 
     var engine = new GOmx.Engine();
+
     engine.add_component(AUDIODEC_ID, decoder);
     engine.add_component(AUDIOSINK_ID, sink);
 
     engine.components.init();
     engine.components.set_state_and_wait(Omx.State.Idle);
     engine.components.set_state_and_wait(Omx.State.Executing);
+    engine.components.buffers_begin_transfer();
 
-    engine.buffers_begin_transfer();
+    var n_buffers_in = 0;
+    var n_buffers_out = 0;
+
     foreach(var port in engine.ports_with_buffer_done) {
         switch(port.component.id) {
             case AUDIODEC_ID:
                 switch(port.definition.dir) {
                     case Omx.Dir.Input: {
+                        n_buffers_in++;
                         var buffer = port.pop_buffer();
                         GOmx.buffer_read_from_file(buffer, fd);
                         port.push_buffer(buffer);
@@ -75,6 +83,7 @@ public void play(string filename) throws Error, GOmx.Error {
             case AUDIOSINK_ID:
                 switch(port.definition.dir) {
                     case Omx.Dir.Input:
+                        n_buffers_out++;
                         break;
                     default:
                         break;
@@ -82,6 +91,9 @@ public void play(string filename) throws Error, GOmx.Error {
                 break;
         }
     }
+
+    print("%d buffers were read\n", n_buffers_in);
+    print("%d buffers were rendered\n", n_buffers_out);
 
     engine.components.set_state_and_wait(Omx.State.Idle);
     engine.components.set_state_and_wait(Omx.State.Loaded);

@@ -24,7 +24,7 @@ gomx-mp3-player.c: gomx-mp3-player.vala omx.vapi gomx.vapi
 gomx.vapi: gomx.c
 
 gomx.c: gomx.vala omx.vapi
-	valac --vapi=gomx.vapi --pkg gmodule-2.0 --pkg posix -C -H gomx.h $^
+	valac --vapi=gomx.vapi --pkg gmodule-2.0 --pkg posix -C -H gomx.h --target-glib=2.18 $^
 	touch $@
 
 

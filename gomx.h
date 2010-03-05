@@ -5,11 +5,11 @@
 #define __GOMX_H__
 
 #include <glib.h>
+#include <stdlib.h>
+#include <string.h>
 #include <glib-object.h>
 #include <OMX_Core.h>
 #include <OMX_Component.h>
-#include <stdlib.h>
-#include <string.h>
 #include <gmodule.h>
 #include <stdio.h>
 
@@ -181,15 +181,6 @@ typedef struct _GOmxSemaphore GOmxSemaphore;
 typedef struct _GOmxSemaphoreClass GOmxSemaphoreClass;
 typedef struct _GOmxSemaphorePrivate GOmxSemaphorePrivate;
 
-struct _GOmxCore {
-	GObject parent_instance;
-	GOmxCorePrivate * priv;
-};
-
-struct _GOmxCoreClass {
-	GObjectClass parent_class;
-};
-
 typedef enum  {
 	G_OMX_ERROR_None,
 	G_OMX_ERROR_InsufficientResources,
@@ -231,6 +222,15 @@ typedef enum  {
 	G_OMX_ERROR_TunnelingUnsupported
 } GOmxError;
 #define G_OMX_ERROR g_omx_error_quark ()
+struct _GOmxCore {
+	GObject parent_instance;
+	GOmxCorePrivate * priv;
+};
+
+struct _GOmxCoreClass {
+	GObjectClass parent_class;
+};
+
 typedef OMX_ERRORTYPE (*GOmxCoreInitFunc) (void* user_data);
 typedef OMX_ERRORTYPE (*GOmxCoreDeinitFunc) (void* user_data);
 typedef OMX_ERRORTYPE (*GOmxCoreGetHandleFunc) (void** component, const char* component_name, void* app_data, OMX_CALLBACKTYPE* callbacks, void* user_data);
@@ -244,7 +244,6 @@ struct _GOmxEngine {
 struct _GOmxEngineClass {
 	GObjectClass parent_class;
 	void (*add_component) (GOmxEngine* self, guint id, GOmxComponent* component);
-	void (*buffers_begin_transfer) (GOmxEngine* self, GError** error);
 };
 
 struct _GOmxComponentList {
@@ -255,6 +254,7 @@ struct _GOmxComponentList {
 struct _GOmxComponentListClass {
 	GObjectClass parent_class;
 	void (*set_state) (GOmxComponentList* self, OMX_STATETYPE state, GError** error);
+	void (*buffers_begin_transfer) (GOmxComponentList* self, GError** error);
 };
 
 struct _GOmxComponentListIterator {
@@ -384,19 +384,19 @@ struct _GOmxSemaphoreClass {
 
 GType g_omx_core_get_type (void);
 GQuark g_omx_error_quark (void);
+GOmxCore* g_omx_load_library (const char* library_name, GError** error);
 void g_omx_core_init (GOmxCore* self, GError** error);
 void g_omx_core_deinit (GOmxCore* self, GError** error);
 void g_omx_core_get_handle (GOmxCore* self, void** component, const char* component_name, void* app_data, OMX_CALLBACKTYPE* callbacks, GError** error);
 void g_omx_core_free_handle (GOmxCore* self, void* handle, GError** error);
 void g_omx_core_setup_tunnel (GOmxCore* self, void* output, guint32 port_output, void* input, guint32 port_input, GError** error);
-GOmxCore* g_omx_core_open (const char* soname);
+GOmxCore* g_omx_core_open (const char* soname, GError** error);
 GOmxCore* g_omx_core_new (void);
 GOmxCore* g_omx_core_construct (GType object_type);
 GModule* g_omx_core_get_module (GOmxCore* self);
 GType g_omx_engine_get_type (void);
 GType g_omx_component_get_type (void);
 void g_omx_engine_add_component (GOmxEngine* self, guint id, GOmxComponent* component);
-void g_omx_engine_buffers_begin_transfer (GOmxEngine* self, GError** error);
 GOmxEngine* g_omx_engine_new (void);
 GOmxEngine* g_omx_engine_construct (GType object_type);
 GType g_omx_component_list_get_type (void);
@@ -410,6 +410,7 @@ void g_omx_component_list_init (GOmxComponentList* self, GError** error);
 void g_omx_component_list_set_state (GOmxComponentList* self, OMX_STATETYPE state, GError** error);
 void g_omx_component_list_set_state_and_wait (GOmxComponentList* self, OMX_STATETYPE state, GError** error);
 void g_omx_component_list_wait_for_state_set (GOmxComponentList* self);
+void g_omx_component_list_buffers_begin_transfer (GOmxComponentList* self, GError** error);
 void g_omx_component_list_free_handles (GOmxComponentList* self, GError** error);
 GOmxComponent* g_omx_component_list_get (GOmxComponentList* self, guint index);
 GOmxComponentList* g_omx_component_list_new (void);
@@ -430,20 +431,19 @@ GOmxPortDoneQueueIterator* g_omx_port_done_queue_iterator_construct (GType objec
 gboolean g_omx_port_done_queue_iterator_next (GOmxPortDoneQueueIterator* self);
 GOmxPort* g_omx_port_done_queue_iterator_get (GOmxPortDoneQueueIterator* self);
 GType g_omx_audio_component_get_type (void);
-GOmxAudioComponent* g_omx_audio_component_new (GOmxCore* core, const char* name);
-GOmxAudioComponent* g_omx_audio_component_construct (GType object_type, GOmxCore* core, const char* name);
+GOmxAudioComponent* g_omx_audio_component_new (const char* name);
+GOmxAudioComponent* g_omx_audio_component_construct (GType object_type, const char* name);
 GType g_omx_image_component_get_type (void);
-GOmxImageComponent* g_omx_image_component_new (GOmxCore* core, const char* name);
-GOmxImageComponent* g_omx_image_component_construct (GType object_type, GOmxCore* core, const char* name);
+GOmxImageComponent* g_omx_image_component_new (const char* name);
+GOmxImageComponent* g_omx_image_component_construct (GType object_type, const char* name);
 GType g_omx_video_component_get_type (void);
-GOmxVideoComponent* g_omx_video_component_new (GOmxCore* core, const char* name);
-GOmxVideoComponent* g_omx_video_component_construct (GType object_type, GOmxCore* core, const char* name);
+GOmxVideoComponent* g_omx_video_component_new (const char* name);
+GOmxVideoComponent* g_omx_video_component_construct (GType object_type, const char* name);
 GType g_omx_other_component_get_type (void);
-GOmxOtherComponent* g_omx_other_component_new (GOmxCore* core, const char* name);
-GOmxOtherComponent* g_omx_other_component_construct (GType object_type, GOmxCore* core, const char* name);
-GOmxComponent* g_omx_component_new (GOmxCore* core, const char* name, OMX_INDEXTYPE index);
-GOmxComponent* g_omx_component_construct (GType object_type, GOmxCore* core, const char* name, OMX_INDEXTYPE index);
-guint g_omx_component_get_n_ports (GOmxComponent* self);
+GOmxOtherComponent* g_omx_other_component_new (const char* name);
+GOmxOtherComponent* g_omx_other_component_construct (GType object_type, const char* name);
+GOmxComponent* g_omx_component_new (const char* name, OMX_INDEXTYPE index);
+GOmxComponent* g_omx_component_construct (GType object_type, const char* name, OMX_INDEXTYPE index);
 void g_omx_component_init (GOmxComponent* self, GError** error);
 void g_omx_component_set_role (GOmxComponent* self);
 void g_omx_component_free_handle (GOmxComponent* self, GError** error);
@@ -466,7 +466,8 @@ GOmxPortArray* g_omx_component_get_ports (GOmxComponent* self);
 GAsyncQueue* g_omx_component_get_queue (GOmxComponent* self);
 void g_omx_component_set_queue (GOmxComponent* self, GAsyncQueue* value);
 GOmxCore* g_omx_component_get_core (GOmxComponent* self);
-void g_omx_component_set_core (GOmxComponent* self, GOmxCore* value);
+const char* g_omx_component_get_library (GOmxComponent* self);
+void g_omx_component_set_library (GOmxComponent* self, const char* value);
 const char* g_omx_component_get_component_name (GOmxComponent* self);
 void g_omx_component_set_component_name (GOmxComponent* self, const char* value);
 const char* g_omx_component_get_component_role (GOmxComponent* self);
@@ -478,6 +479,7 @@ guint g_omx_component_get_pending_state (GOmxComponent* self);
 guint g_omx_component_get_previous_state (GOmxComponent* self);
 gboolean g_omx_component_get_no_allocate_buffers (GOmxComponent* self);
 void g_omx_component_set_no_allocate_buffers (GOmxComponent* self, gboolean value);
+guint g_omx_component_get_n_ports (GOmxComponent* self);
 GOmxPortArray* g_omx_port_array_new (guint length, guint start);
 GOmxPortArray* g_omx_port_array_construct (GType object_type, guint length, guint start);
 GType g_omx_port_array_iterator_get_type (void);
@@ -504,8 +506,6 @@ void g_omx_port_use_buffers_of_array (GOmxPort* self, guint8** array, int array_
 void g_omx_port_enable (GOmxPort* self, GError** error);
 void g_omx_port_disable (GOmxPort* self, GError** error);
 void g_omx_port_flush (GOmxPort* self, GError** error);
-guint g_omx_port_get_n_buffers (GOmxPort* self);
-guint g_omx_port_get_buffer_size (GOmxPort* self);
 void g_omx_port_free_buffers (GOmxPort* self, GError** error);
 OMX_BUFFERHEADERTYPE* g_omx_port_pop_buffer (GOmxPort* self);
 void g_omx_port_push_buffer (GOmxPort* self, OMX_BUFFERHEADERTYPE* buffer, GError** error);
@@ -521,6 +521,8 @@ guint g_omx_port_get_index (GOmxPort* self);
 void g_omx_port_set_index (GOmxPort* self, guint value);
 gboolean g_omx_port_get_eos (GOmxPort* self);
 GAsyncQueue* g_omx_port_get_queue (GOmxPort* self);
+guint g_omx_port_get_n_buffers (GOmxPort* self);
+guint g_omx_port_get_buffer_size (GOmxPort* self);
 GType g_omx_semaphore_get_type (void);
 void g_omx_semaphore_up (GOmxSemaphore* self);
 void g_omx_semaphore_down (GOmxSemaphore* self);
