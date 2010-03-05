@@ -31,9 +31,6 @@ public void play(string filename) throws FileError, GOmx.Error {
         throw new FileError.FAILED("Error opening %s", filename);
 
     var library = "libomxil-bellagio.so.0";
-    GOmx.Core core = GOmx.load_library(library);
-
-    core.init();
 
     var decoder = new GOmx.AudioComponent("OMX.st.audio_decoder.mp3.mad");
     decoder.name = "decoder";
@@ -44,9 +41,11 @@ public void play(string filename) throws FileError, GOmx.Error {
     sink.library = library;
 
     var engine = new GOmx.Engine();
-
     engine.add_component(AUDIODEC_ID, decoder);
     engine.add_component(AUDIOSINK_ID, sink);
+
+    GOmx.Core core = GOmx.load_library(library);
+    core.init();
 
     engine.components.init();
     engine.components.set_state_and_wait(Omx.State.Idle);
