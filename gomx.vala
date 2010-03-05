@@ -1,6 +1,8 @@
 [CCode (lower_case_cprefix = "g_omx_")]
 namespace GOmx {
 
+////////////////////////////////////////////////////////////////////////////////
+
     public Core load_library(string library_name)
     throws GLib.FileError, Error {
         return LibraryTable.load_library(library_name);
@@ -11,7 +13,7 @@ namespace GOmx {
 
     class LibraryTable: Object {
         GLib.HashTable<string,Core> _core_table;
-        static LibraryTable _library_table;
+        static LibraryTable _common_table;
 
 
         construct {
@@ -21,32 +23,23 @@ namespace GOmx {
 
         public static Core load_library(string library_name)
         throws GLib.FileError, Error {
-            lock(_library_table) {
-                if(_library_table == null)
-                    _library_table = new LibraryTable();
+            lock(_common_table) {
+                if(_common_table == null)
+                    _common_table = new LibraryTable();
             }
-            var core = _library_table[library_name];
-            if(core == null)
-                core = _library_table.add_library(library_name);
+            var core = _common_table[library_name];
+            if(core == null) {
+                core = Core.open(library_name);
+                _common_table[library_name] = core;
+            }
             return core;
         }
 
 
         public static Core? get_library(string library_name) {
-            if(_library_table == null)
+            if(_common_table == null)
                 return null;
-            return _library_table[library_name];
-        }
-
-
-        public Core add_library(string library_name) throws Error, FileError {
-            Core core;
-            core = _core_table.lookup(library_name);
-            if(core != null)
-                return core;
-            core = Core.open(library_name);
-            set(library_name, core);
-            return core;
+            return _common_table[library_name];
         }
 
 

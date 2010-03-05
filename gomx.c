@@ -534,9 +534,9 @@ struct _GOmxSemaphorePrivate {
 };
 
 
-static GOmxLibraryTable* g_omx_library_table__library_table;
-static GStaticRecMutex __lock_g_omx_library_table__library_table = {0};
-static GOmxLibraryTable* g_omx_library_table__library_table = NULL;
+static GOmxLibraryTable* g_omx_library_table__common_table;
+static GStaticRecMutex __lock_g_omx_library_table__common_table = {0};
+static GOmxLibraryTable* g_omx_library_table__common_table = NULL;
 static gpointer g_omx_library_table_parent_class = NULL;
 static gpointer g_omx_core_parent_class = NULL;
 static gpointer g_omx_engine_parent_class = NULL;
@@ -566,10 +566,9 @@ enum  {
 GOmxLibraryTable* g_omx_library_table_new (void);
 GOmxLibraryTable* g_omx_library_table_construct (GType object_type);
 GOmxCore* g_omx_library_table_get (GOmxLibraryTable* self, const char* library_name);
-GOmxCore* g_omx_library_table_add_library (GOmxLibraryTable* self, const char* library_name, GError** error);
-GOmxCore* g_omx_library_table_get_library (const char* library_name);
 GOmxCore* g_omx_core_open (const char* soname, GError** error);
 void g_omx_library_table_set (GOmxLibraryTable* self, const char* library_name, GOmxCore* core);
+GOmxCore* g_omx_library_table_get_library (const char* library_name);
 static GObject * g_omx_library_table_constructor (GType type, guint n_construct_properties, GObjectConstructParam * construct_properties);
 static void g_omx_library_table_finalize (GObject* obj);
 #define G_OMX_CORE_GET_PRIVATE(o) (G_TYPE_INSTANCE_GET_PRIVATE ((o), G_OMX_TYPE_CORE, GOmxCorePrivate))
@@ -898,19 +897,19 @@ GOmxCore* g_omx_library_table_load_library (const char* library_name, GError** e
 	GOmxCore* core;
 	g_return_val_if_fail (library_name != NULL, NULL);
 	_inner_error_ = NULL;
-	g_static_rec_mutex_lock (&__lock_g_omx_library_table__library_table);
+	g_static_rec_mutex_lock (&__lock_g_omx_library_table__common_table);
 	{
-		if (g_omx_library_table__library_table == NULL) {
+		if (g_omx_library_table__common_table == NULL) {
 			GOmxLibraryTable* _tmp0_;
-			g_omx_library_table__library_table = (_tmp0_ = g_omx_library_table_new (), _g_object_unref0 (g_omx_library_table__library_table), _tmp0_);
+			g_omx_library_table__common_table = (_tmp0_ = g_omx_library_table_new (), _g_object_unref0 (g_omx_library_table__common_table), _tmp0_);
 		}
 	}
-	g_static_rec_mutex_unlock (&__lock_g_omx_library_table__library_table);
-	core = g_omx_library_table_get (g_omx_library_table__library_table, library_name);
+	g_static_rec_mutex_unlock (&__lock_g_omx_library_table__common_table);
+	core = g_omx_library_table_get (g_omx_library_table__common_table, library_name);
 	if (core == NULL) {
 		GOmxCore* _tmp1_;
 		GOmxCore* _tmp2_;
-		_tmp1_ = g_omx_library_table_add_library (g_omx_library_table__library_table, library_name, &_inner_error_);
+		_tmp1_ = g_omx_core_open (library_name, &_inner_error_);
 		if (_inner_error_ != NULL) {
 			if ((_inner_error_->domain == G_FILE_ERROR) || (_inner_error_->domain == G_OMX_ERROR)) {
 				g_propagate_error (error, _inner_error_);
@@ -924,6 +923,7 @@ GOmxCore* g_omx_library_table_load_library (const char* library_name, GError** e
 			}
 		}
 		core = (_tmp2_ = _tmp1_, _g_object_unref0 (core), _tmp2_);
+		g_omx_library_table_set (g_omx_library_table__common_table, library_name, core);
 	}
 	result = core;
 	return result;
@@ -933,53 +933,17 @@ GOmxCore* g_omx_library_table_load_library (const char* library_name, GError** e
 GOmxCore* g_omx_library_table_get_library (const char* library_name) {
 	GOmxCore* result;
 	g_return_val_if_fail (library_name != NULL, NULL);
-	if (g_omx_library_table__library_table == NULL) {
+	if (g_omx_library_table__common_table == NULL) {
 		result = NULL;
 		return result;
 	}
-	result = g_omx_library_table_get (g_omx_library_table__library_table, library_name);
+	result = g_omx_library_table_get (g_omx_library_table__common_table, library_name);
 	return result;
 }
 
 
 static gpointer _g_object_ref0 (gpointer self) {
 	return self ? g_object_ref (self) : NULL;
-}
-
-
-GOmxCore* g_omx_library_table_add_library (GOmxLibraryTable* self, const char* library_name, GError** error) {
-	GOmxCore* result;
-	GError * _inner_error_;
-	GOmxCore* core;
-	GOmxCore* _tmp0_;
-	GOmxCore* _tmp1_;
-	GOmxCore* _tmp2_;
-	g_return_val_if_fail (self != NULL, NULL);
-	g_return_val_if_fail (library_name != NULL, NULL);
-	_inner_error_ = NULL;
-	core = NULL;
-	core = (_tmp0_ = _g_object_ref0 ((GOmxCore*) g_hash_table_lookup (self->priv->_core_table, library_name)), _g_object_unref0 (core), _tmp0_);
-	if (core != NULL) {
-		result = core;
-		return result;
-	}
-	_tmp1_ = g_omx_core_open (library_name, &_inner_error_);
-	if (_inner_error_ != NULL) {
-		if ((_inner_error_->domain == G_OMX_ERROR) || (_inner_error_->domain == G_FILE_ERROR)) {
-			g_propagate_error (error, _inner_error_);
-			_g_object_unref0 (core);
-			return NULL;
-		} else {
-			_g_object_unref0 (core);
-			g_critical ("file %s: line %d: uncaught error: %s (%s, %d)", __FILE__, __LINE__, _inner_error_->message, g_quark_to_string (_inner_error_->domain), _inner_error_->code);
-			g_clear_error (&_inner_error_);
-			return NULL;
-		}
-	}
-	core = (_tmp2_ = _tmp1_, _g_object_unref0 (core), _tmp2_);
-	g_omx_library_table_set (self, library_name, core);
-	result = core;
-	return result;
 }
 
 
@@ -1032,7 +996,7 @@ static void g_omx_library_table_class_init (GOmxLibraryTableClass * klass) {
 	g_type_class_add_private (klass, sizeof (GOmxLibraryTablePrivate));
 	G_OBJECT_CLASS (klass)->constructor = g_omx_library_table_constructor;
 	G_OBJECT_CLASS (klass)->finalize = g_omx_library_table_finalize;
-	g_static_rec_mutex_init (&__lock_g_omx_library_table__library_table);
+	g_static_rec_mutex_init (&__lock_g_omx_library_table__common_table);
 }
 
 
@@ -2943,7 +2907,7 @@ static OMX_ERRORTYPE g_omx_component_event_handler (GOmxComponent* self, void* c
 		{
 			OMX_ERRORTYPE _error_;
 			_error_ = (OMX_ERRORTYPE) data1;
-			g_critical ("gomx.vala:803: %s", omx_error_to_string (_error_));
+			g_critical ("gomx.vala:796: %s", omx_error_to_string (_error_));
 			if (self->priv->_event_func_1 != NULL) {
 				self->priv->_event_func_1 (self, (guint) data1, (guint) data2, event_data, self->priv->_event_func_1_target);
 			}
