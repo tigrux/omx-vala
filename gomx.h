@@ -243,7 +243,7 @@ struct _GOmxEngine {
 
 struct _GOmxEngineClass {
 	GObjectClass parent_class;
-	void (*add_component) (GOmxEngine* self, guint id, GOmxComponent* component);
+	void (*add_component) (GOmxEngine* self, GOmxComponent* component);
 };
 
 struct _GOmxComponentList {
@@ -396,7 +396,8 @@ GOmxCore* g_omx_core_construct (GType object_type);
 GModule* g_omx_core_get_module (GOmxCore* self);
 GType g_omx_engine_get_type (void);
 GType g_omx_component_get_type (void);
-void g_omx_engine_add_component (GOmxEngine* self, guint id, GOmxComponent* component);
+void g_omx_engine_add_component (GOmxEngine* self, GOmxComponent* component);
+GOmxComponent* g_omx_engine_get (GOmxEngine* self, const char* name);
 GOmxEngine* g_omx_engine_new (void);
 GOmxEngine* g_omx_engine_construct (GType object_type);
 GType g_omx_component_list_get_type (void);
@@ -519,6 +520,8 @@ void g_omx_port_set_component (GOmxPort* self, GOmxComponent* value);
 GOmxPort* g_omx_port_get_peer (GOmxPort* self);
 guint g_omx_port_get_index (GOmxPort* self);
 void g_omx_port_set_index (GOmxPort* self, guint value);
+gboolean g_omx_port_get_is_input (GOmxPort* self);
+gboolean g_omx_port_get_is_output (GOmxPort* self);
 gboolean g_omx_port_get_eos (GOmxPort* self);
 GAsyncQueue* g_omx_port_get_queue (GOmxPort* self);
 guint g_omx_port_get_n_buffers (GOmxPort* self);

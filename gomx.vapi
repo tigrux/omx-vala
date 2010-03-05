@@ -86,7 +86,8 @@ namespace GOmx {
 	[CCode (cheader_filename = "gomx.h")]
 	public class Engine : GLib.Object {
 		public Engine ();
-		public virtual void add_component (uint id, GOmx.Component component);
+		public virtual void add_component (GOmx.Component component);
+		public GOmx.Component @get (string name);
 		public GOmx.ComponentList components { get; }
 		public GOmx.PortDoneQueue ports_with_buffer_done { get; }
 	}
@@ -124,6 +125,8 @@ namespace GOmx {
 		public GOmx.Component component { get; set construct; }
 		public bool eos { get; }
 		public uint index { get; set; }
+		public bool is_input { get; }
+		public bool is_output { get; }
 		public uint n_buffers { get; }
 		public string name { get; set; }
 		public GOmx.Port? peer { get; }

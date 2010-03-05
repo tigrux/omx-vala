@@ -18,12 +18,8 @@ int main(string[] args) {
         print("%s\n", e.message);
         return 1;
     }
-
 }
 
-
-const int AUDIODEC_ID = 0;
-const int AUDIOSINK_ID = 1;
 
 public void play(string filename) throws FileError, GOmx.Error {
     var fd = FileStream.open(filename, "rb");
@@ -31,6 +27,7 @@ public void play(string filename) throws FileError, GOmx.Error {
         throw new FileError.FAILED("Error opening %s", filename);
 
     var library = "libomxil-bellagio.so.0";
+    var core = GOmx.load_library(library);
 
     var decoder = new GOmx.AudioComponent("OMX.st.audio_decoder.mp3.mad");
     decoder.name = "decoder";
@@ -40,13 +37,11 @@ public void play(string filename) throws FileError, GOmx.Error {
     sink.name = "sink";
     sink.library = library;
 
-    var engine = new GOmx.Engine();
-    engine.add_component(AUDIODEC_ID, decoder);
-    engine.add_component(AUDIOSINK_ID, sink);
+    var engine = new GOmx.Engine();    
+    engine.add_component(decoder);
+    engine.add_component(sink);
 
-    GOmx.Core core = GOmx.load_library(library);
     core.init();
-
     engine.components.init();
     engine.components.set_state_and_wait(Omx.State.Idle);
     engine.components.set_state_and_wait(Omx.State.Executing);
@@ -55,41 +50,27 @@ public void play(string filename) throws FileError, GOmx.Error {
     var n_buffers_in = 0;
     var n_buffers_out = 0;
 
-    foreach(var port in engine.ports_with_buffer_done) {
-        switch(port.component.id) {
-            case AUDIODEC_ID:
-                switch(port.definition.dir) {
-                    case Omx.Dir.Input: {
-                        n_buffers_in++;
-                        var buffer = port.pop_buffer();
-                        GOmx.buffer_read_from_file(buffer, fd);
-                        port.push_buffer(buffer);
-                        break;
-                    }
-                    case Omx.Dir.Output: {
-                        var buffer = port.pop_buffer();
-                        var sink_inport = sink.ports[0];
-                        var sink_buffer = sink_inport.pop_buffer();
-                        GOmx.buffer_copy(sink_buffer, buffer);
-                        sink_inport.push_buffer(sink_buffer);
-                        port.push_buffer(buffer);
-                        break;
-                    }
-                    default:
-                        break;
+    foreach(var port in engine.ports_with_buffer_done)
+        switch(port.component.name) {
+            case "decoder":
+                if(port.is_input) {
+                    var buffer = port.pop_buffer();
+                    GOmx.buffer_read_from_file(buffer, fd);
+                    port.push_buffer(buffer);
+                    n_buffers_in++;
+                }
+                if(port.is_output) {
+                    var buffer = port.pop_buffer();
+                    var sink_buffer = sink.ports[0].pop_buffer();
+                    GOmx.buffer_copy(sink_buffer, buffer);
+                    sink.ports[0].push_buffer(sink_buffer);
+                    port.push_buffer(buffer);
                 }
                 break;
-            case AUDIOSINK_ID:
-                switch(port.definition.dir) {
-                    case Omx.Dir.Input:
-                        n_buffers_out++;
-                        break;
-                    default:
-                        break;
-                }
+            case "sink":
+                n_buffers_out++;
                 break;
         }
-    }
 
     print("%d buffers were read\n", n_buffers_in);
     print("%d buffers were rendered\n", n_buffers_out);

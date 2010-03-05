@@ -184,6 +184,7 @@ namespace GOmx {
 
     public class Engine: Object {
         ComponentList _components;
+        HashTable<string, Component> _components_table;
         PortDoneQueue _port_queue;
 
 
@@ -203,14 +204,21 @@ namespace GOmx {
 
         construct {
             _components = new ComponentList();
+            _components_table =
+                new HashTable<string, Component>(str_hash, str_equal);
             _port_queue = new PortDoneQueue();
         }
 
 
-        public virtual void add_component(uint id, Component component) {
-            component.id = id;
+        public virtual void add_component(Component component) {
             component.queue = _port_queue.queue;
             _components.add(component);
+            _components_table.insert(component.name, component);
+        }
+
+
+        public new Component get(string name) {
+            return _components_table.lookup(name);
         }
     }
 
@@ -971,9 +979,22 @@ namespace GOmx {
             get {
                 return definition.port_index;
             }
-
             set {
                 definition.port_index = value;
+            }
+        }
+
+
+        public bool is_input {
+            get {
+                return definition.dir == Omx.Dir.Input;
+            }
+        }
+
+
+        public bool is_output {
+            get {
+                return definition.dir == Omx.Dir.Output;
             }
         }
 
