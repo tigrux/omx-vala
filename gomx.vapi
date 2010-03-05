@@ -130,8 +130,8 @@ namespace GOmx {
 		public bool is_output { get; }
 		public uint n_buffers { get; }
 		public string name { get; set; }
-		public GOmx.Port? peer { get; }
 		public GLib.AsyncQueue<Omx.BufferHeader> queue { get; }
+		public GOmx.Port? supplier { get; }
 	}
 	[CCode (cheader_filename = "gomx.h")]
 	public class PortArray : GLib.Object {

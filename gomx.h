@@ -518,7 +518,7 @@ const char* g_omx_port_get_name (GOmxPort* self);
 void g_omx_port_set_name (GOmxPort* self, const char* value);
 GOmxComponent* g_omx_port_get_component (GOmxPort* self);
 void g_omx_port_set_component (GOmxPort* self, GOmxComponent* value);
-GOmxPort* g_omx_port_get_peer (GOmxPort* self);
+GOmxPort* g_omx_port_get_supplier (GOmxPort* self);
 guint g_omx_port_get_index (GOmxPort* self);
 void g_omx_port_set_index (GOmxPort* self, guint value);
 gboolean g_omx_port_get_is_input (GOmxPort* self);

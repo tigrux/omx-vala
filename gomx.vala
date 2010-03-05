@@ -959,7 +959,7 @@ namespace GOmx {
         AsyncQueue<Omx.BufferHeader> _buffers_queue;
         bool _eos;
         BufferDoneFunc _buffer_done_func;
-        Port _peer;
+        Port _supplier;
 
         public delegate void BufferDoneFunc(Omx.BufferHeader buffer);
 
@@ -974,9 +974,9 @@ namespace GOmx {
         }
 
 
-        public Port? peer {
+        public Port? supplier {
             get {
-                return _peer;
+                return _supplier;
             }
         }
 
@@ -1073,7 +1073,6 @@ namespace GOmx {
             _component.core.setup_tunnel(
                 _component.handle, index,
                 port._component.handle, port.index);
-            _peer = port;
         }
 
 
@@ -1092,6 +1091,7 @@ namespace GOmx {
                 _buffers_queue.push(_buffers[i]);
                 i++;
             }
+            _supplier = port;
         }
 
 
