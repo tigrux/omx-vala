@@ -99,7 +99,8 @@ namespace Omx {
         FormatNotDetected,
         ContentPipeOpenFailed,
         ContentPipeCreationFailed,
-        SeperateTablesUsed,
+        [CCode (cname="OMX_ErrorSeperateTablesUsed")]
+        SeparateTablesUsed,
         TunnelingUnsupported;
 
         public weak string to_string() {
@@ -176,7 +177,7 @@ namespace Omx {
                     return "Opening the Content Pipe failed";
                 case ContentPipeCreationFailed:
                     return "Creating the Content Pipe failed";
-                case SeperateTablesUsed:
+                case SeparateTablesUsed:
                     return "Attempting to query for single Chroma table when separate quantization tables are used for the Chroma (Cb and Cr) coefficients";
                 case TunnelingUnsupported:
                     return "Tunneling is not supported by the component";

@@ -1358,7 +1358,7 @@ namespace GOmx {
         FormatNotDetected,
         ContentPipeOpenFailed,
         ContentPipeCreationFailed,
-        SeperateTablesUsed,
+        SeparateTablesUsed,
         TunnelingUnsupported
     }
 

@@ -208,7 +208,7 @@ namespace GOmx {
 		FormatNotDetected,
 		ContentPipeOpenFailed,
 		ContentPipeCreationFailed,
-		SeperateTablesUsed,
+		SeparateTablesUsed,
 		TunnelingUnsupported,
 	}
 	[CCode (cheader_filename = "gomx.h")]

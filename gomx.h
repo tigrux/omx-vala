@@ -218,7 +218,7 @@ typedef enum  {
 	G_OMX_ERROR_FormatNotDetected,
 	G_OMX_ERROR_ContentPipeOpenFailed,
 	G_OMX_ERROR_ContentPipeCreationFailed,
-	G_OMX_ERROR_SeperateTablesUsed,
+	G_OMX_ERROR_SeparateTablesUsed,
 	G_OMX_ERROR_TunnelingUnsupported
 } GOmxError;
 #define G_OMX_ERROR g_omx_error_quark ()
