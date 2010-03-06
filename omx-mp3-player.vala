@@ -1,27 +1,22 @@
-int main(string[] args) {
+void main(string[] args) {
     if(args.length != 2) {
         print("%s <file.mp3>\n", args[0]);
-        return 1;
+        return;
     }
 
-    try {
-        play(args[1]);
-        return 0;
-    }
-    catch(Error e) {
-        print("%s\n", e.message);
-        return 1;
-    }
+    play(args[1]);
 }
 
 FileStream fd;
 
-void play(string filename) throws Error {
+void play(string filename) {
     fd = FileStream.open(filename, "rb");
-    if(fd == null)
-        throw new FileError.FAILED("Error opening %s", filename);
+    if(fd == null) {
+        print("Error opening %s", filename);
+        return;
+    }
 
-    Omx.try_run(Omx.init());
+    Omx.init();
     get_handles();
 
     handle_print_info("audiodec", audiodec_handle);
@@ -44,7 +39,7 @@ void play(string filename) throws Error {
     wait_for_state_set();
 
     free_handles();
-    Omx.try_run(Omx.deinit());
+    Omx.deinit();
 }
 
 const Omx.Callback audiodec_callbacks = {
@@ -65,24 +60,18 @@ Omx.Handle audiosink_handle;
 const string AUDIODEC_COMPONENT = "OMX.st.audio_decoder.mp3.mad";
 const string AUDIOSINK_COMPONENT = "OMX.st.alsa.alsasink";
 
-void get_handles() throws Error {
-    Omx.try_run(
-        Omx.get_handle(
-            out audiodec_handle, AUDIODEC_COMPONENT,
-            null, audiodec_callbacks));
-    Omx.try_run(
-        Omx.get_handle(
-            out audiosink_handle, AUDIOSINK_COMPONENT,
-            null, audiosink_callbacks));
+void get_handles() {
+    Omx.get_handle(
+        out audiodec_handle, AUDIODEC_COMPONENT, null, audiodec_callbacks);
+    Omx.get_handle(
+        out audiosink_handle, AUDIOSINK_COMPONENT, null, audiosink_callbacks);
 }
 
-void handle_print_info(string name, Omx.Handle handle) throws Error {
+void handle_print_info(string name, Omx.Handle handle) {
     var param = Omx.PortParam();
     param.init();
 
-    Omx.try_run(
-        handle.get_parameter(
-            Omx.Index.ParamAudioInit, param));
+    handle.get_parameter(Omx.Index.ParamAudioInit, param);
 
     var port_definition = Omx.Param.PortDefinition();
     port_definition.init();
@@ -91,9 +80,7 @@ void handle_print_info(string name, Omx.Handle handle) throws Error {
     for(uint i = param.start_port_number; i<param.ports; i++) {
         print("\tPort %u:\n", i);
         port_definition.port_index = i;
-        Omx.try_run(
-            handle.get_parameter(
-                Omx.Index.ParamPortDefinition, port_definition));
+        handle.get_parameter(Omx.Index.ParamPortDefinition, port_definition);
         print("\t\thas mime-type %s\n", port_definition.format.audio.mime_type);
         print("\t\thas direction %s\n", port_definition.dir.to_string());
         print("\t\thas %u buffers of size %u\n",
@@ -102,13 +89,9 @@ void handle_print_info(string name, Omx.Handle handle) throws Error {
     }
 }
 
-void set_state(Omx.State state) throws Error {
-    Omx.try_run(
-        audiodec_handle.send_command(
-            Omx.Command.StateSet, state, null));
-    Omx.try_run(
-        audiosink_handle.send_command(
-            Omx.Command.StateSet, state, null));
+void set_state(Omx.State state) {
+    audiodec_handle.send_command(Omx.Command.StateSet, state, null);
+    audiosink_handle.send_command(Omx.Command.StateSet, state, null);
 }
 
 Omx.BufferHeader[] in_buffer_audiosink;
@@ -119,24 +102,18 @@ const int N_BUFFERS = 2;
 const int BUFFER_OUT_SIZE = 32768;
 const int BUFFER_IN_SIZE = 4096;
 
-void allocate_buffers() throws Error {
+void allocate_buffers() {
     in_buffer_audiodec = new Omx.BufferHeader[N_BUFFERS];
     out_buffer_audiodec = new Omx.BufferHeader[N_BUFFERS];
     in_buffer_audiosink = new Omx.BufferHeader[N_BUFFERS];
 
     for(int i=0; i<N_BUFFERS; i++) {
-        Omx.try_run(
-            audiodec_handle.allocate_buffer(
-                out in_buffer_audiodec[i], 0,
-                null, BUFFER_IN_SIZE));
-        Omx.try_run(
-            audiodec_handle.allocate_buffer(
-                out out_buffer_audiodec[i], 1,
-                null, BUFFER_OUT_SIZE));
-        Omx.try_run(
-            audiosink_handle.allocate_buffer(
-                out in_buffer_audiosink[i], 0,
-                null, BUFFER_OUT_SIZE));
+        audiodec_handle.allocate_buffer(
+            out in_buffer_audiodec[i], 0, null, BUFFER_IN_SIZE);
+        audiodec_handle.allocate_buffer(
+            out out_buffer_audiodec[i], 1, null, BUFFER_OUT_SIZE);
+        audiosink_handle.allocate_buffer(
+            out in_buffer_audiosink[i], 0, null, BUFFER_OUT_SIZE);
     }
 }
 
@@ -145,37 +122,25 @@ void read_buffer_from_fd(Omx.BufferHeader buffer) {
     buffer.length = fd.read(buffer.buffer);
 }
 
-void move_buffers() throws Error {
+void move_buffers() {
     for(int i=0; i<N_BUFFERS; i++) {
         read_buffer_from_fd(in_buffer_audiodec[i]);
-        Omx.try_run(
-            audiodec_handle.empty_this_buffer(
-                in_buffer_audiodec[i]));
-        Omx.try_run(
-            audiodec_handle.fill_this_buffer(
-                out_buffer_audiodec[i]));
+        audiodec_handle.empty_this_buffer(in_buffer_audiodec[i]);
+        audiodec_handle.fill_this_buffer(out_buffer_audiodec[i]);
     }
 }
 
-void free_buffers() throws Error {
+void free_buffers() {
     for(int i=0; i<N_BUFFERS; i++) {
-        Omx.try_run(
-            audiodec_handle.free_buffer(
-                0, in_buffer_audiodec[i]));
-        Omx.try_run(
-            audiodec_handle.free_buffer(
-                1, out_buffer_audiodec[i]));
-        Omx.try_run(
-            audiosink_handle.free_buffer(
-                0, in_buffer_audiosink[i]));
+        audiodec_handle.free_buffer(0, in_buffer_audiodec[i]);
+        audiodec_handle.free_buffer(1, out_buffer_audiodec[i]);
+        audiosink_handle.free_buffer(0, in_buffer_audiosink[i]);
     }
 }
 
-void free_handles() throws Error {
-    Omx.try_run(
-        Omx.free_handle(audiodec_handle));
-    Omx.try_run(
-        Omx.free_handle(audiosink_handle));
+void free_handles() {
+    Omx.free_handle(audiodec_handle);
+    Omx.free_handle(audiosink_handle);
 }
 
 Bellagio.Semaphore audiodec_sem;
@@ -198,13 +163,8 @@ Omx.Error audiodec_event_handler(
         uint32 data1, uint32 data2) {
     switch(event) {
         case Omx.Event.CmdComplete:
-            switch(data1) {
-                case Omx.Command.StateSet:
-                    audiodec_sem.up();
-                    break;
-                default:
-                    break;
-            }
+            if(data1 == Omx.Command.StateSet)
+                audiodec_sem.up();
             break;
         default:
             break;
@@ -244,13 +204,8 @@ Omx.Error audiosink_event_handler(
         uint32 data1, uint32 data2) {
     switch(event) {
         case Omx.Event.CmdComplete:
-            switch(data1) {
-                case Omx.Command.StateSet:
-                    audiosink_sem.up();
-                    break;
-                default:
-                    break;
-            }
+            if(data1 == Omx.Command.StateSet)
+                audiosink_sem.up();
             break;
         default:
             break;

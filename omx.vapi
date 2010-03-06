@@ -1804,12 +1804,5 @@ namespace Omx {
         [CCode (cname="nVersion")]
         public uint32 version;
     }
-
-    public void try_run(Error err) throws GLib.Error {
-        if(err != Omx.Error.None) {
-            var domain = GLib.Quark.from_string("OMX_ERRORTYPE-quark");
-            throw new  GLib.Error(domain, err, err.to_string());
-        }
-    }
 }
 
