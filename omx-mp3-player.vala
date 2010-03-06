@@ -107,7 +107,8 @@ void allocate_buffers() {
     out_buffer_audiodec = new Omx.BufferHeader[N_BUFFERS];
     in_buffer_audiosink = new Omx.BufferHeader[N_BUFFERS];
 
-    for(int i=0; i<N_BUFFERS; i++) {
+    var i=0;
+    while(i++ < N_BUFFERS) {
         audiodec_handle.allocate_buffer(
             out in_buffer_audiodec[i], 0, null, BUFFER_IN_SIZE);
         audiodec_handle.allocate_buffer(
@@ -123,7 +124,8 @@ void read_buffer_from_fd(Omx.BufferHeader buffer) {
 }
 
 void move_buffers() {
-    for(int i=0; i<N_BUFFERS; i++) {
+    var i=0;
+    while(i++ < N_BUFFERS) {
         read_buffer_from_fd(in_buffer_audiodec[i]);
         audiodec_handle.empty_this_buffer(in_buffer_audiodec[i]);
         audiodec_handle.fill_this_buffer(out_buffer_audiodec[i]);
@@ -131,7 +133,8 @@ void move_buffers() {
 }
 
 void free_buffers() {
-    for(int i=0; i<N_BUFFERS; i++) {
+    var i=0;
+    while(i++ < N_BUFFERS) {
         audiodec_handle.free_buffer(0, in_buffer_audiodec[i]);
         audiodec_handle.free_buffer(1, out_buffer_audiodec[i]);
         audiosink_handle.free_buffer(0, in_buffer_audiosink[i]);
