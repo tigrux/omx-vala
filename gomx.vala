@@ -559,7 +559,6 @@ namespace GOmx {
             if(_core == null)
                 throw new Error.BadParameter(
                     "No core for library '%s'", _library);
-            print("comp_name = %s\n", _component_name);
             _core.get_handle(
                 out _handle, _component_name,
                 this, callbacks);

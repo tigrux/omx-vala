@@ -2182,7 +2182,6 @@ static void g_omx_component_real_init (GOmxComponent* self, GError** error) {
 			}
 		}
 	}
-	g_print ("comp_name = %s\n", self->priv->_component_name);
 	g_omx_core_get_handle (self->priv->_core, &self->priv->_handle, self->priv->_component_name, self, &G_OMX_COMPONENT_callbacks, &_inner_error_);
 	if (_inner_error_ != NULL) {
 		if (_inner_error_->domain == G_OMX_ERROR) {
@@ -2931,7 +2930,7 @@ static OMX_ERRORTYPE g_omx_component_event_handler (GOmxComponent* self, void* c
 		{
 			OMX_ERRORTYPE _error_;
 			_error_ = (OMX_ERRORTYPE) data1;
-			g_critical ("gomx.vala:808: %s", omx_error_to_string (_error_));
+			g_critical ("gomx.vala:807: %s", omx_error_to_string (_error_));
 			if (self->priv->_event_func_1 != NULL) {
 				self->priv->_event_func_1 (self, (guint) data1, (guint) data2, event_data, self->priv->_event_func_1_target);
 			}
