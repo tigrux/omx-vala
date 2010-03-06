@@ -676,34 +676,35 @@ namespace GOmx {
         }
 
 
+        const Omx.State[] TRANSITIONS = {
+            Omx.State.Loaded, Omx.State.WaitForResources,
+            Omx.State.Loaded, Omx.State.Idle,
+            Omx.State.Loaded, Omx.State.Invalid,
+            Omx.State.WaitForResources, Omx.State.Loaded,
+            Omx.State.WaitForResources, Omx.State.Invalid,
+            Omx.State.WaitForResources, Omx.State.Idle,
+            Omx.State.Idle, Omx.State.Loaded,
+            Omx.State.Idle, Omx.State.Invalid,
+            Omx.State.Idle, Omx.State.Pause,
+            Omx.State.Idle, Omx.State.Executing,
+            Omx.State.Pause, Omx.State.Invalid,
+            Omx.State.Pause, Omx.State.Idle,
+            Omx.State.Pause, Omx.State.Executing,
+            Omx.State.Executing, Omx.State.Idle,
+            Omx.State.Executing, Omx.State.Pause,
+            Omx.State.Executing, Omx.State.Invalid
+        };
+
+
         public Omx.Error can_set_state(Omx.State next_state) {
             if(_current_state == next_state)
                 return Omx.Error.SameState;
-            Omx.State[,] transitions = {
-                {Omx.State.Loaded, Omx.State.WaitForResources},
-                {Omx.State.Loaded, Omx.State.Idle},
-                {Omx.State.Loaded, Omx.State.Invalid},
-                {Omx.State.WaitForResources, Omx.State.Loaded},
-                {Omx.State.WaitForResources, Omx.State.Invalid},
-                {Omx.State.WaitForResources, Omx.State.Idle},
-                {Omx.State.Idle, Omx.State.Loaded},
-                {Omx.State.Idle, Omx.State.Invalid},
-                {Omx.State.Idle, Omx.State.Pause},
-                {Omx.State.Idle, Omx.State.Executing},
-                {Omx.State.Pause, Omx.State.Invalid},
-                {Omx.State.Pause, Omx.State.Idle},
-                {Omx.State.Pause, Omx.State.Executing},
-                {Omx.State.Executing, Omx.State.Idle},
-                {Omx.State.Executing, Omx.State.Pause},
-                {Omx.State.Executing, Omx.State.Invalid}
-            };
-            uint length = transitions.length[0];
             uint i = 0;
-            while(i < length) {
-                if(transitions[i,0] == _current_state)
-                   if(transitions[i,1] == next_state)
+            while(i < TRANSITIONS.length) {
+                if(TRANSITIONS[i] == _current_state)
+                   if(TRANSITIONS[i+1] == next_state)
                        return Omx.Error.None;
-                i++;
+                i+=2;
             }
             return Omx.Error.IncorrectStateTransition;
         }

@@ -868,6 +868,7 @@ static void _vala_array_destroy (gpointer array, gint array_length, GDestroyNoti
 static void _vala_array_free (gpointer array, gint array_length, GDestroyNotify destroy_func);
 static int _vala_strcmp0 (const char * str1, const char * str2);
 
+static const OMX_STATETYPE G_OMX_COMPONENT_TRANSITIONS[] = {OMX_StateLoaded, OMX_StateWaitForResources, OMX_StateLoaded, OMX_StateIdle, OMX_StateLoaded, OMX_StateInvalid, OMX_StateWaitForResources, OMX_StateLoaded, OMX_StateWaitForResources, OMX_StateInvalid, OMX_StateWaitForResources, OMX_StateIdle, OMX_StateIdle, OMX_StateLoaded, OMX_StateIdle, OMX_StateInvalid, OMX_StateIdle, OMX_StatePause, OMX_StateIdle, OMX_StateExecuting, OMX_StatePause, OMX_StateInvalid, OMX_StatePause, OMX_StateIdle, OMX_StatePause, OMX_StateExecuting, OMX_StateExecuting, OMX_StateIdle, OMX_StateExecuting, OMX_StatePause, OMX_StateExecuting, OMX_StateInvalid};
 static const OMX_CALLBACKTYPE G_OMX_COMPONENT_callbacks = {_g_omx_component_event_handler_omx_event_handler_func, _g_omx_component_empty_buffer_done_omx_empty_buffer_done_func, _g_omx_component_fill_buffer_done_omx_fill_buffer_done_func};
 
 
@@ -2551,36 +2552,26 @@ void g_omx_component_set_state (GOmxComponent* self, OMX_STATETYPE state, GError
 
 OMX_ERRORTYPE g_omx_component_can_set_state (GOmxComponent* self, OMX_STATETYPE next_state) {
 	OMX_ERRORTYPE result;
-	OMX_STATETYPE* _tmp1_;
-	gint transitions_length2;
-	gint transitions_length1;
-	OMX_STATETYPE* _tmp0_ = NULL;
-	OMX_STATETYPE* transitions;
-	guint length;
 	guint i;
 	g_return_val_if_fail (self != NULL, 0);
 	if (self->priv->_current_state == next_state) {
 		result = OMX_ErrorSameState;
 		return result;
 	}
-	transitions = (_tmp1_ = (_tmp0_ = g_new0 (OMX_STATETYPE, 16 * 2), _tmp0_[0] = OMX_StateLoaded, _tmp0_[1] = OMX_StateWaitForResources, _tmp0_[2] = OMX_StateLoaded, _tmp0_[3] = OMX_StateIdle, _tmp0_[4] = OMX_StateLoaded, _tmp0_[5] = OMX_StateInvalid, _tmp0_[6] = OMX_StateWaitForResources, _tmp0_[7] = OMX_StateLoaded, _tmp0_[8] = OMX_StateWaitForResources, _tmp0_[9] = OMX_StateInvalid, _tmp0_[10] = OMX_StateWaitForResources, _tmp0_[11] = OMX_StateIdle, _tmp0_[12] = OMX_StateIdle, _tmp0_[13] = OMX_StateLoaded, _tmp0_[14] = OMX_StateIdle, _tmp0_[15] = OMX_StateInvalid, _tmp0_[16] = OMX_StateIdle, _tmp0_[17] = OMX_StatePause, _tmp0_[18] = OMX_StateIdle, _tmp0_[19] = OMX_StateExecuting, _tmp0_[20] = OMX_StatePause, _tmp0_[21] = OMX_StateInvalid, _tmp0_[22] = OMX_StatePause, _tmp0_[23] = OMX_StateIdle, _tmp0_[24] = OMX_StatePause, _tmp0_[25] = OMX_StateExecuting, _tmp0_[26] = OMX_StateExecuting, _tmp0_[27] = OMX_StateIdle, _tmp0_[28] = OMX_StateExecuting, _tmp0_[29] = OMX_StatePause, _tmp0_[30] = OMX_StateExecuting, _tmp0_[31] = OMX_StateInvalid, _tmp0_), transitions_length1 = 16, transitions_length2 = 2, _tmp1_);
-	length = (guint) transitions_length1;
 	i = (guint) 0;
 	while (TRUE) {
-		if (!(i < length)) {
+		if (!(i < G_N_ELEMENTS (G_OMX_COMPONENT_TRANSITIONS))) {
 			break;
 		}
-		if (transitions[(i * transitions_length2) + 0] == self->priv->_current_state) {
-			if (transitions[(i * transitions_length2) + 1] == next_state) {
+		if (G_OMX_COMPONENT_TRANSITIONS[i] == self->priv->_current_state) {
+			if (G_OMX_COMPONENT_TRANSITIONS[i + 1] == next_state) {
 				result = OMX_ErrorNone;
-				transitions = (g_free (transitions), NULL);
 				return result;
 			}
 		}
-		i++;
+		i = i + ((guint) 2);
 	}
 	result = OMX_ErrorIncorrectStateTransition;
-	transitions = (g_free (transitions), NULL);
 	return result;
 }
 
@@ -2930,7 +2921,7 @@ static OMX_ERRORTYPE g_omx_component_event_handler (GOmxComponent* self, void* c
 		{
 			OMX_ERRORTYPE _error_;
 			_error_ = (OMX_ERRORTYPE) data1;
-			g_critical ("gomx.vala:807: %s", omx_error_to_string (_error_));
+			g_critical ("gomx.vala:808: %s", omx_error_to_string (_error_));
 			if (self->priv->_event_func_1 != NULL) {
 				self->priv->_event_func_1 (self, (guint) data1, (guint) data2, event_data, self->priv->_event_func_1_target);
 			}
