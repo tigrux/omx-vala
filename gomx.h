@@ -371,7 +371,7 @@ struct _GOmxPortClass {
 	GObjectClass parent_class;
 };
 
-typedef void (*GOmxPortBufferDoneFunc) (OMX_BUFFERHEADERTYPE* buffer, void* user_data);
+typedef void (*GOmxPortBufferDoneFunc) (GOmxPort* port, OMX_BUFFERHEADERTYPE* buffer, void* user_data);
 struct _GOmxSemaphore {
 	GObject parent_instance;
 	GOmxSemaphorePrivate * priv;

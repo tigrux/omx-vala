@@ -103,7 +103,7 @@ namespace GOmx {
 	[CCode (cheader_filename = "gomx.h")]
 	public class Port : GLib.Object {
 		[CCode (cheader_filename = "gomx.h", instance_pos = -2)]
-		public delegate void BufferDoneFunc (Omx.BufferHeader buffer);
+		public delegate void BufferDoneFunc (GOmx.Port port, Omx.BufferHeader buffer);
 		public Omx.Param.PortDefinition definition;
 		public Port (GOmx.Component component, uint32 index);
 		public void allocate_buffers () throws GOmx.Error;

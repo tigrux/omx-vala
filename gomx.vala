@@ -960,7 +960,7 @@ namespace GOmx {
         BufferDoneFunc _buffer_done_func;
         Port _supplier;
 
-        public delegate void BufferDoneFunc(Omx.BufferHeader buffer);
+        public delegate void BufferDoneFunc(Port port, Omx.BufferHeader buffer);
 
 
         public string name {
@@ -1205,7 +1205,7 @@ namespace GOmx {
 
         public void buffer_done(Omx.BufferHeader buffer) {
             if(_buffer_done_func != null)
-                _buffer_done_func(buffer);
+                _buffer_done_func(this, buffer);
         }
 
 

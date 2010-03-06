@@ -503,7 +503,7 @@ struct _GOmxPortClass {
 	GObjectClass parent_class;
 };
 
-typedef void (*GOmxPortBufferDoneFunc) (OMX_BUFFERHEADERTYPE* buffer, void* user_data);
+typedef void (*GOmxPortBufferDoneFunc) (GOmxPort* port, OMX_BUFFERHEADERTYPE* buffer, void* user_data);
 struct _GOmxPortPrivate {
 	OMX_BUFFERHEADERTYPE** _buffers;
 	gint _buffers_length1;
@@ -4087,7 +4087,7 @@ void g_omx_port_buffer_done (GOmxPort* self, OMX_BUFFERHEADERTYPE* buffer) {
 	g_return_if_fail (self != NULL);
 	g_return_if_fail (buffer != NULL);
 	if (self->priv->_buffer_done_func != NULL) {
-		self->priv->_buffer_done_func (buffer, self->priv->_buffer_done_func_target);
+		self->priv->_buffer_done_func (self, buffer, self->priv->_buffer_done_func_target);
 	}
 }
 
