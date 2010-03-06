@@ -170,6 +170,28 @@ typedef struct _GOmxPortArrayIteratorClass GOmxPortArrayIteratorClass;
 typedef struct _GOmxPortArrayIteratorPrivate GOmxPortArrayIteratorPrivate;
 typedef struct _GOmxPortPrivate GOmxPortPrivate;
 
+#define G_OMX_TYPE_BUFFER_ARRAY (g_omx_buffer_array_get_type ())
+#define G_OMX_BUFFER_ARRAY(obj) (G_TYPE_CHECK_INSTANCE_CAST ((obj), G_OMX_TYPE_BUFFER_ARRAY, GOmxBufferArray))
+#define G_OMX_BUFFER_ARRAY_CLASS(klass) (G_TYPE_CHECK_CLASS_CAST ((klass), G_OMX_TYPE_BUFFER_ARRAY, GOmxBufferArrayClass))
+#define G_OMX_IS_BUFFER_ARRAY(obj) (G_TYPE_CHECK_INSTANCE_TYPE ((obj), G_OMX_TYPE_BUFFER_ARRAY))
+#define G_OMX_IS_BUFFER_ARRAY_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((klass), G_OMX_TYPE_BUFFER_ARRAY))
+#define G_OMX_BUFFER_ARRAY_GET_CLASS(obj) (G_TYPE_INSTANCE_GET_CLASS ((obj), G_OMX_TYPE_BUFFER_ARRAY, GOmxBufferArrayClass))
+
+typedef struct _GOmxBufferArray GOmxBufferArray;
+typedef struct _GOmxBufferArrayClass GOmxBufferArrayClass;
+typedef struct _GOmxBufferArrayPrivate GOmxBufferArrayPrivate;
+
+#define G_OMX_BUFFER_ARRAY_TYPE_ITERATOR (g_omx_buffer_array_iterator_get_type ())
+#define G_OMX_BUFFER_ARRAY_ITERATOR(obj) (G_TYPE_CHECK_INSTANCE_CAST ((obj), G_OMX_BUFFER_ARRAY_TYPE_ITERATOR, GOmxBufferArrayIterator))
+#define G_OMX_BUFFER_ARRAY_ITERATOR_CLASS(klass) (G_TYPE_CHECK_CLASS_CAST ((klass), G_OMX_BUFFER_ARRAY_TYPE_ITERATOR, GOmxBufferArrayIteratorClass))
+#define G_OMX_BUFFER_ARRAY_IS_ITERATOR(obj) (G_TYPE_CHECK_INSTANCE_TYPE ((obj), G_OMX_BUFFER_ARRAY_TYPE_ITERATOR))
+#define G_OMX_BUFFER_ARRAY_IS_ITERATOR_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((klass), G_OMX_BUFFER_ARRAY_TYPE_ITERATOR))
+#define G_OMX_BUFFER_ARRAY_ITERATOR_GET_CLASS(obj) (G_TYPE_INSTANCE_GET_CLASS ((obj), G_OMX_BUFFER_ARRAY_TYPE_ITERATOR, GOmxBufferArrayIteratorClass))
+
+typedef struct _GOmxBufferArrayIterator GOmxBufferArrayIterator;
+typedef struct _GOmxBufferArrayIteratorClass GOmxBufferArrayIteratorClass;
+typedef struct _GOmxBufferArrayIteratorPrivate GOmxBufferArrayIteratorPrivate;
+
 #define G_OMX_TYPE_SEMAPHORE (g_omx_semaphore_get_type ())
 #define G_OMX_SEMAPHORE(obj) (G_TYPE_CHECK_INSTANCE_CAST ((obj), G_OMX_TYPE_SEMAPHORE, GOmxSemaphore))
 #define G_OMX_SEMAPHORE_CLASS(klass) (G_TYPE_CHECK_CLASS_CAST ((klass), G_OMX_TYPE_SEMAPHORE, GOmxSemaphoreClass))
@@ -294,7 +316,7 @@ struct _GOmxComponent {
 struct _GOmxComponentClass {
 	GObjectClass parent_class;
 	void (*init) (GOmxComponent* self, GError** error);
-	void (*set_role) (GOmxComponent* self);
+	void (*set_role) (GOmxComponent* self, const char* component_role);
 	void (*free_handle) (GOmxComponent* self, GError** error);
 	void (*allocate_ports) (GOmxComponent* self, GError** error);
 	void (*free_ports) (GOmxComponent* self, GError** error);
@@ -372,6 +394,27 @@ struct _GOmxPortClass {
 };
 
 typedef void (*GOmxPortBufferDoneFunc) (GOmxPort* port, OMX_BUFFERHEADERTYPE* buffer, void* user_data);
+struct _GOmxBufferArray {
+	GObject parent_instance;
+	GOmxBufferArrayPrivate * priv;
+	OMX_BUFFERHEADERTYPE** array;
+	gint array_length1;
+	gint array_size;
+};
+
+struct _GOmxBufferArrayClass {
+	GObjectClass parent_class;
+};
+
+struct _GOmxBufferArrayIterator {
+	GObject parent_instance;
+	GOmxBufferArrayIteratorPrivate * priv;
+};
+
+struct _GOmxBufferArrayIteratorClass {
+	GObjectClass parent_class;
+};
+
 struct _GOmxSemaphore {
 	GObject parent_instance;
 	GOmxSemaphorePrivate * priv;
@@ -447,7 +490,7 @@ GOmxOtherComponent* g_omx_other_component_construct (GType object_type, const ch
 GOmxComponent* g_omx_component_new (const char* name, OMX_INDEXTYPE index);
 GOmxComponent* g_omx_component_construct (GType object_type, const char* name, OMX_INDEXTYPE index);
 void g_omx_component_init (GOmxComponent* self, GError** error);
-void g_omx_component_set_role (GOmxComponent* self);
+void g_omx_component_set_role (GOmxComponent* self, const char* component_role);
 void g_omx_component_free_handle (GOmxComponent* self, GError** error);
 void g_omx_component_allocate_ports (GOmxComponent* self, GError** error);
 void g_omx_component_free_ports (GOmxComponent* self, GError** error);
@@ -523,10 +566,23 @@ guint g_omx_port_get_index (GOmxPort* self);
 void g_omx_port_set_index (GOmxPort* self, guint value);
 gboolean g_omx_port_get_is_input (GOmxPort* self);
 gboolean g_omx_port_get_is_output (GOmxPort* self);
+gboolean g_omx_port_get_enabled (GOmxPort* self);
 gboolean g_omx_port_get_eos (GOmxPort* self);
 GAsyncQueue* g_omx_port_get_queue (GOmxPort* self);
 guint g_omx_port_get_n_buffers (GOmxPort* self);
 guint g_omx_port_get_buffer_size (GOmxPort* self);
+GType g_omx_buffer_array_get_type (void);
+GOmxBufferArray* g_omx_buffer_array_new (guint length);
+GOmxBufferArray* g_omx_buffer_array_construct (GType object_type, guint length);
+GType g_omx_buffer_array_iterator_get_type (void);
+GOmxBufferArrayIterator* g_omx_buffer_array_iterator (GOmxBufferArray* self);
+OMX_BUFFERHEADERTYPE* g_omx_buffer_array_get (GOmxBufferArray* self, guint index);
+guint g_omx_buffer_array_get_length (GOmxBufferArray* self);
+void g_omx_buffer_array_set_length (GOmxBufferArray* self, guint value);
+GOmxBufferArrayIterator* g_omx_buffer_array_iterator_new (GOmxBufferArray* array);
+GOmxBufferArrayIterator* g_omx_buffer_array_iterator_construct (GType object_type, GOmxBufferArray* array);
+gboolean g_omx_buffer_array_iterator_next (GOmxBufferArrayIterator* self);
+OMX_BUFFERHEADERTYPE* g_omx_buffer_array_iterator_get (GOmxBufferArrayIterator* self);
 GType g_omx_semaphore_get_type (void);
 void g_omx_semaphore_up (GOmxSemaphore* self);
 void g_omx_semaphore_down (GOmxSemaphore* self);

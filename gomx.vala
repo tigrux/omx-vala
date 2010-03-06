@@ -11,7 +11,7 @@ namespace GOmx {
 
 ////////////////////////////////////////////////////////////////////////////////
 
-    class LibraryTable: Object {
+    private class LibraryTable: Object {
         GLib.HashTable<string,Core> _core_table;
         static LibraryTable _common_table;
 
@@ -40,7 +40,7 @@ namespace GOmx {
         }
 
 
-        new Core? get(string library_name) {
+        new weak Core? get(string library_name) {
             return _core_table.lookup(library_name);
         }
 
@@ -178,25 +178,25 @@ namespace GOmx {
         PortDoneQueue _port_queue;
 
 
-        public ComponentList components {
+        construct {
+            _components = new ComponentList();
+            _components_table =
+                new HashTable<string, Component>(str_hash, str_equal);
+            _port_queue = new PortDoneQueue();
+        }
+
+
+        public weak ComponentList components {
             get {
                 return _components;
             }
         }
 
 
-        public PortDoneQueue ports_with_buffer_done {
+        public weak PortDoneQueue ports_with_buffer_done {
             get {
                 return _port_queue;
             }
-        }
-
-
-        construct {
-            _components = new ComponentList();
-            _components_table =
-                new HashTable<string, Component>(str_hash, str_equal);
-            _port_queue = new PortDoneQueue();
         }
 
 
@@ -213,7 +213,7 @@ namespace GOmx {
         }
 
 
-        public new Component get(string name) {
+        public new weak Component get(string name) {
             return _components_table.lookup(name);
         }
 
@@ -296,7 +296,7 @@ namespace GOmx {
         }
 
 
-        public new Component get(uint index)
+        public new weak Component get(uint index)
         requires(index < _length) {
             return _components_list.nth_data(index);
         }
@@ -327,14 +327,15 @@ namespace GOmx {
         AsyncQueue<Port> _queue;
 
 
-        public AsyncQueue<Port> queue {
+        construct {
+            _queue = new AsyncQueue<Port>();
+        }
+
+
+        public weak AsyncQueue<Port> queue {
             get {
                 return _queue;
             }
-        }
-
-        construct {
-            _queue = new AsyncQueue<Port>();
         }
 
 
@@ -441,26 +442,39 @@ namespace GOmx {
         EventFunc _event_func_8;
 
 
+        construct {
+            _wait_for_state_sem = new Semaphore();
+            _wait_for_port_sem = new Semaphore();
+            _wait_for_flush_sem = new Semaphore();
+            _current_state = Omx.State.Invalid;
+            _previous_state = Omx.State.Invalid;
+            _pending_state = Omx.State.Invalid;
+            _name = "";
+            _library_name = "";
+            _component_name = "";
+        }
+
+
         public string name {
             get; set;
         }
 
 
-        public Omx.Handle handle {
+        public weak Omx.Handle handle {
             get {
                 return _handle;
             }
         }
 
 
-        public PortArray ports {
+        public weak PortArray ports {
             get {
                 return _ports;
             }
         }
 
 
-        public AsyncQueue<Port>? queue {
+        public weak AsyncQueue<Port>? queue {
             get {
                 return _ports_queue;
             }
@@ -470,7 +484,7 @@ namespace GOmx {
         }
 
 
-        public Core core {
+        public weak Core core {
             get {
                 return _core;
             }
@@ -522,19 +536,6 @@ namespace GOmx {
         }
 
 
-        construct {
-            _wait_for_state_sem = new Semaphore();
-            _wait_for_port_sem = new Semaphore();
-            _wait_for_flush_sem = new Semaphore();
-            _current_state = Omx.State.Invalid;
-            _previous_state = Omx.State.Invalid;
-            _pending_state = Omx.State.Invalid;
-            _name = "";
-            _library_name = "";
-            _component_name = "";
-        }
-
-
         public Component(string name, Omx.Index index) {
             Object(
                 component_name: name,
@@ -567,14 +568,15 @@ namespace GOmx {
             try_run(
                 _handle.get_parameter(_init_index, ports_param));
 
-            set_role();
+            if(_component_role != "" && component_role != null)
+                set_role(_component_role);
 
             _pending_state = Omx.State.Loaded;
             _current_state = Omx.State.Loaded;
         }
 
 
-        protected virtual void set_role()
+        protected virtual void set_role(string component_role)
         requires(_handle != null) {
             var role_param = Omx.Param.ComponentRole();
             role_param.init();
@@ -596,10 +598,12 @@ namespace GOmx {
             }
 
             var max_size = Omx.MAX_STRING_SIZE;
-            Posix.strncpy((string)role_param.role, _component_role, max_size);
+            Posix.strncpy((string)role_param.role, component_role, max_size);
             error = _handle.set_parameter(role_index, role_param);
             if(error != Omx.Error.None)
                 _component_role = role;
+            else
+                _component_role = component_role;
         }
 
 
@@ -910,7 +914,6 @@ namespace GOmx {
 
         public PortArray(uint length, uint start=0) {
             Object(length: length, start: start);
-
         }
 
 
@@ -955,7 +958,7 @@ namespace GOmx {
     public class Port: Object {
         public Omx.Param.PortDefinition definition;
 
-        Omx.BufferHeader[] _buffers;
+        BufferArray _buffers;
         AsyncQueue<Omx.BufferHeader> _buffers_queue;
         bool _eos;
         BufferDoneFunc _buffer_done_func;
@@ -964,17 +967,23 @@ namespace GOmx {
         public delegate void BufferDoneFunc(Port port, Omx.BufferHeader buffer);
 
 
+        construct {
+            _name = "";
+            definition.init();
+        }
+
+
         public string name {
             get; set;
         }
 
 
-        public Component component {
+        public weak Component component {
             get; set;
         }
 
 
-        public Port? supplier {
+        public weak Port? supplier {
             get {
                 return _supplier;
             }
@@ -1004,6 +1013,13 @@ namespace GOmx {
         }
 
 
+        public bool enabled {
+            get {
+                return definition.enabled;
+            }
+        }
+
+
         public bool eos {
             get {
                 return _eos;
@@ -1018,9 +1034,17 @@ namespace GOmx {
         }
 
 
-        construct {
-            _name = "";
-            definition.init();
+        public uint n_buffers {
+            get {
+                return definition.buffer_count_actual;
+            }
+        }
+
+
+        public uint buffer_size {
+            get {
+                return definition.buffer_size;
+            }
         }
 
 
@@ -1053,15 +1077,14 @@ namespace GOmx {
 
         public void allocate_buffers()
         throws Error requires(_buffers == null) {
-            uint n_buffers = definition.buffer_count_actual;
-            _buffers = new Omx.BufferHeader[n_buffers];
+            _buffers = new BufferArray(n_buffers);
             _buffers_queue = new AsyncQueue<Omx.BufferHeader>();
             uint i = 0;
             while(i < n_buffers) {
                 try_run(
                     _component.handle.allocate_buffer(
-                        out _buffers[i], definition.port_index,
-                        this, definition.buffer_size));
+                        out _buffers.array[i], index,
+                        this, buffer_size));
                 _buffers_queue.push(_buffers[i]);
                 i++;
             }
@@ -1078,15 +1101,14 @@ namespace GOmx {
 
         public void use_buffers_of_port(Port port)
         throws Error requires(_component != null) {
-            uint n_buffers = definition.buffer_count_actual;
-            _buffers = new Omx.BufferHeader[n_buffers];
+            _buffers = new BufferArray(n_buffers);
             uint i = 0;
             while(i < n_buffers) {
                 var buffer_used = port._buffers[i];
                 try_run(
                     _component.handle.use_buffer(
-                        out _buffers[i], definition.port_index,
-                        _component, definition.buffer_size,
+                        out _buffers.array[i], index,
+                        _component, buffer_size,
                         buffer_used.buffer));
                 _buffers_queue.push(_buffers[i]);
                 i++;
@@ -1097,18 +1119,17 @@ namespace GOmx {
 
         public void use_buffers_of_array(uint8[][] array)
         throws Error requires(_component != null) {
-            uint n_buffers = definition.buffer_count_actual;
             if(array.length != n_buffers)
                 throw new GOmx.Error.InsufficientResources(
                     "The given array does not have enough items");
 
-            _buffers = new Omx.BufferHeader[n_buffers];
+            _buffers = new BufferArray(n_buffers);
             uint i = 0;
             while(i < n_buffers) {
                 try_run(
                     _component.handle.use_buffer(
-                        out _buffers[i], definition.port_index,
-                        _component, definition.buffer_size,
+                        out _buffers.array[i], index,
+                        _component, buffer_size,
                         array[i]));
                 _buffers_queue.push(_buffers[i]);
                 i++;
@@ -1151,26 +1172,11 @@ namespace GOmx {
         }
 
 
-        public uint n_buffers {
-            get {
-                return definition.buffer_count_actual;
-            }
-        }
-
-
-        public uint buffer_size {
-            get {
-                return definition.buffer_size;
-            }
-        }
-
-
         public void free_buffers()
         throws Error requires(_buffers != null) {
             foreach(var buffer in _buffers)
                 try_run(
-                    _component.handle.free_buffer(
-                        definition.port_index, buffer));
+                    _component.handle.free_buffer(index, buffer));
             _buffers = null;
             _buffers_queue = null;
         }
@@ -1222,6 +1228,57 @@ namespace GOmx {
                     break;
                 default:
                     break;
+            }
+        }
+    }
+
+////////////////////////////////////////////////////////////////////////////////
+
+    public class BufferArray: Object {
+        internal Omx.BufferHeader[] array;
+
+
+        public uint length {
+            get {
+                return array.length;
+            }
+            set {
+                array = new Omx.BufferHeader[value];
+            }
+        }
+
+
+        public BufferArray(uint length) {
+            Object(length: length);
+        }
+
+
+        public Iterator iterator() {
+            return new Iterator(this);
+        }
+
+
+        public new Omx.BufferHeader get(uint index)
+        requires(index < array.length && index >= 0) {
+            return array[index];
+        }
+
+
+        public class Iterator: Object {
+            BufferArray _array;
+            uint _index;
+
+            public Iterator(BufferArray array) {
+                _array = array;
+                _index = 0;
+            }
+
+            public bool next() {
+                return _index < _array.length;
+            }
+
+            public new Omx.BufferHeader get() {
+                return _array[_index++];
             }
         }
     }

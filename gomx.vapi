@@ -7,6 +7,19 @@ namespace GOmx {
 		public AudioComponent (string name);
 	}
 	[CCode (cheader_filename = "gomx.h")]
+	public class BufferArray : GLib.Object {
+		[CCode (cheader_filename = "gomx.h")]
+		public class Iterator : GLib.Object {
+			public Iterator (GOmx.BufferArray array);
+			public Omx.BufferHeader @get ();
+			public bool next ();
+		}
+		public BufferArray (uint length);
+		public Omx.BufferHeader @get (uint index);
+		public GOmx.BufferArray.Iterator iterator ();
+		public uint length { get; set; }
+	}
+	[CCode (cheader_filename = "gomx.h")]
 	public class Component : GLib.Object {
 		[CCode (cheader_filename = "gomx.h", instance_pos = -2)]
 		public delegate void EventFunc (GOmx.Component component, uint data1, uint data2, void* event_data);
@@ -21,7 +34,7 @@ namespace GOmx {
 		protected virtual void free_ports () throws GOmx.Error;
 		public Omx.State get_state () throws GOmx.Error;
 		public virtual void init () throws GOmx.Error;
-		protected virtual void set_role ();
+		protected virtual void set_role (string component_role);
 		public virtual void set_state (Omx.State state) throws GOmx.Error;
 		public void set_state_and_wait (Omx.State state) throws GOmx.Error;
 		public virtual void wait_for_flush ();
@@ -54,7 +67,7 @@ namespace GOmx {
 		public void add (GOmx.Component component);
 		public virtual void buffers_begin_transfer () throws GOmx.Error;
 		public void free_handles () throws GOmx.Error;
-		public GOmx.Component @get (uint index);
+		public unowned GOmx.Component @get (uint index);
 		public void init () throws GOmx.Error;
 		public GOmx.ComponentList.Iterator iterator ();
 		public virtual void set_state (Omx.State state) throws GOmx.Error;
@@ -88,7 +101,7 @@ namespace GOmx {
 		public Engine ();
 		public virtual void add_component (GOmx.Component component);
 		public bool contains (string name);
-		public GOmx.Component @get (string name);
+		public unowned GOmx.Component @get (string name);
 		public GOmx.ComponentList components { get; }
 		public GOmx.PortDoneQueue ports_with_buffer_done { get; }
 	}
@@ -124,6 +137,7 @@ namespace GOmx {
 		public void use_buffers_of_port (GOmx.Port port) throws GOmx.Error;
 		public uint buffer_size { get; }
 		public GOmx.Component component { get; set; }
+		public bool enabled { get; }
 		public bool eos { get; }
 		public uint index { get; set; }
 		public bool is_input { get; }
