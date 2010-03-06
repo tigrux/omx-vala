@@ -77,7 +77,8 @@ void handle_print_info(string name, Omx.Handle handle) {
     port_definition.init();
 
     print("%s (%p)\n", name, handle);
-    for(uint i = param.start_port_number; i<param.ports; i++) {
+    var i = param.start_port_number;
+    while(i++ < param.ports) {
         print("\tPort %u:\n", i);
         port_definition.port_index = i;
         handle.get_parameter(Omx.Index.ParamPortDefinition, port_definition);

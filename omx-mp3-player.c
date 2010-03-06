@@ -178,6 +178,7 @@ void handle_print_info (const char* name, void* handle) {
 	OMX_PORT_PARAM_TYPE param;
 	OMX_PARAM_PORTDEFINITIONTYPE _tmp1_ = {0};
 	OMX_PARAM_PORTDEFINITIONTYPE port_definition;
+	guint32 i;
 	g_return_if_fail (name != NULL);
 	g_return_if_fail (handle != NULL);
 	param = (memset (&_tmp0_, 0, sizeof (OMX_PORT_PARAM_TYPE)), _tmp0_);
@@ -186,28 +187,17 @@ void handle_print_info (const char* name, void* handle) {
 	port_definition = (memset (&_tmp1_, 0, sizeof (OMX_PARAM_PORTDEFINITIONTYPE)), _tmp1_);
 	omx_structure_init (&port_definition);
 	g_print ("%s (%p)\n", name, handle);
-	{
-		guint i;
-		i = (guint) param.nStartPortNumber;
-		{
-			gboolean _tmp2_;
-			_tmp2_ = TRUE;
-			while (TRUE) {
-				if (!_tmp2_) {
-					i++;
-				}
-				_tmp2_ = FALSE;
-				if (!(i < param.nPorts)) {
-					break;
-				}
-				g_print ("\tPort %u:\n", i);
-				port_definition.nPortIndex = (guint32) i;
-				OMX_GetParameter (handle, (guint) OMX_IndexParamPortDefinition, &port_definition);
-				g_print ("\t\thas mime-type %s\n", port_definition.format.audio.cMIMEType);
-				g_print ("\t\thas direction %s\n", omx_dir_to_string (port_definition.eDir));
-				g_print ("\t\thas %u buffers of size %u\n", (guint) port_definition.nBufferCountActual, (guint) port_definition.nBufferSize);
-			}
+	i = param.nStartPortNumber;
+	while (TRUE) {
+		if (!((i++) < param.nPorts)) {
+			break;
 		}
+		g_print ("\tPort %u:\n", (guint) i);
+		port_definition.nPortIndex = i;
+		OMX_GetParameter (handle, (guint) OMX_IndexParamPortDefinition, &port_definition);
+		g_print ("\t\thas mime-type %s\n", port_definition.format.audio.cMIMEType);
+		g_print ("\t\thas direction %s\n", omx_dir_to_string (port_definition.eDir));
+		g_print ("\t\thas %u buffers of size %u\n", (guint) port_definition.nBufferCountActual, (guint) port_definition.nBufferSize);
 	}
 }
 
