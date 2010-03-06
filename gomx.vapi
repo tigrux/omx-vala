@@ -38,7 +38,7 @@ namespace GOmx {
 		public virtual void set_state (Omx.State state) throws GOmx.Error;
 		public void set_state_and_wait (Omx.State state) throws GOmx.Error;
 		public void wait_for_flush ();
-		public void wait_for_port () throws GOmx.Error;
+		public void wait_for_port ();
 		public void wait_for_state ();
 		public string component_name { get; set; }
 		public string? component_role { get; set; }

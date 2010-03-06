@@ -793,7 +793,7 @@ static void g_omx_component_real_free_ports (GOmxComponent* self, GError** error
 void g_omx_port_buffers_begin_transfer (GOmxPort* self, GError** error);
 static void g_omx_component_real_buffers_begin_transfer (GOmxComponent* self, GError** error);
 void g_omx_semaphore_down (GOmxSemaphore* self);
-void g_omx_component_wait_for_port (GOmxComponent* self, GError** error);
+void g_omx_component_wait_for_port (GOmxComponent* self);
 void g_omx_component_wait_for_flush (GOmxComponent* self);
 OMX_ERRORTYPE g_omx_component_can_set_state (GOmxComponent* self, OMX_STATETYPE next_state);
 static void g_omx_component_real_set_state (GOmxComponent* self, OMX_STATETYPE state, GError** error);
@@ -2515,7 +2515,7 @@ void g_omx_component_wait_for_state (GOmxComponent* self) {
 }
 
 
-void g_omx_component_wait_for_port (GOmxComponent* self, GError** error) {
+void g_omx_component_wait_for_port (GOmxComponent* self) {
 	g_return_if_fail (self != NULL);
 	g_return_if_fail (self->priv->_ports != NULL);
 	g_omx_semaphore_down (self->priv->_wait_for_port_sem);
@@ -3921,17 +3921,7 @@ void g_omx_port_enable (GOmxPort* self, GError** error) {
 			}
 		}
 	}
-	g_omx_component_wait_for_port (self->priv->_component, &_inner_error_);
-	if (_inner_error_ != NULL) {
-		if (_inner_error_->domain == G_OMX_ERROR) {
-			g_propagate_error (error, _inner_error_);
-			return;
-		} else {
-			g_critical ("file %s: line %d: uncaught error: %s (%s, %d)", __FILE__, __LINE__, _inner_error_->message, g_quark_to_string (_inner_error_->domain), _inner_error_->code);
-			g_clear_error (&_inner_error_);
-			return;
-		}
-	}
+	g_omx_component_wait_for_port (self->priv->_component);
 	g_omx_port_get_definition (self, &_inner_error_);
 	if (_inner_error_ != NULL) {
 		if (_inner_error_->domain == G_OMX_ERROR) {
@@ -3996,17 +3986,7 @@ void g_omx_port_disable (GOmxPort* self, GError** error) {
 			return;
 		}
 	}
-	g_omx_component_wait_for_port (self->priv->_component, &_inner_error_);
-	if (_inner_error_ != NULL) {
-		if (_inner_error_->domain == G_OMX_ERROR) {
-			g_propagate_error (error, _inner_error_);
-			return;
-		} else {
-			g_critical ("file %s: line %d: uncaught error: %s (%s, %d)", __FILE__, __LINE__, _inner_error_->message, g_quark_to_string (_inner_error_->domain), _inner_error_->code);
-			g_clear_error (&_inner_error_);
-			return;
-		}
-	}
+	g_omx_component_wait_for_port (self->priv->_component);
 	g_omx_port_get_definition (self, &_inner_error_);
 	if (_inner_error_ != NULL) {
 		if (_inner_error_->domain == G_OMX_ERROR) {

@@ -471,7 +471,7 @@ void g_omx_component_allocate_ports (GOmxComponent* self, GError** error);
 void g_omx_component_free_ports (GOmxComponent* self, GError** error);
 void g_omx_component_buffers_begin_transfer (GOmxComponent* self, GError** error);
 void g_omx_component_wait_for_state (GOmxComponent* self);
-void g_omx_component_wait_for_port (GOmxComponent* self, GError** error);
+void g_omx_component_wait_for_port (GOmxComponent* self);
 void g_omx_component_wait_for_flush (GOmxComponent* self);
 void g_omx_component_set_state (GOmxComponent* self, OMX_STATETYPE state, GError** error);
 OMX_ERRORTYPE g_omx_component_can_set_state (GOmxComponent* self, OMX_STATETYPE next_state);

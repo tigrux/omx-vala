@@ -77,7 +77,7 @@ namespace GOmx {
             Omx.Handle input, uint32 port_input);
 
 
-        public Module module {
+        public weak Module module {
             get {
                 return _module;
             }
@@ -654,7 +654,7 @@ namespace GOmx {
 
 
         public void wait_for_port()
-        throws Error requires(_ports != null) {
+        requires(_ports != null) {
             _wait_for_port_sem.down();
         }
 
