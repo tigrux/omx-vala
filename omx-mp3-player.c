@@ -178,7 +178,7 @@ void handle_print_info (const char* name, void* handle) {
 	OMX_PORT_PARAM_TYPE param;
 	OMX_PARAM_PORTDEFINITIONTYPE _tmp1_ = {0};
 	OMX_PARAM_PORTDEFINITIONTYPE port_definition;
-	guint32 i;
+	gint i;
 	g_return_if_fail (name != NULL);
 	g_return_if_fail (handle != NULL);
 	param = (memset (&_tmp0_, 0, sizeof (OMX_PORT_PARAM_TYPE)), _tmp0_);
@@ -187,17 +187,18 @@ void handle_print_info (const char* name, void* handle) {
 	port_definition = (memset (&_tmp1_, 0, sizeof (OMX_PARAM_PORTDEFINITIONTYPE)), _tmp1_);
 	omx_structure_init (&port_definition);
 	g_print ("%s (%p)\n", name, handle);
-	i = param.nStartPortNumber;
+	i = 0;
 	while (TRUE) {
-		if (!((i++) < param.nPorts)) {
+		if (!(i < param.nPorts)) {
 			break;
 		}
 		g_print ("\tPort %u:\n", (guint) i);
-		port_definition.nPortIndex = i;
+		port_definition.nPortIndex = (guint32) i;
 		OMX_GetParameter (handle, (guint) OMX_IndexParamPortDefinition, &port_definition);
 		g_print ("\t\thas mime-type %s\n", port_definition.format.audio.cMIMEType);
 		g_print ("\t\thas direction %s\n", omx_dir_to_string (port_definition.eDir));
 		g_print ("\t\thas %u buffers of size %u\n", (guint) port_definition.nBufferCountActual, (guint) port_definition.nBufferSize);
+		i++;
 	}
 }
 
@@ -218,12 +219,13 @@ void allocate_buffers (void) {
 	in_buffer_audiosink = (_tmp2_ = g_new0 (OMX_BUFFERHEADERTYPE*, N_BUFFERS + 1), in_buffer_audiosink = (g_free (in_buffer_audiosink), NULL), in_buffer_audiosink_length1 = N_BUFFERS, in_buffer_audiosink_size = in_buffer_audiosink_length1, _tmp2_);
 	i = 0;
 	while (TRUE) {
-		if (!((i++) < N_BUFFERS)) {
+		if (!(i < N_BUFFERS)) {
 			break;
 		}
 		OMX_AllocateBuffer (audiodec_handle, &in_buffer_audiodec[i], (guint) 0, NULL, (guint) BUFFER_IN_SIZE);
 		OMX_AllocateBuffer (audiodec_handle, &out_buffer_audiodec[i], (guint) 1, NULL, (guint) BUFFER_OUT_SIZE);
 		OMX_AllocateBuffer (audiosink_handle, &in_buffer_audiosink[i], (guint) 0, NULL, (guint) BUFFER_OUT_SIZE);
+		i++;
 	}
 }
 
@@ -239,12 +241,13 @@ void move_buffers (void) {
 	gint i;
 	i = 0;
 	while (TRUE) {
-		if (!((i++) < N_BUFFERS)) {
+		if (!(i < N_BUFFERS)) {
 			break;
 		}
 		read_buffer_from_fd (in_buffer_audiodec[i]);
 		OMX_EmptyThisBuffer (audiodec_handle, in_buffer_audiodec[i]);
 		OMX_FillThisBuffer (audiodec_handle, out_buffer_audiodec[i]);
+		i++;
 	}
 }
 
@@ -253,12 +256,13 @@ void free_buffers (void) {
 	gint i;
 	i = 0;
 	while (TRUE) {
-		if (!((i++) < N_BUFFERS)) {
+		if (!(i < N_BUFFERS)) {
 			break;
 		}
 		OMX_FreeBuffer (audiodec_handle, (guint) 0, in_buffer_audiodec[i]);
 		OMX_FreeBuffer (audiodec_handle, (guint) 1, out_buffer_audiodec[i]);
 		OMX_FreeBuffer (audiosink_handle, (guint) 0, in_buffer_audiosink[i]);
+		i++;
 	}
 }
 

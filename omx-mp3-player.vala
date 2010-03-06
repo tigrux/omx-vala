@@ -77,8 +77,8 @@ void handle_print_info(string name, Omx.Handle handle) {
     port_definition.init();
 
     print("%s (%p)\n", name, handle);
-    var i = param.start_port_number;
-    while(i++ < param.ports) {
+    var i = 0;
+    while(i < param.ports) {
         print("\tPort %u:\n", i);
         port_definition.port_index = i;
         handle.get_parameter(Omx.Index.ParamPortDefinition, port_definition);
@@ -87,6 +87,7 @@ void handle_print_info(string name, Omx.Handle handle) {
         print("\t\thas %u buffers of size %u\n",
             port_definition.buffer_count_actual,
             port_definition.buffer_size);
+        i++;
     }
 }
 
@@ -109,13 +110,14 @@ void allocate_buffers() {
     in_buffer_audiosink = new Omx.BufferHeader[N_BUFFERS];
 
     var i=0;
-    while(i++ < N_BUFFERS) {
+    while(i < N_BUFFERS) {
         audiodec_handle.allocate_buffer(
             out in_buffer_audiodec[i], 0, null, BUFFER_IN_SIZE);
         audiodec_handle.allocate_buffer(
             out out_buffer_audiodec[i], 1, null, BUFFER_OUT_SIZE);
         audiosink_handle.allocate_buffer(
             out in_buffer_audiosink[i], 0, null, BUFFER_OUT_SIZE);
+        i++;
     }
 }
 
@@ -126,19 +128,21 @@ void read_buffer_from_fd(Omx.BufferHeader buffer) {
 
 void move_buffers() {
     var i=0;
-    while(i++ < N_BUFFERS) {
+    while(i < N_BUFFERS) {
         read_buffer_from_fd(in_buffer_audiodec[i]);
         audiodec_handle.empty_this_buffer(in_buffer_audiodec[i]);
         audiodec_handle.fill_this_buffer(out_buffer_audiodec[i]);
+        i++;
     }
 }
 
 void free_buffers() {
     var i=0;
-    while(i++ < N_BUFFERS) {
+    while(i < N_BUFFERS) {
         audiodec_handle.free_buffer(0, in_buffer_audiodec[i]);
         audiodec_handle.free_buffer(1, out_buffer_audiodec[i]);
         audiosink_handle.free_buffer(0, in_buffer_audiosink[i]);
+        i++;
     }
 }
 
