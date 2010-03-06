@@ -163,7 +163,7 @@ namespace GOmx {
 
             if(symbol == null)
                 throw new GLib.FileError.INVAL(
-                    "Could not fine symbol '%s' in library '%s'", name, soname);
+                    "Could not find symbol '%s' in library '%s'", name, soname);
 
             core._module = (owned)module;
             return core;
@@ -477,7 +477,7 @@ namespace GOmx {
         }
 
 
-        public string library {
+        public string library_name {
             get; set;
         }
 
@@ -530,7 +530,7 @@ namespace GOmx {
             _previous_state = Omx.State.Invalid;
             _pending_state = Omx.State.Invalid;
             _name = "";
-            _library = "";
+            _library_name = "";
             _component_name = "";
         }
 
@@ -552,13 +552,13 @@ namespace GOmx {
 
         public virtual void init()
         throws Error requires(_handle == null) {
-            if(_library == null)
+            if(_library_name == null || _library_name == "")
                 throw new Error.BadParameter(
-                    "'%s' is not a registed core library", _library);
-            _core = LibraryTable.get_library(_library);
+                    "No library has been defined for component '%s'", _name);
+            _core = LibraryTable.get_library(_library_name);
             if(_core == null)
                 throw new Error.BadParameter(
-                    "No core for library '%s'", _library);
+                    "There is no core for library '%s'", _library_name);
             _core.get_handle(
                 out _handle, _component_name,
                 this, callbacks);

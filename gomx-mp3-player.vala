@@ -31,11 +31,11 @@ public void play(string filename) throws FileError, GOmx.Error {
 
     var decoder = new GOmx.AudioComponent("OMX.st.audio_decoder.mp3.mad");
     decoder.name = "decoder";
-    decoder.library = library;
+    decoder.library_name = library;
 
     var sink = new GOmx.AudioComponent("OMX.st.alsa.alsasink");
     sink.name = "sink";
-    sink.library = library;
+    sink.library_name = library;
 
     var engine = new GOmx.Engine();    
     engine.add_component(decoder);

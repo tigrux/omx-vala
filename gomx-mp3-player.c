@@ -138,10 +138,10 @@ void play (const char* filename, GError** error) {
 	}
 	decoder = g_omx_audio_component_new ("OMX.st.audio_decoder.mp3.mad");
 	g_omx_component_set_name ((GOmxComponent*) decoder, "decoder");
-	g_omx_component_set_library ((GOmxComponent*) decoder, library);
+	g_omx_component_set_library_name ((GOmxComponent*) decoder, library);
 	sink = g_omx_audio_component_new ("OMX.st.alsa.alsasink");
 	g_omx_component_set_name ((GOmxComponent*) sink, "sink");
-	g_omx_component_set_library ((GOmxComponent*) sink, library);
+	g_omx_component_set_library_name ((GOmxComponent*) sink, library);
 	engine = g_omx_engine_new ();
 	g_omx_engine_add_component (engine, (GOmxComponent*) decoder);
 	g_omx_engine_add_component (engine, (GOmxComponent*) sink);

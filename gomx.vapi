@@ -33,7 +33,7 @@ namespace GOmx {
 		public uint current_state { get; }
 		public Omx.Handle handle { get; }
 		public uint init_index { get; set; }
-		public string library { get; set; }
+		public string library_name { get; set; }
 		public uint n_ports { get; }
 		public string name { get; set; }
 		public bool no_allocate_buffers { get; set; }

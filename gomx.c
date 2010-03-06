@@ -455,7 +455,7 @@ struct _GOmxComponentPrivate {
 	gpointer _event_func_8_target;
 	GDestroyNotify _event_func_8_target_destroy_notify;
 	char* _name;
-	char* _library;
+	char* _library_name;
 	char* _component_name;
 	char* _component_role;
 	guint _init_index;
@@ -709,7 +709,7 @@ enum  {
 	G_OMX_COMPONENT_PORTS,
 	G_OMX_COMPONENT_QUEUE,
 	G_OMX_COMPONENT_CORE,
-	G_OMX_COMPONENT_LIBRARY,
+	G_OMX_COMPONENT_LIBRARY_NAME,
 	G_OMX_COMPONENT_COMPONENT_NAME,
 	G_OMX_COMPONENT_COMPONENT_ROLE,
 	G_OMX_COMPONENT_CURRENT_STATE,
@@ -770,8 +770,8 @@ void* g_omx_component_get_handle (GOmxComponent* self);
 GOmxPortArray* g_omx_component_get_ports (GOmxComponent* self);
 GAsyncQueue* g_omx_component_get_queue (GOmxComponent* self);
 GOmxCore* g_omx_component_get_core (GOmxComponent* self);
-const char* g_omx_component_get_library (GOmxComponent* self);
-void g_omx_component_set_library (GOmxComponent* self, const char* value);
+const char* g_omx_component_get_library_name (GOmxComponent* self);
+void g_omx_component_set_library_name (GOmxComponent* self, const char* value);
 void g_omx_component_set_component_name (GOmxComponent* self, const char* value);
 const char* g_omx_component_get_component_role (GOmxComponent* self);
 void g_omx_component_set_component_role (GOmxComponent* self, const char* value);
@@ -1186,7 +1186,7 @@ GOmxCore* g_omx_core_open (const char* soname, GError** error) {
 		core->priv->_setup_tunnel_func = (_tmp9_ = (GOmxCoreSetupTunnelFunc) symbol, ((core->priv->_setup_tunnel_func_target_destroy_notify == NULL) ? NULL : core->priv->_setup_tunnel_func_target_destroy_notify (core->priv->_setup_tunnel_func_target), core->priv->_setup_tunnel_func = NULL, core->priv->_setup_tunnel_func_target = NULL, core->priv->_setup_tunnel_func_target_destroy_notify = NULL), core->priv->_setup_tunnel_func_target = NULL, core->priv->_setup_tunnel_func_target_destroy_notify = NULL, _tmp9_);
 	}
 	if (symbol == NULL) {
-		_inner_error_ = g_error_new (G_FILE_ERROR, G_FILE_ERROR_INVAL, "Could not fine symbol '%s' in library '%s'", name, soname);
+		_inner_error_ = g_error_new (G_FILE_ERROR, G_FILE_ERROR_INVAL, "Could not find symbol '%s' in library '%s'", name, soname);
 		{
 			if (_inner_error_->domain == G_FILE_ERROR) {
 				g_propagate_error (error, _inner_error_);
@@ -2152,12 +2152,18 @@ GOmxComponent* g_omx_component_new (const char* name, OMX_INDEXTYPE index) {
 
 static void g_omx_component_real_init (GOmxComponent* self, GError** error) {
 	GError * _inner_error_;
-	GOmxCore* _tmp0_;
+	gboolean _tmp0_ = FALSE;
+	GOmxCore* _tmp1_;
 	g_return_if_fail (self != NULL);
 	_inner_error_ = NULL;
 	g_return_if_fail (self->priv->_handle == NULL);
-	if (self->priv->_library == NULL) {
-		_inner_error_ = g_error_new (G_OMX_ERROR, G_OMX_ERROR_BadParameter, "'%s' is not a registed core library", self->priv->_library);
+	if (self->priv->_library_name == NULL) {
+		_tmp0_ = TRUE;
+	} else {
+		_tmp0_ = _vala_strcmp0 (self->priv->_library_name, "") == 0;
+	}
+	if (_tmp0_) {
+		_inner_error_ = g_error_new (G_OMX_ERROR, G_OMX_ERROR_BadParameter, "No library has been defined for component '%s'", self->priv->_name);
 		{
 			if (_inner_error_->domain == G_OMX_ERROR) {
 				g_propagate_error (error, _inner_error_);
@@ -2169,9 +2175,9 @@ static void g_omx_component_real_init (GOmxComponent* self, GError** error) {
 			}
 		}
 	}
-	self->priv->_core = (_tmp0_ = g_omx_library_table_get_library (self->priv->_library), _g_object_unref0 (self->priv->_core), _tmp0_);
+	self->priv->_core = (_tmp1_ = g_omx_library_table_get_library (self->priv->_library_name), _g_object_unref0 (self->priv->_core), _tmp1_);
 	if (self->priv->_core == NULL) {
-		_inner_error_ = g_error_new (G_OMX_ERROR, G_OMX_ERROR_BadParameter, "No core for library '%s'", self->priv->_library);
+		_inner_error_ = g_error_new (G_OMX_ERROR, G_OMX_ERROR_BadParameter, "There is no core for library '%s'", self->priv->_library_name);
 		{
 			if (_inner_error_->domain == G_OMX_ERROR) {
 				g_propagate_error (error, _inner_error_);
@@ -3087,19 +3093,19 @@ GOmxCore* g_omx_component_get_core (GOmxComponent* self) {
 }
 
 
-const char* g_omx_component_get_library (GOmxComponent* self) {
+const char* g_omx_component_get_library_name (GOmxComponent* self) {
 	const char* result;
 	g_return_val_if_fail (self != NULL, NULL);
-	result = self->priv->_library;
+	result = self->priv->_library_name;
 	return result;
 }
 
 
-void g_omx_component_set_library (GOmxComponent* self, const char* value) {
+void g_omx_component_set_library_name (GOmxComponent* self, const char* value) {
 	char* _tmp0_;
 	g_return_if_fail (self != NULL);
-	self->priv->_library = (_tmp0_ = g_strdup (value), _g_free0 (self->priv->_library), _tmp0_);
-	g_object_notify ((GObject *) self, "library");
+	self->priv->_library_name = (_tmp0_ = g_strdup (value), _g_free0 (self->priv->_library_name), _tmp0_);
+	g_object_notify ((GObject *) self, "library-name");
 }
 
 
@@ -3218,7 +3224,7 @@ static GObject * g_omx_component_constructor (GType type, guint n_construct_prop
 		self->priv->_previous_state = OMX_StateInvalid;
 		self->priv->_pending_state = OMX_StateInvalid;
 		self->priv->_name = (_tmp9_ = g_strdup (""), _g_free0 (self->priv->_name), _tmp9_);
-		self->priv->_library = (_tmp10_ = g_strdup (""), _g_free0 (self->priv->_library), _tmp10_);
+		self->priv->_library_name = (_tmp10_ = g_strdup (""), _g_free0 (self->priv->_library_name), _tmp10_);
 		self->priv->_component_name = (_tmp11_ = g_strdup (""), _g_free0 (self->priv->_component_name), _tmp11_);
 	}
 	return obj;
@@ -3248,7 +3254,7 @@ static void g_omx_component_class_init (GOmxComponentClass * klass) {
 	g_object_class_install_property (G_OBJECT_CLASS (klass), G_OMX_COMPONENT_PORTS, g_param_spec_object ("ports", "ports", "ports", G_OMX_TYPE_PORT_ARRAY, G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK | G_PARAM_STATIC_BLURB | G_PARAM_READABLE));
 	g_object_class_install_property (G_OBJECT_CLASS (klass), G_OMX_COMPONENT_QUEUE, g_param_spec_pointer ("queue", "queue", "queue", G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK | G_PARAM_STATIC_BLURB | G_PARAM_READABLE | G_PARAM_WRITABLE));
 	g_object_class_install_property (G_OBJECT_CLASS (klass), G_OMX_COMPONENT_CORE, g_param_spec_object ("core", "core", "core", G_OMX_TYPE_CORE, G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK | G_PARAM_STATIC_BLURB | G_PARAM_READABLE));
-	g_object_class_install_property (G_OBJECT_CLASS (klass), G_OMX_COMPONENT_LIBRARY, g_param_spec_string ("library", "library", "library", NULL, G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK | G_PARAM_STATIC_BLURB | G_PARAM_READABLE | G_PARAM_WRITABLE));
+	g_object_class_install_property (G_OBJECT_CLASS (klass), G_OMX_COMPONENT_LIBRARY_NAME, g_param_spec_string ("library-name", "library-name", "library-name", NULL, G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK | G_PARAM_STATIC_BLURB | G_PARAM_READABLE | G_PARAM_WRITABLE));
 	g_object_class_install_property (G_OBJECT_CLASS (klass), G_OMX_COMPONENT_COMPONENT_NAME, g_param_spec_string ("component-name", "component-name", "component-name", NULL, G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK | G_PARAM_STATIC_BLURB | G_PARAM_READABLE | G_PARAM_WRITABLE));
 	g_object_class_install_property (G_OBJECT_CLASS (klass), G_OMX_COMPONENT_COMPONENT_ROLE, g_param_spec_string ("component-role", "component-role", "component-role", NULL, G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK | G_PARAM_STATIC_BLURB | G_PARAM_READABLE | G_PARAM_WRITABLE));
 	g_object_class_install_property (G_OBJECT_CLASS (klass), G_OMX_COMPONENT_CURRENT_STATE, g_param_spec_uint ("current-state", "current-state", "current-state", 0, G_MAXUINT, 0U, G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK | G_PARAM_STATIC_BLURB | G_PARAM_READABLE));
@@ -3310,7 +3316,7 @@ static void g_omx_component_finalize (GObject* obj) {
 	self->priv->_event_func_8_target = NULL;
 	self->priv->_event_func_8_target_destroy_notify = NULL;
 	_g_free0 (self->priv->_name);
-	_g_free0 (self->priv->_library);
+	_g_free0 (self->priv->_library_name);
 	_g_free0 (self->priv->_component_name);
 	_g_free0 (self->priv->_component_role);
 	G_OBJECT_CLASS (g_omx_component_parent_class)->finalize (obj);
@@ -3348,8 +3354,8 @@ static void g_omx_component_get_property (GObject * object, guint property_id, G
 		case G_OMX_COMPONENT_CORE:
 		g_value_set_object (value, g_omx_component_get_core (self));
 		break;
-		case G_OMX_COMPONENT_LIBRARY:
-		g_value_set_string (value, g_omx_component_get_library (self));
+		case G_OMX_COMPONENT_LIBRARY_NAME:
+		g_value_set_string (value, g_omx_component_get_library_name (self));
 		break;
 		case G_OMX_COMPONENT_COMPONENT_NAME:
 		g_value_set_string (value, g_omx_component_get_component_name (self));
@@ -3392,8 +3398,8 @@ static void g_omx_component_set_property (GObject * object, guint property_id, c
 		case G_OMX_COMPONENT_QUEUE:
 		g_omx_component_set_queue (self, g_value_get_pointer (value));
 		break;
-		case G_OMX_COMPONENT_LIBRARY:
-		g_omx_component_set_library (self, g_value_get_string (value));
+		case G_OMX_COMPONENT_LIBRARY_NAME:
+		g_omx_component_set_library_name (self, g_value_get_string (value));
 		break;
 		case G_OMX_COMPONENT_COMPONENT_NAME:
 		g_omx_component_set_component_name (self, g_value_get_string (value));
