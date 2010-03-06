@@ -5,15 +5,15 @@ namespace GOmx {
 
     public Core load_library(string library_name)
     throws GLib.FileError, Error {
-        return LibraryTable.load_library(library_name);
+        return LibraryLoader.load_library(library_name);
     }
 
 
 ////////////////////////////////////////////////////////////////////////////////
 
-    private class LibraryTable: Object {
+    internal class LibraryLoader: Object {
         GLib.HashTable<string,Core> _core_table;
-        static LibraryTable _common_table;
+        static LibraryLoader _common_table;
 
 
         construct {
@@ -25,7 +25,7 @@ namespace GOmx {
         throws GLib.FileError, Error {
             lock(_common_table)
                 if(_common_table == null)
-                    _common_table = new LibraryTable();
+                    _common_table = new LibraryLoader();
             var core = _common_table[library_name];
             if(core == null) {
                 core = Core.open(library_name);
@@ -260,7 +260,7 @@ namespace GOmx {
         }
 
 
-        public virtual void set_state(Omx.State state)
+        public void set_state(Omx.State state)
         throws Error {
             foreach(var component in _components_list)
                 component.set_state(state);
@@ -280,7 +280,7 @@ namespace GOmx {
         }
 
 
-        public virtual void buffers_begin_transfer()
+        public void buffers_begin_transfer()
         throws Error {
             foreach(var component in _components_list) {
                 component.buffers_begin_transfer();
@@ -556,7 +556,7 @@ namespace GOmx {
             if(_library_name == null || _library_name == "")
                 throw new Error.BadParameter(
                     "No library has been defined for component '%s'", _name);
-            _core = LibraryTable.get_library(_library_name);
+            _core = LibraryLoader.get_library(_library_name);
             if(_core == null)
                 throw new Error.BadParameter(
                     "There is no core for library '%s'", _library_name);
@@ -648,18 +648,18 @@ namespace GOmx {
         }
 
 
-        public virtual void wait_for_state() {
+        public void wait_for_state() {
             _wait_for_state_sem.down();
         }
 
 
-        public virtual void wait_for_port()
+        public void wait_for_port()
         throws Error requires(_ports != null) {
             _wait_for_port_sem.down();
         }
 
 
-        public virtual void wait_for_flush() {
+        public void wait_for_flush() {
             _wait_for_flush_sem.down();
         }
 
@@ -721,7 +721,7 @@ namespace GOmx {
         }
 
 
-        public Omx.State get_state()
+        public virtual Omx.State get_state()
         throws Error requires(_handle != null) {
             Omx.State state;
             try_run(
@@ -872,7 +872,7 @@ namespace GOmx {
         }
 
 
-        virtual Omx.Error buffer_done(
+        Omx.Error buffer_done(
                 Port port,
                 Omx.BufferHeader buffer) {
             port.queue.push(buffer);
@@ -1048,7 +1048,7 @@ namespace GOmx {
         }
 
 
-        public Port(Component component, uint32 index) {
+        public Port(Component component, uint index) {
             Object(component: component, index: index);
         }
 
@@ -1210,7 +1210,7 @@ namespace GOmx {
         }
 
 
-        public void buffer_done(Omx.BufferHeader buffer) {
+        internal void buffer_done(Omx.BufferHeader buffer) {
             if(_buffer_done_func != null)
                 _buffer_done_func(this, buffer);
         }
@@ -1285,7 +1285,7 @@ namespace GOmx {
 
 ////////////////////////////////////////////////////////////////////////////////
 
-    public class Semaphore: Object {
+    internal class Semaphore: Object {
         Cond _cond;
         Mutex _mutex;
         int counter;

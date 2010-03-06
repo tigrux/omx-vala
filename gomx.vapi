@@ -32,14 +32,14 @@ namespace GOmx {
 		public void event_set_function (Omx.Event event, GOmx.Component.EventFunc event_function);
 		public virtual void free_handle () throws GOmx.Error;
 		protected virtual void free_ports () throws GOmx.Error;
-		public Omx.State get_state () throws GOmx.Error;
+		public virtual Omx.State get_state () throws GOmx.Error;
 		public virtual void init () throws GOmx.Error;
 		protected virtual void set_role (string component_role);
 		public virtual void set_state (Omx.State state) throws GOmx.Error;
 		public void set_state_and_wait (Omx.State state) throws GOmx.Error;
-		public virtual void wait_for_flush ();
-		public virtual void wait_for_port () throws GOmx.Error;
-		public virtual void wait_for_state ();
+		public void wait_for_flush ();
+		public void wait_for_port () throws GOmx.Error;
+		public void wait_for_state ();
 		public string component_name { get; set; }
 		public string? component_role { get; set; }
 		public GOmx.Core core { get; }
@@ -65,12 +65,12 @@ namespace GOmx {
 		}
 		public ComponentList ();
 		public void add (GOmx.Component component);
-		public virtual void buffers_begin_transfer () throws GOmx.Error;
+		public void buffers_begin_transfer () throws GOmx.Error;
 		public void free_handles () throws GOmx.Error;
 		public unowned GOmx.Component @get (uint index);
 		public void init () throws GOmx.Error;
 		public GOmx.ComponentList.Iterator iterator ();
-		public virtual void set_state (Omx.State state) throws GOmx.Error;
+		public void set_state (Omx.State state) throws GOmx.Error;
 		public void set_state_and_wait (Omx.State state) throws GOmx.Error;
 		public void wait_for_state_set ();
 		public uint length { get; }
@@ -118,9 +118,8 @@ namespace GOmx {
 		[CCode (cheader_filename = "gomx.h", instance_pos = -2)]
 		public delegate void BufferDoneFunc (GOmx.Port port, Omx.BufferHeader buffer);
 		public Omx.Param.PortDefinition definition;
-		public Port (GOmx.Component component, uint32 index);
+		public Port (GOmx.Component component, uint index);
 		public void allocate_buffers () throws GOmx.Error;
-		public void buffer_done (Omx.BufferHeader buffer);
 		public void buffers_begin_transfer () throws GOmx.Error;
 		public void disable () throws GOmx.Error;
 		public void enable () throws GOmx.Error;
@@ -173,12 +172,6 @@ namespace GOmx {
 		public PortDoneQueue ();
 		public GOmx.PortDoneQueue.Iterator iterator ();
 		public GLib.AsyncQueue<GOmx.Port> queue { get; }
-	}
-	[CCode (cheader_filename = "gomx.h")]
-	public class Semaphore : GLib.Object {
-		public Semaphore ();
-		public void down ();
-		public void up ();
 	}
 	[CCode (cheader_filename = "gomx.h")]
 	public class VideoComponent : GOmx.Component {
