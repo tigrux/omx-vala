@@ -24,7 +24,6 @@ namespace GOmx {
 		[CCode (cheader_filename = "gomx.h", instance_pos = -2)]
 		public delegate void EventFunc (GOmx.Component component, uint data1, uint data2, void* event_data);
 		public uint id;
-		public Omx.PortParam ports_param;
 		public Component (string name, Omx.Index index);
 		protected virtual void allocate_ports () throws GOmx.Error;
 		public virtual void buffers_begin_transfer () throws GOmx.Error;
@@ -43,16 +42,16 @@ namespace GOmx {
 		public string component_name { get; set; }
 		public string? component_role { get; set; }
 		public GOmx.Core core { get; }
-		public uint current_state { get; }
+		public Omx.State current_state { get; }
 		public Omx.Handle handle { get; }
 		public uint init_index { get; set; }
 		public string library_name { get; set; }
 		public uint n_ports { get; }
 		public string name { get; set; }
 		public bool no_allocate_buffers { get; set; }
-		public uint pending_state { get; }
+		public Omx.State pending_state { get; }
 		public GOmx.PortArray ports { get; }
-		public uint previous_state { get; }
+		public Omx.State previous_state { get; }
 		public GLib.AsyncQueue<GOmx.Port>? queue { get; set; }
 	}
 	[CCode (cheader_filename = "gomx.h")]
@@ -117,7 +116,6 @@ namespace GOmx {
 	public class Port : GLib.Object {
 		[CCode (cheader_filename = "gomx.h", instance_pos = -2)]
 		public delegate void BufferDoneFunc (GOmx.Port port, Omx.BufferHeader buffer);
-		public Omx.Param.PortDefinition definition;
 		public Port (GOmx.Component component, uint index);
 		public void allocate_buffers () throws GOmx.Error;
 		public void buffers_begin_transfer () throws GOmx.Error;
@@ -125,7 +123,7 @@ namespace GOmx {
 		public void enable () throws GOmx.Error;
 		public void flush () throws GOmx.Error;
 		public void free_buffers () throws GOmx.Error;
-		public void get_definition () throws GOmx.Error;
+		public Omx.Param.PortDefinition* get_definition () throws GOmx.Error;
 		public void init () throws GOmx.Error;
 		public Omx.BufferHeader pop_buffer ();
 		public void push_buffer (Omx.BufferHeader buffer) throws GOmx.Error;
@@ -136,13 +134,16 @@ namespace GOmx {
 		public void use_buffers_of_port (GOmx.Port port) throws GOmx.Error;
 		public uint buffer_size { get; }
 		public GOmx.Component component { get; set; }
+		public Omx.PortDomain domain { get; }
 		public bool enabled { get; }
 		public bool eos { get; }
 		public uint index { get; set; }
 		public bool is_input { get; }
 		public bool is_output { get; }
-		public uint n_buffers { get; }
+		public uint n_buffers { get; set; }
+		public uint n_min_buffers { get; }
 		public string name { get; set; }
+		public bool populated { get; }
 		public GLib.AsyncQueue<Omx.BufferHeader> queue { get; }
 		public GOmx.Port? supplier { get; }
 	}

@@ -156,12 +156,12 @@ static const char* omx_dir_to_string (OMX_DIRTYPE self) {
 	switch (self) {
 		case OMX_DirInput:
 		{
-			result = "Omx.Dir.Input";
+			result = "Input";
 			return result;
 		}
 		case OMX_DirOutput:
 		{
-			result = "Omx.Dir.Output";
+			result = "Output";
 			return result;
 		}
 		default:

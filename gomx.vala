@@ -410,8 +410,8 @@ namespace GOmx {
 ////////////////////////////////////////////////////////////////////////////////
 
     public class Component: Object {
-        public Omx.PortParam ports_param;
         public uint id;
+        Omx.PortParam ports_param;
         Omx.Handle _handle;
         Core _core;
 
@@ -491,6 +491,11 @@ namespace GOmx {
         }
 
 
+        public uint init_index {
+            get; set;
+        }
+
+
         public string library_name {
             get; set;
         }
@@ -505,26 +510,21 @@ namespace GOmx {
             get; set;
         }
 
-        public uint current_state {
+        public Omx.State current_state {
             get {
                 return _current_state;
             }
         }
 
 
-        public uint init_index {
-            get; set;
-        }
-
-
-        public uint pending_state {
+        public Omx.State pending_state {
             get {
                 return _pending_state;
             }
         }
 
 
-        public uint previous_state {
+        public Omx.State previous_state {
             get {
                 return _previous_state;
             }
@@ -956,8 +956,7 @@ namespace GOmx {
 ////////////////////////////////////////////////////////////////////////////////
 
     public class Port: Object {
-        public Omx.Param.PortDefinition definition;
-
+        Omx.Param.PortDefinition definition;
         BufferArray _buffers;
         AsyncQueue<Omx.BufferHeader> _buffers_queue;
         bool _eos;
@@ -1020,6 +1019,20 @@ namespace GOmx {
         }
 
 
+        public bool populated {
+            get {
+                return definition.populated;
+            }
+        }
+
+
+        public Omx.PortDomain domain {
+            get {
+                return definition.domain;
+            }
+        }
+
+
         public bool eos {
             get {
                 return _eos;
@@ -1037,6 +1050,16 @@ namespace GOmx {
         public uint n_buffers {
             get {
                 return definition.buffer_count_actual;
+            }
+            set {
+                definition.buffer_count_actual = value;
+            }
+        }
+
+
+        public uint n_min_buffers {
+            get {
+                return definition.buffer_count_min;
             }
         }
 
@@ -1059,11 +1082,12 @@ namespace GOmx {
         }
 
 
-        public void get_definition()
+        public Omx.Param.PortDefinition* get_definition()
         throws Error {
             try_run(
                 _component.handle.get_parameter(
                     Omx.Index.ParamPortDefinition, definition));
+            return &definition;
         }
 
 

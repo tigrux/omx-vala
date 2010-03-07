@@ -6,7 +6,7 @@ namespace Omx {
     [CCode (cname="OMX_MAX_STRINGNAME_SIZE")]
     const uint MAX_STRING_SIZE;
 
-    [CCode (cname="OMX_COMMANDTYPE", cprefix="OMX_Command")]
+    [CCode (cname="OMX_COMMANDTYPE", cprefix="OMX_Command", has_type_id=false)]
     public enum Command {
         StateSet,
         Flush,
@@ -32,7 +32,7 @@ namespace Omx {
         }
     }
 
-    [CCode (cname="OMX_STATETYPE", cprefix="OMX_State")]
+    [CCode (cname="OMX_STATETYPE", cprefix="OMX_State", has_type_id=false)]
     public enum State {
         Invalid,
         Loaded,
@@ -61,7 +61,7 @@ namespace Omx {
         }
     }
 
-    [CCode (cname="OMX_ERRORTYPE", cprefix="OMX_Error")]
+    [CCode (cname="OMX_ERRORTYPE", cprefix="OMX_Error", has_type_id=false)]
     public enum Error {
         None,
         InsufficientResources,
@@ -188,7 +188,7 @@ namespace Omx {
     }
 
     [Flags]
-    [CCode (cprefix="OMX_BUFFERFLAG_")]
+    [CCode (cprefix="OMX_BUFFERFLAG_", has_type_id=false)]
     public enum BufferFlag {
         EOS,
         STARTTIME,
@@ -287,7 +287,7 @@ namespace Omx {
         public uint32 start_port_number;
     }
 
-    [CCode (cname="OMX_EVENTTYPE", cprefix="OMX_Event")]
+    [CCode (cname="OMX_EVENTTYPE", cprefix="OMX_Event", has_type_id=false)]
     public enum Event {
         CmdComplete,
         Error,
@@ -325,7 +325,7 @@ namespace Omx {
         }
     }
 
-    [CCode (cname="OMX_PORTDOMAINTYPE", cprefix="OMX_PortDomain")]
+    [CCode (cname="OMX_PORTDOMAINTYPE", cprefix="OMX_PortDomain", has_type_id=false)]
     public enum PortDomain {
         Audio,
         Video,
@@ -372,7 +372,7 @@ namespace Omx {
         public FillBufferDoneFunc fill_buffer_done;
     }
 
-    [CCode (cname="OMX_BUFFERSUPPLIERTYPE", cprefix="OMX_BufferSupply")]
+    [CCode (cname="OMX_BUFFERSUPPLIERTYPE", cprefix="OMX_BufferSupply", has_type_id=false)]
     public enum BufferSupplier {
         Unspecified,
         Input,
@@ -380,7 +380,7 @@ namespace Omx {
     }
 
     [Flags]
-    [CCode (cprefix="OMX_PORTTUNNELFLAG_")]
+    [CCode (cprefix="OMX_PORTTUNNELFLAG_", has_type_id=false)]
     public enum PortTunnelFlag {
         READONLY
     }
@@ -440,7 +440,7 @@ namespace Omx {
     [CCode (cname="OMX_SetupTunnel")]
     public Error setup_tunnel(Handle output, uint32 port_output, Handle input, uint32 port_input);
 
-    [CCode (cname="OMX_DIRTYPE", cprefix="OMX_Dir")]
+    [CCode (cname="OMX_DIRTYPE", cprefix="OMX_Dir", has_type_id=false)]
     public enum Dir {
         Input,
         Output;
@@ -448,22 +448,22 @@ namespace Omx {
         public weak string to_string() {
             switch(this) {
                 case Input:
-                    return "Omx.Dir.Input";
+                    return "Input";
                 case Output:
-                    return "Omx.Dir.Output";
+                    return "Output";
                 default:
                     return "(uknnown)";
             }
         }
     }
 
-    [CCode (cname="OMX_ENDIANTYPE", cprefix="OMX_Endian")]
+    [CCode (cname="OMX_ENDIANTYPE", cprefix="OMX_Endian", has_type_id=false)]
     public enum Endian {
         Big,
         Little
     }
 
-    [CCode (cname="OMX_NUMERICALDATATYPE", cprefix="OMX_NumericalData")]
+    [CCode (cname="OMX_NUMERICALDATATYPE", cprefix="OMX_NumericalData", has_type_id=false)]
     public enum NumericalData {
         Signed,
         Unsigned
@@ -493,7 +493,7 @@ namespace Omx {
         public uint32 max;
     }
 
-    [CCode (cname="OMX_INDEXTYPE", cprefix="OMX_Index")]
+    [CCode (cname="OMX_INDEXTYPE", cprefix="OMX_Index", has_type_id=false)]
     public enum Index {
         ComponentStartUnused,
         ParamPriorityMgmt,
@@ -830,7 +830,7 @@ namespace Omx {
         }
     } //ns Config
 
-    [CCode (cname="OMX_COLORBLENDTYPE", cprefix="OMX_ColorBlend")]
+    [CCode (cname="OMX_COLORBLENDTYPE", cprefix="OMX_ColorBlend", has_type_id=false)]
     public enum ColorBlend {
         None,
         AlphaConstant,
@@ -841,7 +841,7 @@ namespace Omx {
         Invert,
     }
 
-    [CCode (cname="OMX_EXPOSURECONTROLTYPE", cprefix="OMX_ExposureControl")]
+    [CCode (cname="OMX_EXPOSURECONTROLTYPE", cprefix="OMX_ExposureControl", has_type_id=false)]
     public enum ExposureControl {
         Off,
         Auto,
@@ -855,7 +855,7 @@ namespace Omx {
         SmallApperture
     }
 
-    [CCode (cname="OMX_MIRRORTYPE", cprefix="OMX_Mirror")]
+    [CCode (cname="OMX_MIRRORTYPE", cprefix="OMX_Mirror", has_type_id=false)]
     public enum Mirror {
         None,
         Vertical,
@@ -863,7 +863,7 @@ namespace Omx {
         Both,
     }
 
-    [CCode (cname="OMX_WHITEBALCONTROLTYPE", cprefix="OMX_WhiteBalControl")]
+    [CCode (cname="OMX_WHITEBALCONTROLTYPE", cprefix="OMX_WhiteBalControl", has_type_id=false)]
     public enum WhiteBalControl {
         Off,
         Auto,
@@ -887,7 +887,7 @@ namespace Omx {
     }
 
     namespace Audio {
-        [CCode (cname="OMX_AUDIO_CODINGTYPE", cprefix="OMX_AUDIO_Coding")]
+        [CCode (cname="OMX_AUDIO_CODINGTYPE", cprefix="OMX_AUDIO_Coding", has_type_id=false)]
         public enum Coding {
             Unused,
             AutoDetect,
@@ -916,10 +916,73 @@ namespace Omx {
             VORBIS,
             WMA,
             RA,
-            MIDI
+            MIDI;
+
+            public string to_string() {
+                switch(this) {
+                    case Unused:
+                        return "Unused";
+                    case AutoDetect:
+                        return "AutoDetect";
+                    case PCM:
+                        return "PCM";
+                    case ADPCM:
+                        return "ADPCM";
+                    case AMR:
+                        return "AMR";
+                    case GSMFR:
+                        return "GSMFR";
+                    case GSMEFR:
+                        return "GSMEFR";
+                    case GSMHR:
+                        return "GSMHR";
+                    case PDCFR:
+                        return "PDCFR";
+                    case PDCEFR:
+                        return "PDCEFR";
+                    case PDCHR:
+                        return "PDCHR";
+                    case TDMAFR:
+                        return "TDMAFR";
+                    case TDMAEFR:
+                        return "TDMAEFR";
+                    case QCELP8:
+                        return "QCELP8";
+                    case QCELP13:
+                        return "QCELP13";
+                    case EVRC:
+                        return "EVRC";
+                    case SMV:
+                        return "SMV";
+                    case G711:
+                        return "G711";
+                    case G723:
+                        return "G723";
+                    case G726:
+                        return "G726";
+                    case G729:
+                        return "G729";
+                    case AAC:
+                        return "AAC";
+                    case MP3:
+                        return "MP3";
+                    case SBC:
+                        return "SBC";
+                    case VORBIS:
+                        return "VORBIS";
+                    case WMA:
+                        return "WMA";
+                    case RA:
+                        return "RA";
+                    case MIDI:
+                        return "MIDI";
+                    default:
+                        return "(unknown)";
+                }
+            }
         }
 
-        [CCode (cname="OMX_AUDIO_PORTDEFINITIONTYPE")]
+        [CCode (cname="OMX_AUDIO_PORTDEFINITIONTYPE", has_type_id="false")]
         public struct PortDefinition {
             [CCode (cname="cMIMEType")]
             public weak string mime_type;
@@ -1125,7 +1188,7 @@ namespace Omx {
             }
         } //ns Param
 
-        [CCode (cname="OMX_AUDIO_PCMMODETYPE", cprefix="OMX_AUDIO_PCMMode")]
+        [CCode (cname="OMX_AUDIO_PCMMODETYPE", cprefix="OMX_AUDIO_PCMMode", has_type_id=false)]
         public enum PcmMode {
             Linear,
             ALaw,
@@ -1135,7 +1198,7 @@ namespace Omx {
         [CCode (cname="OMX_AUDIO_MAXCHANNELS")]
         public const int MAX_CHANNELS;
 
-        [CCode (cname="OMX_AUDIO_CHANNELTYPE", cprefix="OMX_AUDIO_Channel")]
+        [CCode (cname="OMX_AUDIO_CHANNELTYPE", cprefix="OMX_AUDIO_Channel", has_type_id=false)]
         public enum Channel {
             None,
             LF,
@@ -1149,22 +1212,37 @@ namespace Omx {
             RR
         }
 
-        [CCode (cname="OMX_AUDIO_CHANNELMODETYPE", cprefix="OMX_AUDIO_ChannelMode")]
+        [CCode (cname="OMX_AUDIO_CHANNELMODETYPE", cprefix="OMX_AUDIO_ChannelMode", has_type_id=false)]
         public enum ChannelMode {
             Stereo,
             JointStereo,
             Dual,
-            Mono
+            Mono;
+
+            public weak string to_string() {
+                switch(this) {
+                    case Stereo:
+                        return "Stereo";
+                    case JointStereo:
+                        return "Stereo";
+                    case Dual:
+                        return "Stereo";
+                    case Mono:
+                        return "Mono";
+                    default:
+                        return "(unknown)";
+                }
+            }
         }
 
-        [CCode (cname="OMX_AUDIO_MP3STREAMFORMATTYPE", cprefix="OMX_AUDIO_MP3StreamFormat")]
+        [CCode (cname="OMX_AUDIO_MP3STREAMFORMATTYPE", cprefix="OMX_AUDIO_MP3StreamFormat", has_type_id=false)]
         public enum Mp3StreamFormat {
             MP1Layer3,
             MP2Layer3,
             MP2_5Layer3
         }
 
-        [CCode (name="OMX_AUDIO_AACSTREAMFORMATTYPE", cprefix="OMX_AUDIO_AACStreamFormat")]
+        [CCode (name="OMX_AUDIO_AACSTREAMFORMATTYPE", cprefix="OMX_AUDIO_AACStreamFormat", has_type_id=false)]
         public enum AacStreamFormat {
            MP2ADTS,
            MP4ADTS,
@@ -1175,7 +1253,7 @@ namespace Omx {
            RAW
         }
 
-        [CCode (name="OMX_AUDIO_AACPROFILETYPE", cprefix="OMX_AUDIO_AACObject")]
+        [CCode (name="OMX_AUDIO_AACPROFILETYPE", cprefix="OMX_AUDIO_AACObject", has_type_id=false)]
         public enum AacProfile {
           Null,
           Main,
@@ -1190,7 +1268,7 @@ namespace Omx {
         }
 
         [Flags]
-        [CCode (cprefix="OMX_AUDIO_AACTool")]
+        [CCode (cprefix="OMX_AUDIO_AACTool", has_type_id=false)]
         public enum AacTool {
             None,
             MS,
@@ -1201,7 +1279,7 @@ namespace Omx {
         }
 
         [Flags]
-        [CCode (cprefix="OMX_AUDIO_AACER")]
+        [CCode (cprefix="OMX_AUDIO_AACER", has_type_id=false)]
         public enum AacEr {
             None,
             VCB11,
@@ -1210,7 +1288,7 @@ namespace Omx {
             All
         }
 
-        [CCode (cname="OMX_AUDIO_WMAFORMATTYPE", cprefix="OMX_AUDIO_WMAFormat")]
+        [CCode (cname="OMX_AUDIO_WMAFORMATTYPE", cprefix="OMX_AUDIO_WMAFormat", has_type_id=false)]
         public enum WmaFormat {
           Unused,
           @7,
@@ -1218,7 +1296,7 @@ namespace Omx {
           @9
         }
 
-        [CCode (cname="OMX_AUDIO_WMAPROFILETYPE", cprefix="OMX_AUDIO_WMAProfile")]
+        [CCode (cname="OMX_AUDIO_WMAPROFILETYPE", cprefix="OMX_AUDIO_WMAProfile", has_type_id=false)]
         public enum WmaProfile {
           Unused,
           L1,
@@ -1226,7 +1304,7 @@ namespace Omx {
           L3
         }
 
-        [CCode (cname="OMX_AUDIO_AMRFRAMEFORMATTYPE", cprefix="OMX_AUDIO_AMRFrameFormat")]
+        [CCode (cname="OMX_AUDIO_AMRFRAMEFORMATTYPE", cprefix="OMX_AUDIO_AMRFrameFormat", has_type_id=false)]
         public enum AmrFrameFormat {
             Conformance,
             IF1,
@@ -1236,7 +1314,7 @@ namespace Omx {
             ITU
         }
 
-        [CCode (cname="OMX_AUDIO_AMRBANDMODETYPE", cprefix="OMX_AUDIO_AMRBandMode")]
+        [CCode (cname="OMX_AUDIO_AMRBANDMODETYPE", cprefix="OMX_AUDIO_AMRBandMode", has_type_id=false)]
         public enum AmrBandMode {
             Unused,
             NB0,
@@ -1258,7 +1336,7 @@ namespace Omx {
             WB8
         }
 
-        [CCode (cname="OMX_AUDIO_AMRDTXMODETYPE", cprefix="OMX_AUDIO_AMRDTXMode")]
+        [CCode (cname="OMX_AUDIO_AMRDTXMODETYPE", cprefix="OMX_AUDIO_AMRDTXMode", has_type_id=false)]
         public enum AmrDtxMode {
             Off,
             OnVAD1,
@@ -1320,7 +1398,7 @@ namespace Omx {
     } //ns Audio
 
     namespace Video {
-        [CCode (cname="OMX_VIDEO_CODINGTYPE", cprefix="OMX_VIDEO_Coding")]
+        [CCode (cname="OMX_VIDEO_CODINGTYPE", cprefix="OMX_VIDEO_Coding", has_type_id=false)]
         public enum Coding {
             Unused,
             AutoDetect,
@@ -1330,10 +1408,35 @@ namespace Omx {
             WMV,
             RV,
             AVC,
-            MJPEG
+            MJPEG;
+            
+            public weak string to_string() {
+                switch(this) {
+                    case Unused:
+                        return "Unused";
+                    case AutoDetect:
+                        return "AutoDetect";
+                    case MPEG2:
+                        return "MPEG2";
+                    case H263:
+                        return "H263";
+                    case MPEG4:
+                        return "MPEG4";
+                    case WMV:
+                        return "WMV";
+                    case RV:
+                        return "RV";
+                    case AVC:
+                        return "AVC";
+                    case MJPEG:
+                        return "MJPEG";
+                    default:
+                        return "(unknown)";
+                }
+            }
         }
 
-        [CCode (cname="OMX_VIDEO_PORTDEFINITIONTYPE")]
+        [CCode (cname="OMX_VIDEO_PORTDEFINITIONTYPE", has_type_id="false")]
         public struct PortDefinition {
             [CCode (cname="cMIMEType")]
             public weak string mime_type;
@@ -1372,7 +1475,7 @@ namespace Omx {
             public Native.Window native_window;
         }
 
-        [CCode (cname="OMX_VIDEO_AVCLEVELTYPE", cprefix="OMX_VIDEO_AVCLevel")]
+        [CCode (cname="OMX_VIDEO_AVCLEVELTYPE", cprefix="OMX_VIDEO_AVCLevel", has_type_id=false)]
         public enum AvcLevel {
             @1,
             @1b,
@@ -1392,7 +1495,7 @@ namespace Omx {
             @51
         }
 
-        [CCode (cname="OMX_VIDEO_AVCPROFILETYPE", cprefix="OMX_VIDEO_AVCProfile")]
+        [CCode (cname="OMX_VIDEO_AVCPROFILETYPE", cprefix="OMX_VIDEO_AVCProfile", has_type_id=false)]
         public enum AvcProfile {
             Baseline,
             Main,
@@ -1403,14 +1506,14 @@ namespace Omx {
             High444
         }
 
-        [CCode (cname="OMX_VIDEO_AVCLOOPFILTERTYPE", cprefix="OMX_VIDEO_AVCLoopFilter")]
+        [CCode (cname="OMX_VIDEO_AVCLOOPFILTERTYPE", cprefix="OMX_VIDEO_AVCLoopFilter", has_type_id=false)]
         public enum AvcLoopFilter {
             Enable,
             Disable,
             DisableSliceBoundary
         }
 
-        [CCode (cname="OMX_VIDEO_H263LEVELTYPE", cprefix="OMX_VIDEO_H263Level")]
+        [CCode (cname="OMX_VIDEO_H263LEVELTYPE", cprefix="OMX_VIDEO_H263Level", has_type_id=false)]
         public enum H263Level {
             @10,
             @20,
@@ -1422,7 +1525,7 @@ namespace Omx {
             @70
         }
 
-        [CCode (cname="OMX_VIDEO_MPEG4LEVELTYPE", cprefix="OMX_VIDEO_MPEG4Level")]
+        [CCode (cname="OMX_VIDEO_MPEG4LEVELTYPE", cprefix="OMX_VIDEO_MPEG4Level", has_type_id=false)]
         public enum Mpeg4Level {
             @0,
             @0b,
@@ -1434,7 +1537,7 @@ namespace Omx {
             @5
         }
 
-        [CCode (cname="OMX_VIDEO_CONTROLRATETYPE", cprefix="OMX_Video_ControlRate")]
+        [CCode (cname="OMX_VIDEO_CONTROLRATETYPE", cprefix="OMX_Video_ControlRate", has_type_id=false)]
         public enum ControlRate {
             Disable,
             Variable,
@@ -1443,7 +1546,7 @@ namespace Omx {
             ConstantSkipFrames
         }
 
-        [CCode (cname="OMX_VIDEO_H263PROFILETYPE", cprefix="OMX_VIDEO_H263Profile")]
+        [CCode (cname="OMX_VIDEO_H263PROFILETYPE", cprefix="OMX_VIDEO_H263Profile", has_type_id=false)]
         public enum H263Profile {
             Baseline,
             H320Coding,
@@ -1456,7 +1559,7 @@ namespace Omx {
             HighLatency
         }
 
-        [CCode (cname="OMX_VIDEO_MPEG4PROFILETYPE", cprefix="OMX_VIDEO_MPEG4Profile")]
+        [CCode (cname="OMX_VIDEO_MPEG4PROFILETYPE", cprefix="OMX_VIDEO_MPEG4Profile", has_type_id=false)]
         public enum Mpeg4Profile {
             Simple,
             SimpleScalable,
@@ -1651,7 +1754,7 @@ namespace Omx {
     } //ns Video
 
     namespace Image {
-        [CCode (cname="OMX_IMAGE_CODINGTYPE", cprefix="OMX_IMAGE_Coding")]
+        [CCode (cname="OMX_IMAGE_CODINGTYPE", cprefix="OMX_IMAGE_Coding", has_type_id=false)]
         public enum Coding {
             Unused,
             AutoDetect,
@@ -1662,10 +1765,37 @@ namespace Omx {
             GIF,
             PNG,
             LZW,
-            BMP
+            BMP;
+
+            public weak string to_string() {
+                switch(this) {
+                    case Unused:
+                        return "Unused";
+                    case AutoDetect:
+                        return "AutoDetect";
+                    case JPEG:
+                        return "JPEG";
+                    case JPEG2K:
+                        return "JPEG2K";
+                    case EXIF:
+                        return "EXIF";
+                    case TIFF:
+                        return "TIFF";
+                    case GIF:
+                        return "GIF";
+                    case PNG:
+                        return "PNG";
+                    case LZW:
+                        return "LZW";
+                    case BMP:
+                        return "BMP";
+                    default:
+                        return "(unknown)";
+                }
+            }
         }
 
-        [CCode (cname="OMX_IMAGE_PORTDEFINITIONTYPE")]
+        [CCode (cname="OMX_IMAGE_PORTDEFINITIONTYPE", has_type_id="false")]
         public struct PortDefinition {
             [CCode (cname="cMIMEType")]
             public weak string mime_type;
@@ -1708,7 +1838,7 @@ namespace Omx {
     } //ns Image
 
     namespace Color {
-        [CCode (cname="OMX_COLOR_FORMATTYPE", cprefix="OMX_COLOR_Format")]
+        [CCode (cname="OMX_COLOR_FORMATTYPE", cprefix="OMX_COLOR_Format", has_type_id=false)]
         public enum Format {
             Unused,
             Monochrome,
@@ -1766,7 +1896,7 @@ namespace Omx {
             Binary
         }
 
-        [CCode (cname="OMX_OTHER_PORTDEFINITIONTYPE")]
+        [CCode (cname="OMX_OTHER_PORTDEFINITIONTYPE", has_type_id="false")]
         public struct PortDefinition {
             [CCode (cname="eFormat")]
             Format format;
