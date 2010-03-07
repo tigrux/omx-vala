@@ -44,17 +44,17 @@ GType gst_gomx_mp3_dec_get_type (void);
 enum  {
 	GST_GOMX_MP3_DEC_DUMMY_PROPERTY
 };
-static gboolean gst_gomx_mp3_dec_sink_setcaps (GstGOmxMp3Dec* self, GstPad* pad, GstCaps* caps);
+static gboolean gst_gomx_mp3_dec_sink_pad_setcaps (GstGOmxMp3Dec* self, GstPad* pad, GstCaps* caps);
 static gboolean _gst_gomx_mp3_dec_sink_pad_setcaps (GstPad* pad, GstCaps* caps);
-static gboolean gst_gomx_mp3_dec_sink_event (GstGOmxMp3Dec* self, GstPad* pad, GstEvent* event);
+static gboolean gst_gomx_mp3_dec_sink_pad_event (GstGOmxMp3Dec* self, GstPad* pad, GstEvent* event);
 static gboolean _gst_gomx_mp3_dec_sink_pad_event (GstPad* pad, GstEvent* event);
-static GstFlowReturn gst_gomx_mp3_dec_sink_chain (GstGOmxMp3Dec* self, GstPad* pad, GstBuffer* buffer);
+static GstFlowReturn gst_gomx_mp3_dec_sink_pad_chain (GstGOmxMp3Dec* self, GstPad* pad, GstBuffer* buffer);
 static GstFlowReturn _gst_gomx_mp3_dec_sink_pad_chain (GstPad* pad, GstBuffer* buffer);
-static gboolean gst_gomx_mp3_dec_sink_activatepush (GstGOmxMp3Dec* self, GstPad* pad, gboolean active);
+static gboolean gst_gomx_mp3_dec_sink_pad_activatepush (GstGOmxMp3Dec* self, GstPad* pad, gboolean active);
 static gboolean _gst_gomx_mp3_dec_sink_pad_activatepush (GstPad* pad, gboolean active);
 static GstStateChangeReturn gst_gomx_mp3_dec_real_change_state (GstElement* base, GstStateChange transition);
-void gst_gomx_mp3_dec_task (GstGOmxMp3Dec* self);
-static void _gst_gomx_mp3_dec_task_gst_task_function (gpointer self);
+void gst_gomx_mp3_dec_src_pad_task (GstGOmxMp3Dec* self);
+static void _gst_gomx_mp3_dec_src_pad_task_gst_task_function (gpointer self);
 GstGOmxMp3Dec* gst_gomx_mp3_dec_new (void);
 GstGOmxMp3Dec* gst_gomx_mp3_dec_construct (GType object_type);
 static GstFlowReturn __gst_gomx_mp3_dec_sink_pad_chain_gst_pad_chain_function (GstPad* pad, GstBuffer* buffer);
@@ -74,7 +74,7 @@ static gboolean _gst_gomx_mp3_dec_sink_pad_setcaps (GstPad* pad, GstCaps* caps) 
 	GstObject* _tmp0_;
 	g_return_val_if_fail (pad != NULL, FALSE);
 	g_return_val_if_fail (caps != NULL, FALSE);
-	result = gst_gomx_mp3_dec_sink_setcaps ((_tmp0_ = ((GstObject*) pad)->parent, GST_GOMX_IS_MP3_DEC (_tmp0_) ? ((GstGOmxMp3Dec*) _tmp0_) : NULL), pad, caps);
+	result = gst_gomx_mp3_dec_sink_pad_setcaps ((_tmp0_ = ((GstObject*) pad)->parent, GST_GOMX_IS_MP3_DEC (_tmp0_) ? ((GstGOmxMp3Dec*) _tmp0_) : NULL), pad, caps);
 	return result;
 }
 
@@ -89,7 +89,7 @@ static gboolean _gst_gomx_mp3_dec_sink_pad_event (GstPad* pad, GstEvent* event) 
 	GstObject* _tmp0_;
 	g_return_val_if_fail (pad != NULL, FALSE);
 	g_return_val_if_fail (event != NULL, FALSE);
-	result = gst_gomx_mp3_dec_sink_event ((_tmp0_ = ((GstObject*) pad)->parent, GST_GOMX_IS_MP3_DEC (_tmp0_) ? ((GstGOmxMp3Dec*) _tmp0_) : NULL), pad, _gst_event_ref0 (event));
+	result = gst_gomx_mp3_dec_sink_pad_event ((_tmp0_ = ((GstObject*) pad)->parent, GST_GOMX_IS_MP3_DEC (_tmp0_) ? ((GstGOmxMp3Dec*) _tmp0_) : NULL), pad, _gst_event_ref0 (event));
 	_gst_event_unref0 (event);
 	return result;
 	_gst_event_unref0 (event);
@@ -106,7 +106,7 @@ static GstFlowReturn _gst_gomx_mp3_dec_sink_pad_chain (GstPad* pad, GstBuffer* b
 	GstObject* _tmp0_;
 	g_return_val_if_fail (pad != NULL, 0);
 	g_return_val_if_fail (buffer != NULL, 0);
-	result = gst_gomx_mp3_dec_sink_chain ((_tmp0_ = ((GstObject*) pad)->parent, GST_GOMX_IS_MP3_DEC (_tmp0_) ? ((GstGOmxMp3Dec*) _tmp0_) : NULL), pad, _gst_buffer_ref0 (buffer));
+	result = gst_gomx_mp3_dec_sink_pad_chain ((_tmp0_ = ((GstObject*) pad)->parent, GST_GOMX_IS_MP3_DEC (_tmp0_) ? ((GstGOmxMp3Dec*) _tmp0_) : NULL), pad, _gst_buffer_ref0 (buffer));
 	_gst_buffer_unref0 (buffer);
 	return result;
 	_gst_buffer_unref0 (buffer);
@@ -117,7 +117,7 @@ static gboolean _gst_gomx_mp3_dec_sink_pad_activatepush (GstPad* pad, gboolean a
 	gboolean result;
 	GstObject* _tmp0_;
 	g_return_val_if_fail (pad != NULL, FALSE);
-	result = gst_gomx_mp3_dec_sink_activatepush ((_tmp0_ = ((GstObject*) pad)->parent, GST_GOMX_IS_MP3_DEC (_tmp0_) ? ((GstGOmxMp3Dec*) _tmp0_) : NULL), pad, active);
+	result = gst_gomx_mp3_dec_sink_pad_activatepush ((_tmp0_ = ((GstObject*) pad)->parent, GST_GOMX_IS_MP3_DEC (_tmp0_) ? ((GstGOmxMp3Dec*) _tmp0_) : NULL), pad, active);
 	return result;
 }
 
@@ -185,7 +185,7 @@ static gpointer _gst_structure_copy0 (gpointer self) {
 }
 
 
-static gboolean gst_gomx_mp3_dec_sink_setcaps (GstGOmxMp3Dec* self, GstPad* pad, GstCaps* caps) {
+static gboolean gst_gomx_mp3_dec_sink_pad_setcaps (GstGOmxMp3Dec* self, GstPad* pad, GstCaps* caps) {
 	gboolean result;
 	GstStructure* structure;
 	gint rate;
@@ -205,7 +205,7 @@ static gboolean gst_gomx_mp3_dec_sink_setcaps (GstGOmxMp3Dec* self, GstPad* pad,
 }
 
 
-static gboolean gst_gomx_mp3_dec_sink_event (GstGOmxMp3Dec* self, GstPad* pad, GstEvent* event) {
+static gboolean gst_gomx_mp3_dec_sink_pad_event (GstGOmxMp3Dec* self, GstPad* pad, GstEvent* event) {
 	gboolean result;
 	gboolean _result_ = FALSE;
 	g_return_val_if_fail (self != NULL, FALSE);
@@ -248,19 +248,19 @@ static gboolean gst_gomx_mp3_dec_sink_event (GstGOmxMp3Dec* self, GstPad* pad, G
 }
 
 
-static void _gst_gomx_mp3_dec_task_gst_task_function (gpointer self) {
-	gst_gomx_mp3_dec_task (self);
+static void _gst_gomx_mp3_dec_src_pad_task_gst_task_function (gpointer self) {
+	gst_gomx_mp3_dec_src_pad_task (self);
 }
 
 
-static gboolean gst_gomx_mp3_dec_sink_activatepush (GstGOmxMp3Dec* self, GstPad* pad, gboolean active) {
+static gboolean gst_gomx_mp3_dec_sink_pad_activatepush (GstGOmxMp3Dec* self, GstPad* pad, gboolean active) {
 	gboolean result;
 	gboolean _result_ = FALSE;
 	g_return_val_if_fail (self != NULL, FALSE);
 	g_return_val_if_fail (pad != NULL, FALSE);
 	if (active) {
 		g_print ("*** Starting task\n");
-		_result_ = gst_pad_start_task (self->priv->src_pad, _gst_gomx_mp3_dec_task_gst_task_function, self);
+		_result_ = gst_pad_start_task (self->priv->src_pad, _gst_gomx_mp3_dec_src_pad_task_gst_task_function, self);
 	} else {
 		g_print ("*** Stopping task\n");
 		_result_ = gst_pad_stop_task (self->priv->src_pad);
@@ -270,7 +270,7 @@ static gboolean gst_gomx_mp3_dec_sink_activatepush (GstGOmxMp3Dec* self, GstPad*
 }
 
 
-static GstFlowReturn gst_gomx_mp3_dec_sink_chain (GstGOmxMp3Dec* self, GstPad* pad, GstBuffer* buffer) {
+static GstFlowReturn gst_gomx_mp3_dec_sink_pad_chain (GstGOmxMp3Dec* self, GstPad* pad, GstBuffer* buffer) {
 	GstFlowReturn result;
 	g_return_val_if_fail (self != NULL, 0);
 	g_return_val_if_fail (pad != NULL, 0);
@@ -282,7 +282,7 @@ static GstFlowReturn gst_gomx_mp3_dec_sink_chain (GstGOmxMp3Dec* self, GstPad* p
 }
 
 
-void gst_gomx_mp3_dec_task (GstGOmxMp3Dec* self) {
+void gst_gomx_mp3_dec_src_pad_task (GstGOmxMp3Dec* self) {
 	g_return_if_fail (self != NULL);
 	g_print ("*** Pad tasking\n");
 	gst_pad_pause_task (self->priv->src_pad);

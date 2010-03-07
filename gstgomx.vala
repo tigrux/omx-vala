@@ -1,26 +1,6 @@
 namespace GstGOmx {
 
     class Mp3Dec: Gst.Element {
-        static bool _sink_pad_setcaps(Gst.Pad pad, Gst.Caps caps) {
-            return (pad.parent as Mp3Dec).sink_setcaps(pad, caps);
-        }
-
-
-        static bool _sink_pad_event(Gst.Pad pad, owned Gst.Event event) {
-            return (pad.parent as Mp3Dec).sink_event(pad, event);
-        }
-
-
-        static Gst.FlowReturn _sink_pad_chain(Gst.Pad pad, owned Gst.Buffer buffer) {
-            return (pad.parent as Mp3Dec).sink_chain(pad, buffer);
-        }
-
-
-        static bool _sink_pad_activatepush(Gst.Pad pad, bool active) {
-            return (pad.parent as Mp3Dec).sink_activatepush(pad, active);
-        }
-
-
         Gst.Pad src_pad;
         Gst.Pad sink_pad;
 
@@ -58,6 +38,24 @@ namespace GstGOmx {
                         "channels", typeof(Gst.IntRange), 1, 8,
                         "parsed", typeof(bool), true,
                         null)));
+        }
+
+
+        static bool _sink_pad_setcaps(Gst.Pad pad, Gst.Caps caps) {
+            return (pad.parent as Mp3Dec).sink_pad_setcaps(pad, caps);
+        }
+
+        static bool _sink_pad_event(Gst.Pad pad, owned Gst.Event event) {
+            return (pad.parent as Mp3Dec).sink_pad_event(pad, event);
+        }
+
+        static Gst.FlowReturn _sink_pad_chain(
+                Gst.Pad pad, owned Gst.Buffer buffer) {
+            return (pad.parent as Mp3Dec).sink_pad_chain(pad, buffer);
+        }
+
+        static bool _sink_pad_activatepush(Gst.Pad pad, bool active) {
+            return (pad.parent as Mp3Dec).sink_pad_activatepush(pad, active);
         }
 
 
@@ -116,7 +114,7 @@ namespace GstGOmx {
         }
 
 
-        bool sink_setcaps(Gst.Pad pad, Gst.Caps caps) {
+        bool sink_pad_setcaps(Gst.Pad pad, Gst.Caps caps) {
             var structure = caps.get_structure(0);
             int rate = 0;
             int channels = 0;
@@ -130,7 +128,7 @@ namespace GstGOmx {
         }
 
 
-        bool sink_event(Gst.Pad pad, owned Gst.Event event) {
+        bool sink_pad_event(Gst.Pad pad, owned Gst.Event event) {
             bool result;
 
             switch(event.type) {
@@ -159,11 +157,11 @@ namespace GstGOmx {
         }
 
 
-        bool sink_activatepush(Gst.Pad pad, bool active) {
+        bool sink_pad_activatepush(Gst.Pad pad, bool active) {
             bool result;
             if(active) {
                 print("*** Starting task\n");
-                result = src_pad.start_task(task);
+                result = src_pad.start_task(src_pad_task);
             }
             else {
                 print("*** Stopping task\n");
@@ -174,14 +172,14 @@ namespace GstGOmx {
         }
 
 
-        Gst.FlowReturn sink_chain(Gst.Pad pad, owned Gst.Buffer buffer) {
+        Gst.FlowReturn sink_pad_chain(Gst.Pad pad, owned Gst.Buffer buffer) {
             print("** Chaining: %d\n", buffer.data.length);
             
             return Gst.FlowReturn.OK;
         }
 
 
-        public void task() {
+        public void src_pad_task() {
             print("*** Pad tasking\n");
             src_pad.pause_task();
         }
