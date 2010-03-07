@@ -35,8 +35,8 @@ gint _main (char** args, int args_length1) {
 	{
 		play (args[1], &_inner_error_);
 		if (_inner_error_ != NULL) {
-			if (_inner_error_->domain == G_OMX_ERROR) {
-				goto __catch0_g_omx_error;
+			if (_inner_error_->domain == GOMX_ERROR) {
+				goto __catch0_gomx_error;
 			}
 			if (_inner_error_->domain == G_FILE_ERROR) {
 				goto __catch0_g_file_error;
@@ -49,7 +49,7 @@ gint _main (char** args, int args_length1) {
 		return result;
 	}
 	goto __finally0;
-	__catch0_g_omx_error:
+	__catch0_gomx_error:
 	{
 		GError * e;
 		e = _inner_error_;
@@ -108,7 +108,7 @@ void play (const char* filename, GError** error) {
 	if (fd == NULL) {
 		_inner_error_ = g_error_new (G_FILE_ERROR, G_FILE_ERROR_FAILED, "Error opening %s", filename);
 		{
-			if ((_inner_error_->domain == G_FILE_ERROR) || (_inner_error_->domain == G_OMX_ERROR)) {
+			if ((_inner_error_->domain == G_FILE_ERROR) || (_inner_error_->domain == GOMX_ERROR)) {
 				g_propagate_error (error, _inner_error_);
 				_fclose0 (fd);
 				return;
@@ -121,9 +121,9 @@ void play (const char* filename, GError** error) {
 		}
 	}
 	library = g_strdup ("libomxil-bellagio.so.0");
-	core = g_omx_load_library (library, &_inner_error_);
+	core = gomx_load_library (library, &_inner_error_);
 	if (_inner_error_ != NULL) {
-		if ((_inner_error_->domain == G_FILE_ERROR) || (_inner_error_->domain == G_OMX_ERROR)) {
+		if ((_inner_error_->domain == G_FILE_ERROR) || (_inner_error_->domain == GOMX_ERROR)) {
 			g_propagate_error (error, _inner_error_);
 			_fclose0 (fd);
 			_g_free0 (library);
@@ -136,41 +136,18 @@ void play (const char* filename, GError** error) {
 			return;
 		}
 	}
-	decoder = g_omx_audio_component_new ("OMX.st.audio_decoder.mp3.mad");
-	g_omx_component_set_name ((GOmxComponent*) decoder, "decoder");
-	g_omx_component_set_library_name ((GOmxComponent*) decoder, library);
-	sink = g_omx_audio_component_new ("OMX.st.alsa.alsasink");
-	g_omx_component_set_name ((GOmxComponent*) sink, "sink");
-	g_omx_component_set_library_name ((GOmxComponent*) sink, library);
-	engine = g_omx_engine_new ();
-	g_omx_engine_add_component (engine, (GOmxComponent*) decoder);
-	g_omx_engine_add_component (engine, (GOmxComponent*) sink);
-	g_omx_core_init (core, &_inner_error_);
+	decoder = gomx_audio_component_new ("OMX.st.audio_decoder.mp3.mad");
+	gomx_component_set_name ((GOmxComponent*) decoder, "decoder");
+	gomx_component_set_library_name ((GOmxComponent*) decoder, library);
+	sink = gomx_audio_component_new ("OMX.st.alsa.alsasink");
+	gomx_component_set_name ((GOmxComponent*) sink, "sink");
+	gomx_component_set_library_name ((GOmxComponent*) sink, library);
+	engine = gomx_engine_new ();
+	gomx_engine_add_component (engine, (GOmxComponent*) decoder);
+	gomx_engine_add_component (engine, (GOmxComponent*) sink);
+	gomx_core_init (core, &_inner_error_);
 	if (_inner_error_ != NULL) {
-		if ((_inner_error_->domain == G_FILE_ERROR) || (_inner_error_->domain == G_OMX_ERROR)) {
-			g_propagate_error (error, _inner_error_);
-			_fclose0 (fd);
-			_g_free0 (library);
-			_g_object_unref0 (core);
-			_g_object_unref0 (decoder);
-			_g_object_unref0 (sink);
-			_g_object_unref0 (engine);
-			return;
-		} else {
-			_fclose0 (fd);
-			_g_free0 (library);
-			_g_object_unref0 (core);
-			_g_object_unref0 (decoder);
-			_g_object_unref0 (sink);
-			_g_object_unref0 (engine);
-			g_critical ("file %s: line %d: uncaught error: %s (%s, %d)", __FILE__, __LINE__, _inner_error_->message, g_quark_to_string (_inner_error_->domain), _inner_error_->code);
-			g_clear_error (&_inner_error_);
-			return;
-		}
-	}
-	g_omx_component_list_init (g_omx_engine_get_components (engine), &_inner_error_);
-	if (_inner_error_ != NULL) {
-		if ((_inner_error_->domain == G_FILE_ERROR) || (_inner_error_->domain == G_OMX_ERROR)) {
+		if ((_inner_error_->domain == G_FILE_ERROR) || (_inner_error_->domain == GOMX_ERROR)) {
 			g_propagate_error (error, _inner_error_);
 			_fclose0 (fd);
 			_g_free0 (library);
@@ -191,9 +168,9 @@ void play (const char* filename, GError** error) {
 			return;
 		}
 	}
-	g_omx_component_list_set_state_and_wait (g_omx_engine_get_components (engine), OMX_StateIdle, &_inner_error_);
+	gomx_component_list_init (gomx_engine_get_components (engine), &_inner_error_);
 	if (_inner_error_ != NULL) {
-		if ((_inner_error_->domain == G_FILE_ERROR) || (_inner_error_->domain == G_OMX_ERROR)) {
+		if ((_inner_error_->domain == G_FILE_ERROR) || (_inner_error_->domain == GOMX_ERROR)) {
 			g_propagate_error (error, _inner_error_);
 			_fclose0 (fd);
 			_g_free0 (library);
@@ -214,9 +191,9 @@ void play (const char* filename, GError** error) {
 			return;
 		}
 	}
-	g_omx_component_list_set_state_and_wait (g_omx_engine_get_components (engine), OMX_StateExecuting, &_inner_error_);
+	gomx_component_list_set_state_and_wait (gomx_engine_get_components (engine), OMX_StateIdle, &_inner_error_);
 	if (_inner_error_ != NULL) {
-		if ((_inner_error_->domain == G_FILE_ERROR) || (_inner_error_->domain == G_OMX_ERROR)) {
+		if ((_inner_error_->domain == G_FILE_ERROR) || (_inner_error_->domain == GOMX_ERROR)) {
 			g_propagate_error (error, _inner_error_);
 			_fclose0 (fd);
 			_g_free0 (library);
@@ -237,9 +214,32 @@ void play (const char* filename, GError** error) {
 			return;
 		}
 	}
-	g_omx_component_list_buffers_begin_transfer (g_omx_engine_get_components (engine), &_inner_error_);
+	gomx_component_list_set_state_and_wait (gomx_engine_get_components (engine), OMX_StateExecuting, &_inner_error_);
 	if (_inner_error_ != NULL) {
-		if ((_inner_error_->domain == G_FILE_ERROR) || (_inner_error_->domain == G_OMX_ERROR)) {
+		if ((_inner_error_->domain == G_FILE_ERROR) || (_inner_error_->domain == GOMX_ERROR)) {
+			g_propagate_error (error, _inner_error_);
+			_fclose0 (fd);
+			_g_free0 (library);
+			_g_object_unref0 (core);
+			_g_object_unref0 (decoder);
+			_g_object_unref0 (sink);
+			_g_object_unref0 (engine);
+			return;
+		} else {
+			_fclose0 (fd);
+			_g_free0 (library);
+			_g_object_unref0 (core);
+			_g_object_unref0 (decoder);
+			_g_object_unref0 (sink);
+			_g_object_unref0 (engine);
+			g_critical ("file %s: line %d: uncaught error: %s (%s, %d)", __FILE__, __LINE__, _inner_error_->message, g_quark_to_string (_inner_error_->domain), _inner_error_->code);
+			g_clear_error (&_inner_error_);
+			return;
+		}
+	}
+	gomx_component_list_buffers_begin_transfer (gomx_engine_get_components (engine), &_inner_error_);
+	if (_inner_error_ != NULL) {
+		if ((_inner_error_->domain == G_FILE_ERROR) || (_inner_error_->domain == GOMX_ERROR)) {
 			g_propagate_error (error, _inner_error_);
 			_fclose0 (fd);
 			_g_free0 (library);
@@ -264,28 +264,28 @@ void play (const char* filename, GError** error) {
 	n_buffers_out = 0;
 	{
 		GOmxPortDoneQueueIterator* _port_it;
-		_port_it = g_omx_port_done_queue_iterator (g_omx_engine_get_ports_with_buffer_done (engine));
+		_port_it = gomx_port_done_queue_iterator (gomx_engine_get_ports_with_buffer_done (engine));
 		while (TRUE) {
 			GOmxPort* port;
 			GQuark _tmp4_;
 			const char* _tmp3_;
 			static GQuark _tmp4__label0 = 0;
 			static GQuark _tmp4__label1 = 0;
-			if (!g_omx_port_done_queue_iterator_next (_port_it)) {
+			if (!gomx_port_done_queue_iterator_next (_port_it)) {
 				break;
 			}
-			port = g_omx_port_done_queue_iterator_get (_port_it);
-			_tmp3_ = g_omx_component_get_name (g_omx_port_get_component (port));
+			port = gomx_port_done_queue_iterator_get (_port_it);
+			_tmp3_ = gomx_component_get_name (gomx_port_get_component (port));
 			_tmp4_ = (NULL == _tmp3_) ? 0 : g_quark_from_string (_tmp3_);
 			if (_tmp4_ == ((0 != _tmp4__label0) ? _tmp4__label0 : (_tmp4__label0 = g_quark_from_static_string ("decoder"))))
 			do {
-				if (g_omx_port_get_is_input (port)) {
+				if (gomx_port_get_is_input (port)) {
 					OMX_BUFFERHEADERTYPE* buffer;
-					buffer = g_omx_port_pop_buffer (port);
-					g_omx_buffer_read_from_file (buffer, fd);
-					g_omx_port_push_buffer (port, buffer, &_inner_error_);
+					buffer = gomx_port_pop_buffer (port);
+					gomx_buffer_read_from_file (buffer, fd);
+					gomx_port_push_buffer (port, buffer, &_inner_error_);
 					if (_inner_error_ != NULL) {
-						if ((_inner_error_->domain == G_FILE_ERROR) || (_inner_error_->domain == G_OMX_ERROR)) {
+						if ((_inner_error_->domain == G_FILE_ERROR) || (_inner_error_->domain == GOMX_ERROR)) {
 							g_propagate_error (error, _inner_error_);
 							_g_object_unref0 (port);
 							_g_object_unref0 (_port_it);
@@ -312,18 +312,18 @@ void play (const char* filename, GError** error) {
 					}
 					n_buffers_in++;
 				}
-				if (g_omx_port_get_is_output (port)) {
+				if (gomx_port_get_is_output (port)) {
 					OMX_BUFFERHEADERTYPE* buffer;
 					GOmxPort* _tmp0_;
 					OMX_BUFFERHEADERTYPE* _tmp1_;
 					OMX_BUFFERHEADERTYPE* sink_buffer;
 					GOmxPort* _tmp2_;
-					buffer = g_omx_port_pop_buffer (port);
-					sink_buffer = (_tmp1_ = g_omx_port_pop_buffer (_tmp0_ = g_omx_port_array_get (g_omx_component_get_ports ((GOmxComponent*) sink), (guint) 0)), _g_object_unref0 (_tmp0_), _tmp1_);
-					g_omx_buffer_copy (sink_buffer, buffer);
-					g_omx_port_push_buffer (_tmp2_ = g_omx_port_array_get (g_omx_component_get_ports ((GOmxComponent*) sink), (guint) 0), sink_buffer, &_inner_error_);
+					buffer = gomx_port_pop_buffer (port);
+					sink_buffer = (_tmp1_ = gomx_port_pop_buffer (_tmp0_ = gomx_port_array_get (gomx_component_get_ports ((GOmxComponent*) sink), (guint) 0)), _g_object_unref0 (_tmp0_), _tmp1_);
+					gomx_buffer_copy (sink_buffer, buffer);
+					gomx_port_push_buffer (_tmp2_ = gomx_port_array_get (gomx_component_get_ports ((GOmxComponent*) sink), (guint) 0), sink_buffer, &_inner_error_);
 					if (_inner_error_ != NULL) {
-						if ((_inner_error_->domain == G_FILE_ERROR) || (_inner_error_->domain == G_OMX_ERROR)) {
+						if ((_inner_error_->domain == G_FILE_ERROR) || (_inner_error_->domain == GOMX_ERROR)) {
 							g_propagate_error (error, _inner_error_);
 							_g_object_unref0 (port);
 							_g_object_unref0 (_port_it);
@@ -349,9 +349,9 @@ void play (const char* filename, GError** error) {
 						}
 					}
 					_g_object_unref0 (_tmp2_);
-					g_omx_port_push_buffer (port, buffer, &_inner_error_);
+					gomx_port_push_buffer (port, buffer, &_inner_error_);
 					if (_inner_error_ != NULL) {
-						if ((_inner_error_->domain == G_FILE_ERROR) || (_inner_error_->domain == G_OMX_ERROR)) {
+						if ((_inner_error_->domain == G_FILE_ERROR) || (_inner_error_->domain == GOMX_ERROR)) {
 							g_propagate_error (error, _inner_error_);
 							_g_object_unref0 (port);
 							_g_object_unref0 (_port_it);
@@ -389,9 +389,9 @@ void play (const char* filename, GError** error) {
 	}
 	g_print ("%d buffers were read\n", n_buffers_in);
 	g_print ("%d buffers were rendered\n", n_buffers_out);
-	g_omx_component_list_set_state_and_wait (g_omx_engine_get_components (engine), OMX_StateIdle, &_inner_error_);
+	gomx_component_list_set_state_and_wait (gomx_engine_get_components (engine), OMX_StateIdle, &_inner_error_);
 	if (_inner_error_ != NULL) {
-		if ((_inner_error_->domain == G_FILE_ERROR) || (_inner_error_->domain == G_OMX_ERROR)) {
+		if ((_inner_error_->domain == G_FILE_ERROR) || (_inner_error_->domain == GOMX_ERROR)) {
 			g_propagate_error (error, _inner_error_);
 			_fclose0 (fd);
 			_g_free0 (library);
@@ -412,9 +412,9 @@ void play (const char* filename, GError** error) {
 			return;
 		}
 	}
-	g_omx_component_list_set_state_and_wait (g_omx_engine_get_components (engine), OMX_StateLoaded, &_inner_error_);
+	gomx_component_list_set_state_and_wait (gomx_engine_get_components (engine), OMX_StateLoaded, &_inner_error_);
 	if (_inner_error_ != NULL) {
-		if ((_inner_error_->domain == G_FILE_ERROR) || (_inner_error_->domain == G_OMX_ERROR)) {
+		if ((_inner_error_->domain == G_FILE_ERROR) || (_inner_error_->domain == GOMX_ERROR)) {
 			g_propagate_error (error, _inner_error_);
 			_fclose0 (fd);
 			_g_free0 (library);
@@ -435,9 +435,9 @@ void play (const char* filename, GError** error) {
 			return;
 		}
 	}
-	g_omx_component_list_free_handles (g_omx_engine_get_components (engine), &_inner_error_);
+	gomx_component_list_free_handles (gomx_engine_get_components (engine), &_inner_error_);
 	if (_inner_error_ != NULL) {
-		if ((_inner_error_->domain == G_FILE_ERROR) || (_inner_error_->domain == G_OMX_ERROR)) {
+		if ((_inner_error_->domain == G_FILE_ERROR) || (_inner_error_->domain == GOMX_ERROR)) {
 			g_propagate_error (error, _inner_error_);
 			_fclose0 (fd);
 			_g_free0 (library);
@@ -458,9 +458,9 @@ void play (const char* filename, GError** error) {
 			return;
 		}
 	}
-	g_omx_core_deinit (core, &_inner_error_);
+	gomx_core_deinit (core, &_inner_error_);
 	if (_inner_error_ != NULL) {
-		if ((_inner_error_->domain == G_FILE_ERROR) || (_inner_error_->domain == G_OMX_ERROR)) {
+		if ((_inner_error_->domain == G_FILE_ERROR) || (_inner_error_->domain == GOMX_ERROR)) {
 			g_propagate_error (error, _inner_error_);
 			_fclose0 (fd);
 			_g_free0 (library);
