@@ -235,7 +235,7 @@ namespace GstGOmx {
                     print("*** Sending eos to omx\n");
                     var omx_buffer = input_port.pop_buffer();
                     omx_buffer.offset = 0;
-                    omx_buffer.length = 1;
+                    omx_buffer.length = 0;
                     GOmx.buffer_set_eos(omx_buffer);
                     input_port.push_buffer(omx_buffer);
                     return true;
@@ -288,7 +288,7 @@ namespace GstGOmx {
                     configure_output();
 
                 var omx_buffer = output_port.pop_buffer();
-                if(GOmx.buffer_is_eos(omx_buffer)) {
+                if(output_port.eos) {
                     print("*** Should stop now\n");
                     eos = true;
                     src_pad.pause_task();

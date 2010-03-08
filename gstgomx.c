@@ -351,6 +351,7 @@ static GstStateChangeReturn gst_gomx_mp3_dec_real_change_state (GstElement* base
 		case GST_STATE_CHANGE_READY_TO_NULL:
 		{
 			{
+				GOmxAudioComponent* _tmp2_;
 				gomx_component_set_state_and_wait ((GOmxComponent*) self->priv->component, OMX_StateLoaded, &_inner_error_);
 				if (_inner_error_ != NULL) {
 					if (_inner_error_->domain == GOMX_ERROR) {
@@ -369,6 +370,7 @@ static GstStateChangeReturn gst_gomx_mp3_dec_real_change_state (GstElement* base
 					g_clear_error (&_inner_error_);
 					return 0;
 				}
+				self->priv->component = (_tmp2_ = NULL, _g_object_unref0 (self->priv->component), _tmp2_);
 			}
 			goto __finally3;
 			__catch3_gomx_error:
@@ -478,7 +480,7 @@ static gboolean gst_gomx_mp3_dec_sink_pad_event_eos (GstGOmxMp3Dec* self, GstPad
 			g_print ("*** Sending eos to omx\n");
 			omx_buffer = gomx_port_pop_buffer (self->priv->input_port);
 			omx_buffer->nOffset = (guint32) 0;
-			omx_buffer->nFilledLen = (guint32) 1;
+			omx_buffer->nFilledLen = (guint32) 0;
 			gomx_buffer_set_eos (omx_buffer);
 			gomx_port_push_buffer (self->priv->input_port, omx_buffer, &_inner_error_);
 			if (_inner_error_ != NULL) {
@@ -637,7 +639,7 @@ void gst_gomx_mp3_dec_src_pad_task (GstGOmxMp3Dec* self) {
 			}
 		}
 		omx_buffer = gomx_port_pop_buffer (self->priv->output_port);
-		if (gomx_buffer_is_eos (omx_buffer)) {
+		if (gomx_port_get_eos (self->priv->output_port)) {
 			g_print ("*** Should stop now\n");
 			self->priv->eos = TRUE;
 			gst_pad_pause_task (self->priv->src_pad);

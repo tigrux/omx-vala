@@ -804,12 +804,13 @@ OMX_STATETYPE gomx_component_get_state (GOmxComponent* self, GError** error);
 static OMX_STATETYPE gomx_component_real_get_state (GOmxComponent* self, GError** error);
 void gomx_component_event_set_function (GOmxComponent* self, OMX_EVENTTYPE event, GOmxComponentEventFunc event_function, void* event_function_target);
 void gomx_semaphore_up (GOmxSemaphore* self);
+GOmxPortArray* gomx_component_get_ports (GOmxComponent* self);
 GOmxPort* gomx_port_array_get (GOmxPortArray* self, guint index);
+void gomx_port_set_eos (GOmxPort* self);
 static OMX_ERRORTYPE gomx_component_buffer_done (GOmxComponent* self, GOmxPort* port, OMX_BUFFERHEADERTYPE* buffer);
 GAsyncQueue* gomx_port_get_queue (GOmxPort* self);
 void gomx_port_buffer_done (GOmxPort* self, OMX_BUFFERHEADERTYPE* buffer);
 void* gomx_component_get_handle (GOmxComponent* self);
-GOmxPortArray* gomx_component_get_ports (GOmxComponent* self);
 GAsyncQueue* gomx_component_get_queue (GOmxComponent* self);
 GOmxCore* gomx_component_get_core (GOmxComponent* self);
 guint gomx_component_get_init_index (GOmxComponent* self);
@@ -3041,6 +3042,11 @@ static OMX_ERRORTYPE gomx_component_event_handler (GOmxComponent* self, void* co
 		}
 		case OMX_EventBufferFlag:
 		{
+			if ((data2 & OMX_BUFFERFLAG_EOS) != 0) {
+				GOmxPort* _tmp0_;
+				gomx_port_set_eos (_tmp0_ = gomx_port_array_get (gomx_component_get_ports (self), (guint) data1));
+				_g_object_unref0 (_tmp0_);
+			}
 			if (self->priv->_event_func_4 != NULL) {
 				self->priv->_event_func_4 (self, (guint) data1, (guint) data2, event_data, self->priv->_event_func_4_target);
 			}
@@ -4100,13 +4106,19 @@ void gomx_port_free_buffers (GOmxPort* self, GError** error) {
 }
 
 
+void gomx_port_set_eos (GOmxPort* self) {
+	g_return_if_fail (self != NULL);
+	self->priv->_eos = TRUE;
+}
+
+
 OMX_BUFFERHEADERTYPE* gomx_port_pop_buffer (GOmxPort* self) {
 	OMX_BUFFERHEADERTYPE* result;
 	OMX_BUFFERHEADERTYPE* buffer;
 	g_return_val_if_fail (self != NULL, NULL);
 	buffer = (OMX_BUFFERHEADERTYPE*) g_async_queue_pop (self->priv->_buffers_queue);
 	if (gomx_buffer_is_eos (buffer)) {
-		self->priv->_eos = TRUE;
+		gomx_port_set_eos (self);
 	}
 	result = buffer;
 	return result;

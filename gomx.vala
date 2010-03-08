@@ -835,6 +835,8 @@ namespace GOmx {
                     break;
 
                 case Omx.Event.BufferFlag:
+                    if((data2 & Omx.BufferFlag.EOS) != 0)
+                        ports[data1].set_eos();
                     if(_event_func_4 != null)
                         _event_func_4(this, data1, data2, event_data);
                     break;
@@ -1216,10 +1218,15 @@ namespace GOmx {
         }
 
 
+        internal void set_eos() {
+            _eos = true;
+        }
+
+
         public Omx.BufferHeader pop_buffer() {
             var buffer = _buffers_queue.pop();
             if(buffer_is_eos(buffer))
-                _eos = true;
+                set_eos();
             return buffer;
         }
 
