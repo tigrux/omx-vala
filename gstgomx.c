@@ -786,12 +786,14 @@ static void gst_gomx_mp3_dec_finalize (GObject* obj) {
 
 
 GType gst_gomx_mp3_dec_get_type (void) {
-	static GType gst_gomx_mp3_dec_type_id = 0;
-	if (gst_gomx_mp3_dec_type_id == 0) {
+	static volatile gsize gst_gomx_mp3_dec_type_id__volatile = 0;
+	if (g_once_init_enter (&gst_gomx_mp3_dec_type_id__volatile)) {
 		static const GTypeInfo g_define_type_info = { sizeof (GstGOmxMp3DecClass), (GBaseInitFunc) gst_gomx_mp3_dec_base_init, (GBaseFinalizeFunc) NULL, (GClassInitFunc) gst_gomx_mp3_dec_class_init, (GClassFinalizeFunc) NULL, NULL, sizeof (GstGOmxMp3Dec), 0, (GInstanceInitFunc) gst_gomx_mp3_dec_instance_init, NULL };
+		GType gst_gomx_mp3_dec_type_id;
 		gst_gomx_mp3_dec_type_id = g_type_register_static (GST_TYPE_ELEMENT, "GstGOmxMp3Dec", &g_define_type_info, 0);
+		g_once_init_leave (&gst_gomx_mp3_dec_type_id__volatile, gst_gomx_mp3_dec_type_id);
 	}
-	return gst_gomx_mp3_dec_type_id;
+	return gst_gomx_mp3_dec_type_id__volatile;
 }
 
 
