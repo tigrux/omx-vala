@@ -162,8 +162,6 @@ namespace GstGOmx {
                         return Gst.StateChangeReturn.FAILURE;
                     }
                     break;
-                case Gst.StateChange.PAUSED_TO_PLAYING:
-                    break;
                 default:
                     break;
             }
@@ -173,8 +171,6 @@ namespace GstGOmx {
                 return Gst.StateChangeReturn.FAILURE;
 
             switch (transition) {
-                case Gst.StateChange.PLAYING_TO_PAUSED:
-                    break;
                 case Gst.StateChange.PAUSED_TO_READY:
                     try {
                         component.set_state_and_wait(Omx.State.Idle);
@@ -213,12 +209,6 @@ namespace GstGOmx {
             switch(event.type) {
                 case Gst.EventType.EOS:
                     return sink_pad_event_eos(pad, event);
-                case Gst.EventType.FLUSH_START:
-                    return src_pad.push_event(event);
-                case Gst.EventType.FLUSH_STOP:
-                    return src_pad.push_event(event);
-                case Gst.EventType.NEWSEGMENT:
-                    return src_pad.push_event(event);
                 default:
                     return src_pad.push_event(event);
             }

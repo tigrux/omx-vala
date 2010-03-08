@@ -298,10 +298,6 @@ static GstStateChangeReturn gst_gomx_mp3_dec_real_change_state (GstElement* base
 			}
 			break;
 		}
-		case GST_STATE_CHANGE_PAUSED_TO_PLAYING:
-		{
-			break;
-		}
 		default:
 		{
 			break;
@@ -312,10 +308,6 @@ static GstStateChangeReturn gst_gomx_mp3_dec_real_change_state (GstElement* base
 		return result;
 	}
 	switch (transition) {
-		case GST_STATE_CHANGE_PLAYING_TO_PAUSED:
-		{
-			break;
-		}
 		case GST_STATE_CHANGE_PAUSED_TO_READY:
 		{
 			{
@@ -430,24 +422,6 @@ static gboolean gst_gomx_mp3_dec_sink_pad_event (GstGOmxMp3Dec* self, GstPad* pa
 		case GST_EVENT_EOS:
 		{
 			result = gst_gomx_mp3_dec_sink_pad_event_eos (self, pad, _gst_event_ref0 (event));
-			_gst_event_unref0 (event);
-			return result;
-		}
-		case GST_EVENT_FLUSH_START:
-		{
-			result = gst_pad_push_event (self->priv->src_pad, _gst_event_ref0 (event));
-			_gst_event_unref0 (event);
-			return result;
-		}
-		case GST_EVENT_FLUSH_STOP:
-		{
-			result = gst_pad_push_event (self->priv->src_pad, _gst_event_ref0 (event));
-			_gst_event_unref0 (event);
-			return result;
-		}
-		case GST_EVENT_NEWSEGMENT:
-		{
-			result = gst_pad_push_event (self->priv->src_pad, _gst_event_ref0 (event));
 			_gst_event_unref0 (event);
 			return result;
 		}
