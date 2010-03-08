@@ -25,12 +25,13 @@ namespace GOmx {
 		public delegate void EventFunc (GOmx.Component component, uint data1, uint data2, void* event_data);
 		public uint id;
 		public Component (string name, Omx.Index index);
-		protected virtual void allocate_ports () throws GOmx.Error;
+		protected virtual void allocate_buffers () throws GOmx.Error;
+		protected virtual void allocate_ports ();
 		public virtual void buffers_begin_transfer () throws GOmx.Error;
 		public Omx.Error can_set_state (Omx.State next_state);
 		public void event_set_function (Omx.Event event, GOmx.Component.EventFunc event_function);
+		protected virtual void free_buffers () throws GOmx.Error;
 		public virtual void free_handle () throws GOmx.Error;
-		protected virtual void free_ports () throws GOmx.Error;
 		public virtual Omx.State get_state () throws GOmx.Error;
 		public virtual void init () throws GOmx.Error;
 		protected virtual void set_role (string component_role);

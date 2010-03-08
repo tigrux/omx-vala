@@ -555,10 +555,12 @@ namespace GOmx {
             if(_library_name == null || _library_name == "")
                 throw new Error.BadParameter(
                     "No library has been defined for component '%s'", _name);
+
             _core = LibraryLoader.get_library(_library_name);
             if(_core == null)
                 throw new Error.BadParameter(
                     "There is no core for library '%s'", _library_name);
+
             _core.get_handle(
                 out _handle, _component_name,
                 this, callbacks);
@@ -567,11 +569,30 @@ namespace GOmx {
             try_run(
                 _handle.get_parameter(_init_index, ports_param));
 
+            allocate_ports();
+
             if(_component_role != "" && component_role != null)
                 set_role(_component_role);
 
             _pending_state = Omx.State.Loaded;
             _current_state = Omx.State.Loaded;
+        }
+
+
+        protected virtual void allocate_ports() {
+            var start_port = ports_param.start_port_number;
+            var n_ports = ports_param.ports;
+            var last_port = start_port +  n_ports;
+
+            _ports = new PortArray(n_ports, start_port);
+
+            uint i = start_port;
+            while(i < last_port) {
+                var port = new Port(this, i);
+                port.name = "%s_port%u".printf(name, i);
+                _ports[i] = port;
+                i++;
+            }
         }
 
 
@@ -613,30 +634,20 @@ namespace GOmx {
         }
 
 
-        protected virtual void allocate_ports()
-        throws Error requires(_ports == null) {
-            var start_port = ports_param.start_port_number;
-            var last_port = start_port +  ports_param.ports;
-
-            _ports = new PortArray(ports_param.ports, start_port);
-            uint i = start_port;
-            while(i < last_port) {
-                var port = new Port(this, i);
+        protected virtual void allocate_buffers()
+        throws Error requires(_ports != null) {
+            foreach(var port in _ports) {
                 port.init();
-                port.name = "%s_port%u".printf(name, i);
                 if(!_no_allocate_buffers)
                     port.allocate_buffers();
-                _ports[i] = port;
-                i++;
             }
         }
 
 
-        protected virtual void free_ports()
+        protected virtual void free_buffers()
         throws Error requires(_ports != null) {
             foreach(var port in _ports)
                 port.free_buffers();
-            _ports = null;
         }
 
 
@@ -671,11 +682,11 @@ namespace GOmx {
                 _handle.send_command(Omx.Command.StateSet, state));
             if(_current_state == Omx.State.Loaded &&
                _pending_state == Omx.State.Idle)
-                allocate_ports();
+                allocate_buffers();
             else
             if(_current_state == Omx.State.Idle &&
                _pending_state == Omx.State.Loaded)
-                free_ports();
+                free_buffers();
         }
 
 
@@ -1372,7 +1383,7 @@ namespace GOmx {
             Omx.BufferHeader buffer,
             FileStream fs) {
         buffer.offset = 0;
-        buffer.length = fs.read(buffer.buffer);
+        buffer.length = (uint32)fs.read(buffer.buffer);
         if(fs.eof())
             buffer.set_eos();
     }

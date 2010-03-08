@@ -229,10 +229,10 @@ namespace Omx {
         public uint8[] buffer;
 
         [CCode (cname="nFilledLen")]
-        public size_t length;
+        public uint32 length;
 
         [CCode (cname="nOffset")]
-        public size_t offset;
+        public uint32 offset;
 
         [CCode (cname="pAppPrivate")]
         public void *app_private;

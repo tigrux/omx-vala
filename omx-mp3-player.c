@@ -232,8 +232,8 @@ void allocate_buffers (void) {
 
 void read_buffer_from_fd (OMX_BUFFERHEADERTYPE* buffer) {
 	g_return_if_fail (buffer != NULL);
-	buffer->nOffset = (gsize) 0;
-	buffer->nFilledLen = fread (buffer->pBuffer, 1, buffer->nAllocLen, fd);
+	buffer->nOffset = (guint32) 0;
+	buffer->nFilledLen = (guint32) ((guint) fread (buffer->pBuffer, 1, buffer->nAllocLen, fd));
 }
 
 

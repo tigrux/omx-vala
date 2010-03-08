@@ -123,7 +123,7 @@ void allocate_buffers() {
 
 void read_buffer_from_fd(Omx.BufferHeader buffer) {
     buffer.offset = 0;
-    buffer.length = fd.read(buffer.buffer);
+    buffer.length = (uint)fd.read(buffer.buffer);
 }
 
 void move_buffers() {

@@ -5,6 +5,12 @@
 #include <glib.h>
 #include <glib-object.h>
 #include <gst/gst.h>
+#include <gomx.h>
+#include <stdlib.h>
+#include <string.h>
+#include <OMX_Core.h>
+#include <OMX_Component.h>
+#include <omx-utils.h>
 
 
 #define GST_GOMX_TYPE_MP3_DEC (gst_gomx_mp3_dec_get_type ())
@@ -18,8 +24,12 @@ typedef struct _GstGOmxMp3Dec GstGOmxMp3Dec;
 typedef struct _GstGOmxMp3DecClass GstGOmxMp3DecClass;
 typedef struct _GstGOmxMp3DecPrivate GstGOmxMp3DecPrivate;
 #define _gst_object_unref0(var) ((var == NULL) ? NULL : (var = (gst_object_unref (var), NULL)))
+#define _gst_caps_unref0(var) ((var == NULL) ? NULL : (var = (gst_caps_unref (var), NULL)))
+#define _g_object_unref0(var) ((var == NULL) ? NULL : (var = (g_object_unref (var), NULL)))
+#define _g_free0(var) (var = (g_free (var), NULL))
 #define _gst_event_unref0(var) ((var == NULL) ? NULL : (var = (gst_event_unref (var), NULL)))
 #define _gst_buffer_unref0(var) ((var == NULL) ? NULL : (var = (gst_buffer_unref (var), NULL)))
+#define _g_error_free0(var) ((var == NULL) ? NULL : (var = (g_error_free (var), NULL)))
 #define _gst_structure_free0(var) ((var == NULL) ? NULL : (var = (gst_structure_free (var), NULL)))
 
 struct _GstGOmxMp3Dec {
@@ -34,6 +44,18 @@ struct _GstGOmxMp3DecClass {
 struct _GstGOmxMp3DecPrivate {
 	GstPad* src_pad;
 	GstPad* sink_pad;
+	GstCaps* output_caps;
+	GOmxAudioComponent* component;
+	GOmxPort* input_port;
+	GOmxPort* output_port;
+	gint rate;
+	gint channels;
+	char* component_name;
+	char* library_name;
+	gboolean chained;
+	gboolean output_configured;
+	gboolean input_configured;
+	gboolean eos;
 };
 
 
@@ -52,9 +74,13 @@ static GstFlowReturn gst_gomx_mp3_dec_sink_pad_chain (GstGOmxMp3Dec* self, GstPa
 static GstFlowReturn _gst_gomx_mp3_dec_sink_pad_chain (GstPad* pad, GstBuffer* buffer);
 static gboolean gst_gomx_mp3_dec_sink_pad_activatepush (GstGOmxMp3Dec* self, GstPad* pad, gboolean active);
 static gboolean _gst_gomx_mp3_dec_sink_pad_activatepush (GstPad* pad, gboolean active);
+static void gst_gomx_mp3_dec_configure_input (GstGOmxMp3Dec* self, GError** error);
+static void gst_gomx_mp3_dec_configure_output (GstGOmxMp3Dec* self, GError** error);
 static GstStateChangeReturn gst_gomx_mp3_dec_real_change_state (GstElement* base, GstStateChange transition);
+static gboolean gst_gomx_mp3_dec_sink_pad_event_eos (GstGOmxMp3Dec* self, GstPad* pad, GstEvent* event);
 void gst_gomx_mp3_dec_src_pad_task (GstGOmxMp3Dec* self);
 static void _gst_gomx_mp3_dec_src_pad_task_gst_task_function (gpointer self);
+GstBuffer* gst_gomx_mp3_dec_buffer_gst_from_omx (GstGOmxMp3Dec* self, OMX_BUFFERHEADERTYPE* omx_buffer, GError** error);
 GstGOmxMp3Dec* gst_gomx_mp3_dec_new (void);
 GstGOmxMp3Dec* gst_gomx_mp3_dec_construct (GType object_type);
 static GstFlowReturn __gst_gomx_mp3_dec_sink_pad_chain_gst_pad_chain_function (GstPad* pad, GstBuffer* buffer);
@@ -66,7 +92,7 @@ static void gst_gomx_mp3_dec_finalize (GObject* obj);
 gboolean plugin_init (GstPlugin* plugin);
 static gboolean _plugin_init_gst_plugin_init_func (GstPlugin* plugin);
 
-const GstPluginDesc gst_plugin_desc = {GST_VERSION_MAJOR, GST_VERSION_MINOR, "gomx", "Elements based on omx-vala", _plugin_init_gst_plugin_init_func, "0.1.0", "LGPL", "gst-gomx", "GstGOmx", "http://github.com/tigrux/omx-vala", {NULL}};
+const GstPluginDesc gst_plugin_desc = {GST_VERSION_MAJOR, GST_VERSION_MINOR, "gomx", "Elements based on omx-vala", _plugin_init_gst_plugin_init_func, "0.1.0", "LGPL", "gst-gomx", "GstGOmx", "http://github.com/tigrux/omx-vala"};
 
 
 static gboolean _gst_gomx_mp3_dec_sink_pad_setcaps (GstPad* pad, GstCaps* caps) {
@@ -122,26 +148,158 @@ static gboolean _gst_gomx_mp3_dec_sink_pad_activatepush (GstPad* pad, gboolean a
 }
 
 
+static void gst_gomx_mp3_dec_configure_input (GstGOmxMp3Dec* self, GError** error) {
+	GError * _inner_error_;
+	OMX_AUDIO_PARAM_MP3TYPE _tmp0_ = {0};
+	OMX_AUDIO_PARAM_MP3TYPE mp3_param;
+	g_return_if_fail (self != NULL);
+	_inner_error_ = NULL;
+	mp3_param = (memset (&_tmp0_, 0, sizeof (OMX_AUDIO_PARAM_MP3TYPE)), _tmp0_);
+	omx_structure_init (&mp3_param);
+	mp3_param.nPortIndex = (guint32) 0;
+	gomx_try_run (OMX_GetParameter (gomx_component_get_handle ((GOmxComponent*) self->priv->component), (guint) OMX_IndexParamAudioMp3, &mp3_param), &_inner_error_);
+	if (_inner_error_ != NULL) {
+		if ((_inner_error_->domain == GOMX_ERROR) || (_inner_error_->domain == G_FILE_ERROR)) {
+			g_propagate_error (error, _inner_error_);
+			return;
+		} else {
+			g_critical ("file %s: line %d: uncaught error: %s (%s, %d)", __FILE__, __LINE__, _inner_error_->message, g_quark_to_string (_inner_error_->domain), _inner_error_->code);
+			g_clear_error (&_inner_error_);
+			return;
+		}
+	}
+	mp3_param.nChannels = (guint32) self->priv->channels;
+	mp3_param.nSampleRate = (guint32) self->priv->rate;
+	gomx_try_run (OMX_SetParameter (gomx_component_get_handle ((GOmxComponent*) self->priv->component), (guint) OMX_IndexParamAudioMp3, &mp3_param), &_inner_error_);
+	if (_inner_error_ != NULL) {
+		if ((_inner_error_->domain == GOMX_ERROR) || (_inner_error_->domain == G_FILE_ERROR)) {
+			g_propagate_error (error, _inner_error_);
+			return;
+		} else {
+			g_critical ("file %s: line %d: uncaught error: %s (%s, %d)", __FILE__, __LINE__, _inner_error_->message, g_quark_to_string (_inner_error_->domain), _inner_error_->code);
+			g_clear_error (&_inner_error_);
+			return;
+		}
+	}
+	self->priv->input_configured = TRUE;
+}
+
+
+static void gst_gomx_mp3_dec_configure_output (GstGOmxMp3Dec* self, GError** error) {
+	GError * _inner_error_;
+	OMX_AUDIO_PARAM_PCMMODETYPE _tmp0_ = {0};
+	OMX_AUDIO_PARAM_PCMMODETYPE pcm_param;
+	GstCaps* _tmp1_;
+	g_return_if_fail (self != NULL);
+	_inner_error_ = NULL;
+	pcm_param = (memset (&_tmp0_, 0, sizeof (OMX_AUDIO_PARAM_PCMMODETYPE)), _tmp0_);
+	omx_structure_init (&pcm_param);
+	pcm_param.nPortIndex = (guint32) 1;
+	gomx_try_run (OMX_GetParameter (gomx_component_get_handle ((GOmxComponent*) self->priv->component), (guint) OMX_IndexParamAudioPcm, &pcm_param), &_inner_error_);
+	if (_inner_error_ != NULL) {
+		if (_inner_error_->domain == GOMX_ERROR) {
+			g_propagate_error (error, _inner_error_);
+			return;
+		} else {
+			g_critical ("file %s: line %d: uncaught error: %s (%s, %d)", __FILE__, __LINE__, _inner_error_->message, g_quark_to_string (_inner_error_->domain), _inner_error_->code);
+			g_clear_error (&_inner_error_);
+			return;
+		}
+	}
+	self->priv->output_caps = (_tmp1_ = gst_caps_new_simple ("audio/x-raw-int", "endianness", G_TYPE_INT, G_BYTE_ORDER, "width", G_TYPE_INT, 16, "depth", G_TYPE_INT, 16, "rate", G_TYPE_INT, pcm_param.nSamplingRate, "signed", G_TYPE_BOOLEAN, TRUE, "channels", G_TYPE_INT, pcm_param.nChannels, NULL, NULL), _gst_caps_unref0 (self->priv->output_caps), _tmp1_);
+	gst_pad_set_caps (self->priv->src_pad, self->priv->output_caps);
+	self->priv->output_configured = TRUE;
+}
+
+
 static GstStateChangeReturn gst_gomx_mp3_dec_real_change_state (GstElement* base, GstStateChange transition) {
 	GstGOmxMp3Dec * self;
 	GstStateChangeReturn result;
-	GstStateChangeReturn _result_;
+	GError * _inner_error_;
 	self = (GstGOmxMp3Dec*) base;
-	_result_ = GST_STATE_CHANGE_SUCCESS;
+	_inner_error_ = NULL;
 	switch (transition) {
 		case GST_STATE_CHANGE_NULL_TO_READY:
 		{
-			g_print ("*** Passing from null to ready\n");
+			{
+				GOmxCore* core;
+				GOmxPort* _tmp0_;
+				GOmxPort* _tmp1_;
+				core = gomx_load_library (gomx_component_get_library_name ((GOmxComponent*) self->priv->component), &_inner_error_);
+				if (_inner_error_ != NULL) {
+					goto __catch0_g_error;
+				}
+				gomx_core_init (core, &_inner_error_);
+				if (_inner_error_ != NULL) {
+					_g_object_unref0 (core);
+					goto __catch0_g_error;
+				}
+				gomx_component_init ((GOmxComponent*) self->priv->component, &_inner_error_);
+				if (_inner_error_ != NULL) {
+					_g_object_unref0 (core);
+					goto __catch0_g_error;
+				}
+				self->priv->input_port = (_tmp0_ = gomx_port_array_get (gomx_component_get_ports ((GOmxComponent*) self->priv->component), (guint) 0), _g_object_unref0 (self->priv->input_port), _tmp0_);
+				self->priv->output_port = (_tmp1_ = gomx_port_array_get (gomx_component_get_ports ((GOmxComponent*) self->priv->component), (guint) 1), _g_object_unref0 (self->priv->output_port), _tmp1_);
+				gst_gomx_mp3_dec_configure_input (self, &_inner_error_);
+				if (_inner_error_ != NULL) {
+					_g_object_unref0 (core);
+					goto __catch0_g_error;
+				}
+				_g_object_unref0 (core);
+			}
+			goto __finally0;
+			__catch0_g_error:
+			{
+				GError * e;
+				e = _inner_error_;
+				_inner_error_ = NULL;
+				{
+					g_print ("%s\n", e->message);
+					result = GST_STATE_CHANGE_FAILURE;
+					_g_error_free0 (e);
+					return result;
+				}
+			}
+			__finally0:
+			if (_inner_error_ != NULL) {
+				g_critical ("file %s: line %d: uncaught error: %s (%s, %d)", __FILE__, __LINE__, _inner_error_->message, g_quark_to_string (_inner_error_->domain), _inner_error_->code);
+				g_clear_error (&_inner_error_);
+				return 0;
+			}
 			break;
 		}
 		case GST_STATE_CHANGE_READY_TO_PAUSED:
 		{
-			g_print ("*** Passing from ready to paused\n");
+			{
+				gomx_component_set_state_and_wait ((GOmxComponent*) self->priv->component, OMX_StateIdle, &_inner_error_);
+				if (_inner_error_ != NULL) {
+					goto __catch1_g_error;
+				}
+			}
+			goto __finally1;
+			__catch1_g_error:
+			{
+				GError * e;
+				e = _inner_error_;
+				_inner_error_ = NULL;
+				{
+					g_print ("%s\n", e->message);
+					result = GST_STATE_CHANGE_FAILURE;
+					_g_error_free0 (e);
+					return result;
+				}
+			}
+			__finally1:
+			if (_inner_error_ != NULL) {
+				g_critical ("file %s: line %d: uncaught error: %s (%s, %d)", __FILE__, __LINE__, _inner_error_->message, g_quark_to_string (_inner_error_->domain), _inner_error_->code);
+				g_clear_error (&_inner_error_);
+				return 0;
+			}
 			break;
 		}
 		case GST_STATE_CHANGE_PAUSED_TO_PLAYING:
 		{
-			g_print ("*** Passing from paused to playing\n");
 			break;
 		}
 		default:
@@ -149,25 +307,86 @@ static GstStateChangeReturn gst_gomx_mp3_dec_real_change_state (GstElement* base
 			break;
 		}
 	}
-	_result_ = GST_ELEMENT_CLASS (gst_gomx_mp3_dec_parent_class)->change_state (GST_ELEMENT (self), transition);
-	if (_result_ == GST_STATE_CHANGE_FAILURE) {
-		result = _result_;
+	if (GST_ELEMENT_CLASS (gst_gomx_mp3_dec_parent_class)->change_state (GST_ELEMENT (self), transition) == GST_STATE_CHANGE_FAILURE) {
+		result = GST_STATE_CHANGE_FAILURE;
 		return result;
 	}
 	switch (transition) {
 		case GST_STATE_CHANGE_PLAYING_TO_PAUSED:
 		{
-			g_print ("*** Passing from playing to paused\n");
 			break;
 		}
 		case GST_STATE_CHANGE_PAUSED_TO_READY:
 		{
-			g_print ("*** Passing from paused to ready\n");
+			{
+				gomx_component_set_state_and_wait ((GOmxComponent*) self->priv->component, OMX_StateIdle, &_inner_error_);
+				if (_inner_error_ != NULL) {
+					if (_inner_error_->domain == GOMX_ERROR) {
+						goto __catch2_gomx_error;
+					}
+					g_critical ("file %s: line %d: unexpected error: %s (%s, %d)", __FILE__, __LINE__, _inner_error_->message, g_quark_to_string (_inner_error_->domain), _inner_error_->code);
+					g_clear_error (&_inner_error_);
+					return 0;
+				}
+			}
+			goto __finally2;
+			__catch2_gomx_error:
+			{
+				GError * e;
+				e = _inner_error_;
+				_inner_error_ = NULL;
+				{
+					g_print ("%s\n", e->message);
+					_g_error_free0 (e);
+				}
+			}
+			__finally2:
+			if (_inner_error_ != NULL) {
+				g_critical ("file %s: line %d: uncaught error: %s (%s, %d)", __FILE__, __LINE__, _inner_error_->message, g_quark_to_string (_inner_error_->domain), _inner_error_->code);
+				g_clear_error (&_inner_error_);
+				return 0;
+			}
 			break;
 		}
 		case GST_STATE_CHANGE_READY_TO_NULL:
 		{
-			g_print ("*** Passing from ready to null\n");
+			{
+				gomx_component_set_state_and_wait ((GOmxComponent*) self->priv->component, OMX_StateLoaded, &_inner_error_);
+				if (_inner_error_ != NULL) {
+					if (_inner_error_->domain == GOMX_ERROR) {
+						goto __catch3_gomx_error;
+					}
+					g_critical ("file %s: line %d: unexpected error: %s (%s, %d)", __FILE__, __LINE__, _inner_error_->message, g_quark_to_string (_inner_error_->domain), _inner_error_->code);
+					g_clear_error (&_inner_error_);
+					return 0;
+				}
+				gomx_core_deinit (gomx_component_get_core ((GOmxComponent*) self->priv->component), &_inner_error_);
+				if (_inner_error_ != NULL) {
+					if (_inner_error_->domain == GOMX_ERROR) {
+						goto __catch3_gomx_error;
+					}
+					g_critical ("file %s: line %d: unexpected error: %s (%s, %d)", __FILE__, __LINE__, _inner_error_->message, g_quark_to_string (_inner_error_->domain), _inner_error_->code);
+					g_clear_error (&_inner_error_);
+					return 0;
+				}
+			}
+			goto __finally3;
+			__catch3_gomx_error:
+			{
+				GError * e;
+				e = _inner_error_;
+				_inner_error_ = NULL;
+				{
+					g_print ("%s\n", e->message);
+					_g_error_free0 (e);
+				}
+			}
+			__finally3:
+			if (_inner_error_ != NULL) {
+				g_critical ("file %s: line %d: uncaught error: %s (%s, %d)", __FILE__, __LINE__, _inner_error_->message, g_quark_to_string (_inner_error_->domain), _inner_error_->code);
+				g_clear_error (&_inner_error_);
+				return 0;
+			}
 			break;
 		}
 		default:
@@ -175,7 +394,7 @@ static GstStateChangeReturn gst_gomx_mp3_dec_real_change_state (GstElement* base
 			break;
 		}
 	}
-	result = _result_;
+	result = GST_STATE_CHANGE_SUCCESS;
 	return result;
 }
 
@@ -188,17 +407,12 @@ static gpointer _gst_structure_copy0 (gpointer self) {
 static gboolean gst_gomx_mp3_dec_sink_pad_setcaps (GstGOmxMp3Dec* self, GstPad* pad, GstCaps* caps) {
 	gboolean result;
 	GstStructure* structure;
-	gint rate;
-	gint channels;
 	g_return_val_if_fail (self != NULL, FALSE);
 	g_return_val_if_fail (pad != NULL, FALSE);
 	g_return_val_if_fail (caps != NULL, FALSE);
 	structure = _gst_structure_copy0 (gst_caps_get_structure (caps, (guint) 0));
-	rate = 0;
-	channels = 0;
-	gst_structure_get_int (structure, "rate", &rate);
-	gst_structure_get_int (structure, "channels", &channels);
-	g_print ("*** Sink Caps: rate = %d, channels=%d\n", rate, channels);
+	gst_structure_get_int (structure, "rate", &self->priv->rate);
+	gst_structure_get_int (structure, "channels", &self->priv->channels);
 	result = gst_pad_set_caps (pad, caps);
 	_gst_structure_free0 (structure);
 	return result;
@@ -207,43 +421,121 @@ static gboolean gst_gomx_mp3_dec_sink_pad_setcaps (GstGOmxMp3Dec* self, GstPad* 
 
 static gboolean gst_gomx_mp3_dec_sink_pad_event (GstGOmxMp3Dec* self, GstPad* pad, GstEvent* event) {
 	gboolean result;
-	gboolean _result_ = FALSE;
 	g_return_val_if_fail (self != NULL, FALSE);
 	g_return_val_if_fail (pad != NULL, FALSE);
 	g_return_val_if_fail (event != NULL, FALSE);
 	switch (event->type) {
 		case GST_EVENT_EOS:
 		{
-			g_print ("*** Got eos\n");
-			_result_ = gst_pad_push_event (self->priv->src_pad, _gst_event_ref0 (event));
-			break;
+			result = gst_gomx_mp3_dec_sink_pad_event_eos (self, pad, _gst_event_ref0 (event));
+			_gst_event_unref0 (event);
+			return result;
 		}
 		case GST_EVENT_FLUSH_START:
 		{
-			g_print ("*** Starting flush\n");
-			_result_ = gst_pad_push_event (self->priv->src_pad, _gst_event_ref0 (event));
-			break;
+			result = gst_pad_push_event (self->priv->src_pad, _gst_event_ref0 (event));
+			_gst_event_unref0 (event);
+			return result;
 		}
 		case GST_EVENT_FLUSH_STOP:
 		{
-			g_print ("*** Stopping flush\n");
-			_result_ = gst_pad_push_event (self->priv->src_pad, _gst_event_ref0 (event));
-			break;
+			result = gst_pad_push_event (self->priv->src_pad, _gst_event_ref0 (event));
+			_gst_event_unref0 (event);
+			return result;
 		}
 		case GST_EVENT_NEWSEGMENT:
 		{
-			g_print ("*** Got new segment\n");
-			_result_ = gst_pad_push_event (self->priv->src_pad, _gst_event_ref0 (event));
-			break;
+			result = gst_pad_push_event (self->priv->src_pad, _gst_event_ref0 (event));
+			_gst_event_unref0 (event);
+			return result;
 		}
 		default:
 		{
-			_result_ = gst_pad_push_event (self->priv->src_pad, _gst_event_ref0 (event));
-			break;
+			result = gst_pad_push_event (self->priv->src_pad, _gst_event_ref0 (event));
+			_gst_event_unref0 (event);
+			return result;
 		}
 	}
-	result = _result_;
 	_gst_event_unref0 (event);
+}
+
+
+static gboolean gst_gomx_mp3_dec_sink_pad_event_eos (GstGOmxMp3Dec* self, GstPad* pad, GstEvent* event) {
+	gboolean result;
+	GError * _inner_error_;
+	g_return_val_if_fail (self != NULL, FALSE);
+	g_return_val_if_fail (pad != NULL, FALSE);
+	g_return_val_if_fail (event != NULL, FALSE);
+	_inner_error_ = NULL;
+	if (self->priv->eos) {
+		g_print ("*** Trying to stop\n");
+		result = gst_pad_push_event (self->priv->src_pad, _gst_event_ref0 (event));
+		_gst_event_unref0 (event);
+		return result;
+	} else {
+		{
+			OMX_BUFFERHEADERTYPE* omx_buffer;
+			g_print ("*** Sending eos to omx\n");
+			omx_buffer = gomx_port_pop_buffer (self->priv->input_port);
+			omx_buffer->nOffset = (guint32) 0;
+			omx_buffer->nFilledLen = (guint32) 1;
+			gomx_buffer_set_eos (omx_buffer);
+			gomx_port_push_buffer (self->priv->input_port, omx_buffer, &_inner_error_);
+			if (_inner_error_ != NULL) {
+				if (_inner_error_->domain == GOMX_ERROR) {
+					goto __catch4_gomx_error;
+				}
+				_gst_event_unref0 (event);
+				g_critical ("file %s: line %d: unexpected error: %s (%s, %d)", __FILE__, __LINE__, _inner_error_->message, g_quark_to_string (_inner_error_->domain), _inner_error_->code);
+				g_clear_error (&_inner_error_);
+				return FALSE;
+			}
+			result = TRUE;
+			_gst_event_unref0 (event);
+			return result;
+		}
+		goto __finally4;
+		__catch4_gomx_error:
+		{
+			GError * e;
+			e = _inner_error_;
+			_inner_error_ = NULL;
+			{
+				g_print ("%s\n", e->message);
+				result = FALSE;
+				_g_error_free0 (e);
+				_gst_event_unref0 (event);
+				return result;
+			}
+		}
+		__finally4:
+		if (_inner_error_ != NULL) {
+			_gst_event_unref0 (event);
+			g_critical ("file %s: line %d: uncaught error: %s (%s, %d)", __FILE__, __LINE__, _inner_error_->message, g_quark_to_string (_inner_error_->domain), _inner_error_->code);
+			g_clear_error (&_inner_error_);
+			return FALSE;
+		}
+	}
+	_gst_event_unref0 (event);
+}
+
+
+static gboolean gst_gomx_mp3_dec_sink_pad_activatepush (GstGOmxMp3Dec* self, GstPad* pad, gboolean active) {
+	gboolean result;
+	gboolean _tmp0_ = FALSE;
+	g_return_val_if_fail (self != NULL, FALSE);
+	g_return_val_if_fail (pad != NULL, FALSE);
+	if (!active) {
+		_tmp0_ = TRUE;
+	} else {
+		_tmp0_ = self->priv->eos;
+	}
+	if (_tmp0_) {
+		g_print ("*** Stopping task\n");
+		result = gst_pad_stop_task (self->priv->src_pad);
+		return result;
+	}
+	result = TRUE;
 	return result;
 }
 
@@ -253,29 +545,82 @@ static void _gst_gomx_mp3_dec_src_pad_task_gst_task_function (gpointer self) {
 }
 
 
-static gboolean gst_gomx_mp3_dec_sink_pad_activatepush (GstGOmxMp3Dec* self, GstPad* pad, gboolean active) {
-	gboolean result;
-	gboolean _result_ = FALSE;
-	g_return_val_if_fail (self != NULL, FALSE);
-	g_return_val_if_fail (pad != NULL, FALSE);
-	if (active) {
-		g_print ("*** Starting task\n");
-		_result_ = gst_pad_start_task (self->priv->src_pad, _gst_gomx_mp3_dec_src_pad_task_gst_task_function, self);
-	} else {
-		g_print ("*** Stopping task\n");
-		_result_ = gst_pad_stop_task (self->priv->src_pad);
-	}
-	result = _result_;
-	return result;
-}
-
-
 static GstFlowReturn gst_gomx_mp3_dec_sink_pad_chain (GstGOmxMp3Dec* self, GstPad* pad, GstBuffer* buffer) {
 	GstFlowReturn result;
+	GError * _inner_error_;
 	g_return_val_if_fail (self != NULL, 0);
 	g_return_val_if_fail (pad != NULL, 0);
 	g_return_val_if_fail (buffer != NULL, 0);
-	g_print ("** Chaining: %d\n", buffer->size);
+	_inner_error_ = NULL;
+	if (!self->priv->chained) {
+		{
+			gomx_component_set_state_and_wait ((GOmxComponent*) self->priv->component, OMX_StateExecuting, &_inner_error_);
+			if (_inner_error_ != NULL) {
+				goto __catch5_g_error;
+			}
+			gst_pad_start_task (self->priv->src_pad, _gst_gomx_mp3_dec_src_pad_task_gst_task_function, self);
+			self->priv->chained = TRUE;
+		}
+		goto __finally5;
+		__catch5_g_error:
+		{
+			GError * e;
+			e = _inner_error_;
+			_inner_error_ = NULL;
+			{
+				g_print ("%s\n", e->message);
+				result = GST_FLOW_ERROR;
+				_g_error_free0 (e);
+				_gst_buffer_unref0 (buffer);
+				return result;
+			}
+		}
+		__finally5:
+		if (_inner_error_ != NULL) {
+			_gst_buffer_unref0 (buffer);
+			g_critical ("file %s: line %d: uncaught error: %s (%s, %d)", __FILE__, __LINE__, _inner_error_->message, g_quark_to_string (_inner_error_->domain), _inner_error_->code);
+			g_clear_error (&_inner_error_);
+			return 0;
+		}
+	}
+	{
+		OMX_BUFFERHEADERTYPE* omx_buffer;
+		omx_buffer = gomx_port_pop_buffer (self->priv->input_port);
+		omx_buffer->nOffset = (guint32) 0;
+		omx_buffer->nFilledLen = (guint32) buffer->size;
+		memcpy (omx_buffer->pBuffer, buffer->data, (gsize) buffer->size);
+		gomx_port_push_buffer (self->priv->input_port, omx_buffer, &_inner_error_);
+		if (_inner_error_ != NULL) {
+			if (_inner_error_->domain == GOMX_ERROR) {
+				goto __catch6_gomx_error;
+			}
+			_gst_buffer_unref0 (buffer);
+			g_critical ("file %s: line %d: unexpected error: %s (%s, %d)", __FILE__, __LINE__, _inner_error_->message, g_quark_to_string (_inner_error_->domain), _inner_error_->code);
+			g_clear_error (&_inner_error_);
+			return 0;
+		}
+	}
+	goto __finally6;
+	__catch6_gomx_error:
+	{
+		GError * e;
+		e = _inner_error_;
+		_inner_error_ = NULL;
+		{
+			g_print ("%s\n", e->message);
+			result = GST_FLOW_ERROR;
+			_g_error_free0 (e);
+			_gst_buffer_unref0 (buffer);
+			return result;
+		}
+	}
+	__finally6:
+	if (_inner_error_ != NULL) {
+		_gst_buffer_unref0 (buffer);
+		g_critical ("file %s: line %d: uncaught error: %s (%s, %d)", __FILE__, __LINE__, _inner_error_->message, g_quark_to_string (_inner_error_->domain), _inner_error_->code);
+		g_clear_error (&_inner_error_);
+		return 0;
+	}
 	result = GST_FLOW_OK;
 	_gst_buffer_unref0 (buffer);
 	return result;
@@ -283,9 +628,91 @@ static GstFlowReturn gst_gomx_mp3_dec_sink_pad_chain (GstGOmxMp3Dec* self, GstPa
 
 
 void gst_gomx_mp3_dec_src_pad_task (GstGOmxMp3Dec* self) {
+	GError * _inner_error_;
+	gboolean _tmp0_ = FALSE;
 	g_return_if_fail (self != NULL);
-	g_print ("*** Pad tasking\n");
-	gst_pad_pause_task (self->priv->src_pad);
+	_inner_error_ = NULL;
+	if (!self->priv->chained) {
+		_tmp0_ = TRUE;
+	} else {
+		_tmp0_ = self->priv->eos;
+	}
+	if (_tmp0_) {
+		return;
+	}
+	{
+		OMX_BUFFERHEADERTYPE* omx_buffer;
+		if (!self->priv->output_configured) {
+			gst_gomx_mp3_dec_configure_output (self, &_inner_error_);
+			if (_inner_error_ != NULL) {
+				if (_inner_error_->domain == GOMX_ERROR) {
+					goto __catch7_gomx_error;
+				}
+				g_critical ("file %s: line %d: unexpected error: %s (%s, %d)", __FILE__, __LINE__, _inner_error_->message, g_quark_to_string (_inner_error_->domain), _inner_error_->code);
+				g_clear_error (&_inner_error_);
+				return;
+			}
+		}
+		omx_buffer = gomx_port_pop_buffer (self->priv->output_port);
+		if (gomx_buffer_is_eos (omx_buffer)) {
+			g_print ("*** Should stop now\n");
+			self->priv->eos = TRUE;
+			gst_pad_pause_task (self->priv->src_pad);
+			gst_element_send_event ((GstElement*) self, gst_event_new_eos ());
+		} else {
+			GstBuffer* buffer;
+			buffer = gst_gomx_mp3_dec_buffer_gst_from_omx (self, omx_buffer, &_inner_error_);
+			if (_inner_error_ != NULL) {
+				if (_inner_error_->domain == GOMX_ERROR) {
+					goto __catch7_gomx_error;
+				}
+				g_critical ("file %s: line %d: unexpected error: %s (%s, %d)", __FILE__, __LINE__, _inner_error_->message, g_quark_to_string (_inner_error_->domain), _inner_error_->code);
+				g_clear_error (&_inner_error_);
+				return;
+			}
+			gst_pad_push (self->priv->src_pad, _gst_buffer_ref0 (buffer));
+			_gst_buffer_unref0 (buffer);
+		}
+		gomx_port_push_buffer (self->priv->output_port, omx_buffer, &_inner_error_);
+		if (_inner_error_ != NULL) {
+			if (_inner_error_->domain == GOMX_ERROR) {
+				goto __catch7_gomx_error;
+			}
+			g_critical ("file %s: line %d: unexpected error: %s (%s, %d)", __FILE__, __LINE__, _inner_error_->message, g_quark_to_string (_inner_error_->domain), _inner_error_->code);
+			g_clear_error (&_inner_error_);
+			return;
+		}
+	}
+	goto __finally7;
+	__catch7_gomx_error:
+	{
+		GError * e;
+		e = _inner_error_;
+		_inner_error_ = NULL;
+		{
+			g_print ("%s\n", e->message);
+			_g_error_free0 (e);
+		}
+	}
+	__finally7:
+	if (_inner_error_ != NULL) {
+		g_critical ("file %s: line %d: uncaught error: %s (%s, %d)", __FILE__, __LINE__, _inner_error_->message, g_quark_to_string (_inner_error_->domain), _inner_error_->code);
+		g_clear_error (&_inner_error_);
+		return;
+	}
+}
+
+
+GstBuffer* gst_gomx_mp3_dec_buffer_gst_from_omx (GstGOmxMp3Dec* self, OMX_BUFFERHEADERTYPE* omx_buffer, GError** error) {
+	GstBuffer* result;
+	GstBuffer* buffer;
+	g_return_val_if_fail (self != NULL, NULL);
+	g_return_val_if_fail (omx_buffer != NULL, NULL);
+	buffer = gst_buffer_new_and_alloc ((guint) omx_buffer->nFilledLen);
+	memcpy (buffer->data, omx_buffer->pBuffer, (gsize) omx_buffer->nFilledLen);
+	gst_buffer_set_caps (buffer, self->priv->output_caps);
+	result = buffer;
+	return result;
 }
 
 
@@ -336,6 +763,7 @@ static GObject * gst_gomx_mp3_dec_constructor (GType type, guint n_construct_pro
 	{
 		GstPad* _tmp0_;
 		GstPad* _tmp1_;
+		GOmxAudioComponent* _tmp2_;
 		self->priv->sink_pad = (_tmp0_ = gst_pad_new_from_template (gst_element_class_get_pad_template (GST_ELEMENT_CLASS (G_OBJECT_GET_CLASS (self)), "sink"), "sink"), _gst_object_unref0 (self->priv->sink_pad), _tmp0_);
 		gst_pad_set_chain_function (self->priv->sink_pad, __gst_gomx_mp3_dec_sink_pad_chain_gst_pad_chain_function);
 		gst_pad_set_setcaps_function (self->priv->sink_pad, __gst_gomx_mp3_dec_sink_pad_setcaps_gst_pad_set_caps_function);
@@ -344,6 +772,9 @@ static GObject * gst_gomx_mp3_dec_constructor (GType type, guint n_construct_pro
 		self->priv->src_pad = (_tmp1_ = gst_pad_new_from_template (gst_element_class_get_pad_template (GST_ELEMENT_CLASS (G_OBJECT_GET_CLASS (self)), "src"), "src"), _gst_object_unref0 (self->priv->src_pad), _tmp1_);
 		gst_pad_set_activatepush_function (self->priv->src_pad, __gst_gomx_mp3_dec_sink_pad_activatepush_gst_pad_activate_mode_function);
 		gst_element_add_pad ((GstElement*) self, _gst_object_ref0 (self->priv->src_pad));
+		self->priv->component = (_tmp2_ = gomx_audio_component_new (self->priv->component_name), _g_object_unref0 (self->priv->component), _tmp2_);
+		gomx_component_set_library_name ((GOmxComponent*) self->priv->component, self->priv->library_name);
+		gomx_component_set_name ((GOmxComponent*) self->priv->component, "decoder");
 	}
 	return obj;
 }
@@ -351,13 +782,13 @@ static GObject * gst_gomx_mp3_dec_constructor (GType type, guint n_construct_pro
 
 static void gst_gomx_mp3_dec_base_init (GstGOmxMp3DecClass * klass) {
 	{
-		GstPadTemplate* _tmp2_;
 		GstPadTemplate* _tmp3_;
+		GstPadTemplate* _tmp4_;
 		gst_element_class_set_details_simple (GST_ELEMENT_CLASS (klass), "gomx mp3 decoder", "Codec/Decoder/Audio", "Gst GOmx Mp3 decoder", "Tigrux <tigrux@gmail.com>");
-		gst_element_class_add_pad_template (GST_ELEMENT_CLASS (klass), _tmp2_ = gst_pad_template_new ("src", GST_PAD_SRC, GST_PAD_ALWAYS, gst_caps_new_simple ("audio/x-raw-int", "endianness", G_TYPE_INT, G_BYTE_ORDER, "width", G_TYPE_INT, 16, "depth", G_TYPE_INT, 16, "rate", GST_TYPE_INT_RANGE, 8000, 96000, "signed", G_TYPE_BOOLEAN, TRUE, "channels", GST_TYPE_INT_RANGE, 1, 2, NULL, NULL)));
-		_gst_object_unref0 (_tmp2_);
-		gst_element_class_add_pad_template (GST_ELEMENT_CLASS (klass), _tmp3_ = gst_pad_template_new ("sink", GST_PAD_SINK, GST_PAD_ALWAYS, gst_caps_new_simple ("audio/mpeg", "mpegversion", G_TYPE_INT, 1, "layer", G_TYPE_INT, 3, "rate", GST_TYPE_INT_RANGE, 8000, 48000, "channels", GST_TYPE_INT_RANGE, 1, 8, "parsed", G_TYPE_BOOLEAN, TRUE, NULL, NULL)));
+		gst_element_class_add_pad_template (GST_ELEMENT_CLASS (klass), _tmp3_ = gst_pad_template_new ("src", GST_PAD_SRC, GST_PAD_ALWAYS, gst_caps_new_simple ("audio/x-raw-int", "endianness", G_TYPE_INT, G_BYTE_ORDER, "width", G_TYPE_INT, 16, "depth", G_TYPE_INT, 16, "rate", GST_TYPE_INT_RANGE, 8000, 96000, "signed", G_TYPE_BOOLEAN, TRUE, "channels", GST_TYPE_INT_RANGE, 1, 2, NULL, NULL)));
 		_gst_object_unref0 (_tmp3_);
+		gst_element_class_add_pad_template (GST_ELEMENT_CLASS (klass), _tmp4_ = gst_pad_template_new ("sink", GST_PAD_SINK, GST_PAD_ALWAYS, gst_caps_new_simple ("audio/mpeg", "mpegversion", G_TYPE_INT, 1, "layer", G_TYPE_INT, 3, "rate", GST_TYPE_INT_RANGE, 8000, 48000, "channels", GST_TYPE_INT_RANGE, 1, 8, "parsed", G_TYPE_BOOLEAN, TRUE, NULL, NULL)));
+		_gst_object_unref0 (_tmp4_);
 	}
 }
 
@@ -373,6 +804,10 @@ static void gst_gomx_mp3_dec_class_init (GstGOmxMp3DecClass * klass) {
 
 static void gst_gomx_mp3_dec_instance_init (GstGOmxMp3Dec * self) {
 	self->priv = GST_GOMX_MP3_DEC_GET_PRIVATE (self);
+	self->priv->rate = 44100;
+	self->priv->channels = 2;
+	self->priv->component_name = g_strdup ("OMX.st.audio_decoder.mp3.mad");
+	self->priv->library_name = g_strdup ("libomxil-bellagio.so.0");
 }
 
 
@@ -381,6 +816,12 @@ static void gst_gomx_mp3_dec_finalize (GObject* obj) {
 	self = GST_GOMX_MP3_DEC (obj);
 	_gst_object_unref0 (self->priv->src_pad);
 	_gst_object_unref0 (self->priv->sink_pad);
+	_gst_caps_unref0 (self->priv->output_caps);
+	_g_object_unref0 (self->priv->component);
+	_g_object_unref0 (self->priv->input_port);
+	_g_object_unref0 (self->priv->output_port);
+	_g_free0 (self->priv->component_name);
+	_g_free0 (self->priv->library_name);
 	G_OBJECT_CLASS (gst_gomx_mp3_dec_parent_class)->finalize (obj);
 }
 

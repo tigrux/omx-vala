@@ -302,10 +302,11 @@ struct _GOmxComponent {
 struct _GOmxComponentClass {
 	GObjectClass parent_class;
 	void (*init) (GOmxComponent* self, GError** error);
+	void (*allocate_ports) (GOmxComponent* self);
 	void (*set_role) (GOmxComponent* self, const char* component_role);
 	void (*free_handle) (GOmxComponent* self, GError** error);
-	void (*allocate_ports) (GOmxComponent* self, GError** error);
-	void (*free_ports) (GOmxComponent* self, GError** error);
+	void (*allocate_buffers) (GOmxComponent* self, GError** error);
+	void (*free_buffers) (GOmxComponent* self, GError** error);
 	void (*buffers_begin_transfer) (GOmxComponent* self, GError** error);
 	void (*set_state) (GOmxComponent* self, OMX_STATETYPE state, GError** error);
 	OMX_STATETYPE (*get_state) (GOmxComponent* self, GError** error);
@@ -463,10 +464,11 @@ GOmxOtherComponent* gomx_other_component_construct (GType object_type, const cha
 GOmxComponent* gomx_component_new (const char* name, OMX_INDEXTYPE index);
 GOmxComponent* gomx_component_construct (GType object_type, const char* name, OMX_INDEXTYPE index);
 void gomx_component_init (GOmxComponent* self, GError** error);
+void gomx_component_allocate_ports (GOmxComponent* self);
 void gomx_component_set_role (GOmxComponent* self, const char* component_role);
 void gomx_component_free_handle (GOmxComponent* self, GError** error);
-void gomx_component_allocate_ports (GOmxComponent* self, GError** error);
-void gomx_component_free_ports (GOmxComponent* self, GError** error);
+void gomx_component_allocate_buffers (GOmxComponent* self, GError** error);
+void gomx_component_free_buffers (GOmxComponent* self, GError** error);
 void gomx_component_buffers_begin_transfer (GOmxComponent* self, GError** error);
 void gomx_component_wait_for_state (GOmxComponent* self);
 void gomx_component_wait_for_port (GOmxComponent* self);

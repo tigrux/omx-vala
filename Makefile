@@ -1,5 +1,5 @@
 MODULES="gobject-2.0 gthread-2.0 gmodule-2.0 gstreamer-0.10 libomxil-bellagio"
-CFLAGS=`pkg-config $(MODULES) --cflags` -I . -Wall -ggdb
+CFLAGS=`pkg-config $(MODULES) --cflags` -I . -Wall -ggdb -fPIC
 
 all: omx-mp3-player gomx-mp3-player libgstgomx.so
 
@@ -22,21 +22,20 @@ gomx-mp3-player.c: gomx-mp3-player.vala omx.vapi gomx.vapi
 	touch $@
 
 
+libgstgomx.so: gstgomx.o gomx.o
+	$(CC) -shared -fPIC `pkg-config gstreamer-0.10 --libs` $^ -o $@
+
+
+gstgomx.c: gstgomx.vala gomx.vapi omx.vapi
+	valac $^ --pkg gstreamer-0.10 -C
+	touch $@
+
+
 gomx.vapi: gomx.c
 
 gomx.c: gomx.vala omx.vapi
 	valac --vapi=gomx.vapi --pkg gmodule-2.0 --pkg posix -C -H gomx.h --target-glib=2.18 $^
 	touch $@
-
-
-libgstgomx.so: gstgomx.o
-	$(CC) -shared -fPIC `pkg-config gstreamer-0.10 --libs` $^ -o $@
-
-gstgomx.o: gstgomx.c
-	$(CC) -fPIC $(CFLAGS) $^ -c -o $@
-
-gstgomx.c: gstgomx.vala
-	valac gstgomx.vala --pkg gstreamer-0.10 -C
 
 
 clean:
