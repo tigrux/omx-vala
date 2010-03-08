@@ -259,8 +259,6 @@ namespace GstGOmx {
         }
 
 
-        Gst.Caps output_caps;
-
         void configure_output() throws Error {
             var pcm_param = Omx.Audio.Param.PcmMode();
             pcm_param.init();
@@ -269,7 +267,8 @@ namespace GstGOmx {
                 component.handle.get_parameter(
                     Omx.Index.ParamAudioPcm, pcm_param));
 
-            output_caps = new Gst.Caps.simple(
+            src_pad.set_caps(
+                new Gst.Caps.simple(
                     "audio/x-raw-int",
                     "endianness", typeof(int), ByteOrder.HOST,
                     "width", typeof(int), 16,
@@ -277,9 +276,7 @@ namespace GstGOmx {
                     "rate", typeof(int), pcm_param.sampling_rate,
                     "signed", typeof(bool), true,
                     "channels", typeof(int), pcm_param.channels,
-                    null);
-
-            src_pad.set_caps(output_caps);
+                    null));
             output_configured = true;
         }
 
@@ -288,7 +285,7 @@ namespace GstGOmx {
         throws Error {
             var buffer = new Gst.Buffer.and_alloc(omx_buffer.length);
             Memory.copy(buffer.data, omx_buffer.buffer, omx_buffer.length);
-            buffer.set_caps(output_caps);
+            buffer.set_caps(src_pad.get_negotiated_caps());
             return buffer;
         }
 

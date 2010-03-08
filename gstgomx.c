@@ -26,11 +26,11 @@ typedef struct _GstGOmxMp3DecPrivate GstGOmxMp3DecPrivate;
 #define _gst_object_unref0(var) ((var == NULL) ? NULL : (var = (gst_object_unref (var), NULL)))
 #define _g_object_unref0(var) ((var == NULL) ? NULL : (var = (g_object_unref (var), NULL)))
 #define _g_free0(var) (var = (g_free (var), NULL))
-#define _gst_caps_unref0(var) ((var == NULL) ? NULL : (var = (gst_caps_unref (var), NULL)))
 #define _g_error_free0(var) ((var == NULL) ? NULL : (var = (g_error_free (var), NULL)))
 #define _gst_structure_free0(var) ((var == NULL) ? NULL : (var = (gst_structure_free (var), NULL)))
 #define _gst_buffer_unref0(var) ((var == NULL) ? NULL : (var = (gst_buffer_unref (var), NULL)))
 #define _gst_event_unref0(var) ((var == NULL) ? NULL : (var = (gst_event_unref (var), NULL)))
+#define _gst_caps_unref0(var) ((var == NULL) ? NULL : (var = (gst_caps_unref (var), NULL)))
 
 struct _GstGOmxMp3Dec {
 	GstElement parent_instance;
@@ -55,7 +55,6 @@ struct _GstGOmxMp3DecPrivate {
 	gboolean done;
 	gboolean output_configured;
 	gboolean input_configured;
-	GstCaps* output_caps;
 };
 
 
@@ -547,8 +546,8 @@ static void gst_gomx_mp3_dec_configure_output (GstGOmxMp3Dec* self, GError** err
 		g_propagate_error (error, _inner_error_);
 		return;
 	}
-	self->priv->output_caps = (_tmp1_ = gst_caps_new_simple ("audio/x-raw-int", "endianness", G_TYPE_INT, G_BYTE_ORDER, "width", G_TYPE_INT, 16, "depth", G_TYPE_INT, 16, "rate", G_TYPE_INT, pcm_param.nSamplingRate, "signed", G_TYPE_BOOLEAN, TRUE, "channels", G_TYPE_INT, pcm_param.nChannels, NULL, NULL), _gst_caps_unref0 (self->priv->output_caps), _tmp1_);
-	gst_pad_set_caps (self->priv->src_pad, self->priv->output_caps);
+	gst_pad_set_caps (self->priv->src_pad, _tmp1_ = gst_caps_new_simple ("audio/x-raw-int", "endianness", G_TYPE_INT, G_BYTE_ORDER, "width", G_TYPE_INT, 16, "depth", G_TYPE_INT, 16, "rate", G_TYPE_INT, pcm_param.nSamplingRate, "signed", G_TYPE_BOOLEAN, TRUE, "channels", G_TYPE_INT, pcm_param.nChannels, NULL, NULL));
+	_gst_caps_unref0 (_tmp1_);
 	self->priv->output_configured = TRUE;
 }
 
@@ -556,11 +555,13 @@ static void gst_gomx_mp3_dec_configure_output (GstGOmxMp3Dec* self, GError** err
 GstBuffer* gst_gomx_mp3_dec_buffer_gst_from_omx (GstGOmxMp3Dec* self, OMX_BUFFERHEADERTYPE* omx_buffer, GError** error) {
 	GstBuffer* result;
 	GstBuffer* buffer;
+	GstCaps* _tmp0_;
 	g_return_val_if_fail (self != NULL, NULL);
 	g_return_val_if_fail (omx_buffer != NULL, NULL);
 	buffer = gst_buffer_new_and_alloc ((guint) omx_buffer->nFilledLen);
 	memcpy (buffer->data, omx_buffer->pBuffer, (gsize) omx_buffer->nFilledLen);
-	gst_buffer_set_caps (buffer, self->priv->output_caps);
+	gst_buffer_set_caps (buffer, _tmp0_ = gst_pad_get_negotiated_caps (self->priv->src_pad));
+	_gst_caps_unref0 (_tmp0_);
 	result = buffer;
 	return result;
 }
@@ -714,7 +715,6 @@ static void gst_gomx_mp3_dec_finalize (GObject* obj) {
 	_g_object_unref0 (self->priv->output_port);
 	_g_free0 (self->priv->component_name);
 	_g_free0 (self->priv->library_name);
-	_gst_caps_unref0 (self->priv->output_caps);
 	G_OBJECT_CLASS (gst_gomx_mp3_dec_parent_class)->finalize (obj);
 }
 
