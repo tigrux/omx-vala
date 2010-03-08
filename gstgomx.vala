@@ -11,8 +11,10 @@ namespace GstGOmx {
         
         int rate = 44100;
         int channels = 2;
+
         string component_name = "OMX.st.audio_decoder.mp3.mad";
         string library_name = "libomxil-bellagio.so.0";
+
         bool chained;
         bool output_configured;
         bool input_configured;
@@ -185,6 +187,7 @@ namespace GstGOmx {
                     try {
                         component.set_state_and_wait(Omx.State.Loaded);
                         component.core.deinit();
+                        component = null;
                     }
                     catch(GOmx.Error e) {
                         print("%s\n", e.message);
@@ -254,18 +257,13 @@ namespace GstGOmx {
 
 
         Gst.FlowReturn sink_pad_chain(Gst.Pad pad, owned Gst.Buffer buffer) {
-            if(!chained)
-                try {
+            try {
+                if(!chained) {
                     component.set_state_and_wait(Omx.State.Executing);
                     src_pad.start_task(src_pad_task);
                     chained = true;
                 }
-                catch(Error e) {
-                    print("%s\n", e.message);
-                    return Gst.FlowReturn.ERROR;
-                }
 
-            try {
                 var omx_buffer = input_port.pop_buffer();
                 omx_buffer.offset = 0;
                 omx_buffer.length = buffer.data.length;

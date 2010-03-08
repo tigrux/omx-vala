@@ -552,39 +552,22 @@ static GstFlowReturn gst_gomx_mp3_dec_sink_pad_chain (GstGOmxMp3Dec* self, GstPa
 	g_return_val_if_fail (pad != NULL, 0);
 	g_return_val_if_fail (buffer != NULL, 0);
 	_inner_error_ = NULL;
-	if (!self->priv->chained) {
-		{
+	{
+		OMX_BUFFERHEADERTYPE* omx_buffer;
+		if (!self->priv->chained) {
 			gomx_component_set_state_and_wait ((GOmxComponent*) self->priv->component, OMX_StateExecuting, &_inner_error_);
 			if (_inner_error_ != NULL) {
-				goto __catch5_g_error;
+				if (_inner_error_->domain == GOMX_ERROR) {
+					goto __catch5_gomx_error;
+				}
+				_gst_buffer_unref0 (buffer);
+				g_critical ("file %s: line %d: unexpected error: %s (%s, %d)", __FILE__, __LINE__, _inner_error_->message, g_quark_to_string (_inner_error_->domain), _inner_error_->code);
+				g_clear_error (&_inner_error_);
+				return 0;
 			}
 			gst_pad_start_task (self->priv->src_pad, _gst_gomx_mp3_dec_src_pad_task_gst_task_function, self);
 			self->priv->chained = TRUE;
 		}
-		goto __finally5;
-		__catch5_g_error:
-		{
-			GError * e;
-			e = _inner_error_;
-			_inner_error_ = NULL;
-			{
-				g_print ("%s\n", e->message);
-				result = GST_FLOW_ERROR;
-				_g_error_free0 (e);
-				_gst_buffer_unref0 (buffer);
-				return result;
-			}
-		}
-		__finally5:
-		if (_inner_error_ != NULL) {
-			_gst_buffer_unref0 (buffer);
-			g_critical ("file %s: line %d: uncaught error: %s (%s, %d)", __FILE__, __LINE__, _inner_error_->message, g_quark_to_string (_inner_error_->domain), _inner_error_->code);
-			g_clear_error (&_inner_error_);
-			return 0;
-		}
-	}
-	{
-		OMX_BUFFERHEADERTYPE* omx_buffer;
 		omx_buffer = gomx_port_pop_buffer (self->priv->input_port);
 		omx_buffer->nOffset = (guint32) 0;
 		omx_buffer->nFilledLen = (guint32) buffer->size;
@@ -592,7 +575,7 @@ static GstFlowReturn gst_gomx_mp3_dec_sink_pad_chain (GstGOmxMp3Dec* self, GstPa
 		gomx_port_push_buffer (self->priv->input_port, omx_buffer, &_inner_error_);
 		if (_inner_error_ != NULL) {
 			if (_inner_error_->domain == GOMX_ERROR) {
-				goto __catch6_gomx_error;
+				goto __catch5_gomx_error;
 			}
 			_gst_buffer_unref0 (buffer);
 			g_critical ("file %s: line %d: unexpected error: %s (%s, %d)", __FILE__, __LINE__, _inner_error_->message, g_quark_to_string (_inner_error_->domain), _inner_error_->code);
@@ -600,8 +583,8 @@ static GstFlowReturn gst_gomx_mp3_dec_sink_pad_chain (GstGOmxMp3Dec* self, GstPa
 			return 0;
 		}
 	}
-	goto __finally6;
-	__catch6_gomx_error:
+	goto __finally5;
+	__catch5_gomx_error:
 	{
 		GError * e;
 		e = _inner_error_;
@@ -614,7 +597,7 @@ static GstFlowReturn gst_gomx_mp3_dec_sink_pad_chain (GstGOmxMp3Dec* self, GstPa
 			return result;
 		}
 	}
-	__finally6:
+	__finally5:
 	if (_inner_error_ != NULL) {
 		_gst_buffer_unref0 (buffer);
 		g_critical ("file %s: line %d: uncaught error: %s (%s, %d)", __FILE__, __LINE__, _inner_error_->message, g_quark_to_string (_inner_error_->domain), _inner_error_->code);
@@ -646,7 +629,7 @@ void gst_gomx_mp3_dec_src_pad_task (GstGOmxMp3Dec* self) {
 			gst_gomx_mp3_dec_configure_output (self, &_inner_error_);
 			if (_inner_error_ != NULL) {
 				if (_inner_error_->domain == GOMX_ERROR) {
-					goto __catch7_gomx_error;
+					goto __catch6_gomx_error;
 				}
 				g_critical ("file %s: line %d: unexpected error: %s (%s, %d)", __FILE__, __LINE__, _inner_error_->message, g_quark_to_string (_inner_error_->domain), _inner_error_->code);
 				g_clear_error (&_inner_error_);
@@ -664,7 +647,7 @@ void gst_gomx_mp3_dec_src_pad_task (GstGOmxMp3Dec* self) {
 			buffer = gst_gomx_mp3_dec_buffer_gst_from_omx (self, omx_buffer, &_inner_error_);
 			if (_inner_error_ != NULL) {
 				if (_inner_error_->domain == GOMX_ERROR) {
-					goto __catch7_gomx_error;
+					goto __catch6_gomx_error;
 				}
 				g_critical ("file %s: line %d: unexpected error: %s (%s, %d)", __FILE__, __LINE__, _inner_error_->message, g_quark_to_string (_inner_error_->domain), _inner_error_->code);
 				g_clear_error (&_inner_error_);
@@ -676,15 +659,15 @@ void gst_gomx_mp3_dec_src_pad_task (GstGOmxMp3Dec* self) {
 		gomx_port_push_buffer (self->priv->output_port, omx_buffer, &_inner_error_);
 		if (_inner_error_ != NULL) {
 			if (_inner_error_->domain == GOMX_ERROR) {
-				goto __catch7_gomx_error;
+				goto __catch6_gomx_error;
 			}
 			g_critical ("file %s: line %d: unexpected error: %s (%s, %d)", __FILE__, __LINE__, _inner_error_->message, g_quark_to_string (_inner_error_->domain), _inner_error_->code);
 			g_clear_error (&_inner_error_);
 			return;
 		}
 	}
-	goto __finally7;
-	__catch7_gomx_error:
+	goto __finally6;
+	__catch6_gomx_error:
 	{
 		GError * e;
 		e = _inner_error_;
@@ -694,7 +677,7 @@ void gst_gomx_mp3_dec_src_pad_task (GstGOmxMp3Dec* self) {
 			_g_error_free0 (e);
 		}
 	}
-	__finally7:
+	__finally6:
 	if (_inner_error_ != NULL) {
 		g_critical ("file %s: line %d: uncaught error: %s (%s, %d)", __FILE__, __LINE__, _inner_error_->message, g_quark_to_string (_inner_error_->domain), _inner_error_->code);
 		g_clear_error (&_inner_error_);
