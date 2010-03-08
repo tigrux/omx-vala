@@ -108,7 +108,7 @@ namespace GstGOmx {
                     try {
                         component.set_state_and_wait(Omx.State.Idle);
                     }
-                    catch(GOmx.Error e) {
+                    catch(Error e) {
                         print("%s\n", e.message);
                     }
                     break;
@@ -118,7 +118,7 @@ namespace GstGOmx {
                         component.core.deinit();
                         component = null;
                     }
-                    catch(GOmx.Error e) {
+                    catch(Error e) {
                         print("%s\n", e.message);
                     }
                     break;
@@ -157,7 +157,7 @@ namespace GstGOmx {
                 Memory.copy(omx_buffer.buffer, buffer.data, buffer.data.length);
                 input_port.push_buffer(omx_buffer);
             }
-            catch(GOmx.Error e) {
+            catch(Error e) {
                 print("%s\n", e.message);
                 return Gst.FlowReturn.ERROR;
             }
@@ -189,7 +189,7 @@ namespace GstGOmx {
                     input_port.push_buffer(omx_buffer);
                     return true;
                 }
-                catch(GOmx.Error e) {
+                catch(Error e) {
                     print("%s\n", e.message);
                     return false;
                 }
@@ -232,7 +232,7 @@ namespace GstGOmx {
                 }
                 output_port.push_buffer(omx_buffer);
             }
-            catch(GOmx.Error e) {
+            catch(Error e) {
                 print("%s\n", e.message);
             }
         }
@@ -240,7 +240,7 @@ namespace GstGOmx {
 
         bool input_configured;
 
-        void configure_input() throws GOmx.Error, FileError {
+        void configure_input() throws Error {
             var mp3_param = Omx.Audio.Param.Mp3();
             mp3_param.init();
             mp3_param.port_index = 0;
@@ -261,7 +261,7 @@ namespace GstGOmx {
 
         Gst.Caps output_caps;
 
-        void configure_output() throws GOmx.Error {
+        void configure_output() throws Error {
             var pcm_param = Omx.Audio.Param.PcmMode();
             pcm_param.init();
             pcm_param.port_index = 1;
@@ -285,7 +285,7 @@ namespace GstGOmx {
 
 
         public Gst.Buffer buffer_gst_from_omx(Omx.BufferHeader omx_buffer)
-        throws GOmx.Error {
+        throws Error {
             var buffer = new Gst.Buffer.and_alloc(omx_buffer.length);
             Memory.copy(buffer.data, omx_buffer.buffer, omx_buffer.length);
             buffer.set_caps(output_caps);
