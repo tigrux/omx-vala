@@ -1,16 +1,8 @@
 omx-vala consists of:
 - omx.vapi
   Vala bindings for omxil 1.1
-- libomxil-bellagio.vapi
-  Vala bindings for Bellagio OpenMaxIL
 - gomx.vala
   An object oriented wrapper for omx, based on gobject
 - gstgomx.vala
   A gstreamer plugin based on gomx.vala
-
-It currently includes two examples:
-- omx-mp3-player
-  Bare example, uses only the plain omx.vapi
-- gomx-mp3-player
-  Object oriented example, uses the gomx.vapi
 
