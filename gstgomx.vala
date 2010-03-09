@@ -1,7 +1,5 @@
 namespace GstGOmx {
 
-
-
     class Mp3Dec: Gst.Element {
         Gst.Pad src_pad;
         Gst.Pad sink_pad;
@@ -106,6 +104,9 @@ namespace GstGOmx {
             switch (transition) {
                 case Gst.StateChange.PAUSED_TO_READY:
                     try {
+                        foreach(var buffer in output_port.buffers)
+                            if(buffer.app_private is Gst.Buffer)
+                                (buffer.app_private as Gst.Buffer).unref();
                         component.set_state_and_wait(Omx.State.Idle);
                     }
                     catch(Error e) {
@@ -181,10 +182,9 @@ namespace GstGOmx {
         bool sink_pad_event_eos(Gst.Pad pad, owned Gst.Event event) {
             if(!done)
                 try {
-                    print("*** Sending eos to omx\n");
                     var omx_buffer = input_port.pop_buffer();
                     omx_buffer.offset = 0;
-                    omx_buffer.length = 0;
+                    omx_buffer.length = 1; //blame Bellagio for this
                     GOmx.buffer_set_eos(omx_buffer);
                     input_port.push_buffer(omx_buffer);
                     return true;
@@ -193,18 +193,14 @@ namespace GstGOmx {
                     print("%s\n", e.message);
                     return false;
                 }
-            else {
-                print("*** Trying to stop\n");
+            else
                 return src_pad.push_event(event);
-            }
         }
 
 
         bool sink_pad_activatepush(Gst.Pad pad, bool active) {
-            if(!active || done) {
-                print("*** Stopping task\n");
+            if(!active || done)
                 return src_pad.stop_task();
-            }
             return true;
         }
 
@@ -225,7 +221,6 @@ namespace GstGOmx {
                     src_pad.push(buffer);
                 }
                 else {
-                    print("*** Should stop now\n");
                     done = true;
                     src_pad.pause_task();
                     send_event(new Gst.Event.eos());
@@ -237,8 +232,6 @@ namespace GstGOmx {
             }
         }
 
-
-        bool input_configured;
 
         void configure_input() throws Error {
             var mp3_param = Omx.Audio.Param.Mp3();
@@ -255,7 +248,6 @@ namespace GstGOmx {
             GOmx.try_run(
                 component.handle.set_parameter(
                     Omx.Index.ParamAudioMp3, mp3_param));
-            input_configured = true;
         }
 
 
@@ -281,12 +273,17 @@ namespace GstGOmx {
         }
 
 
-        public Gst.Buffer buffer_gst_from_omx(Omx.BufferHeader omx_buffer)
-        throws Error {
-            var buffer = new Gst.Buffer.and_alloc(omx_buffer.length);
-            Memory.copy(buffer.data, omx_buffer.buffer, omx_buffer.length);
-            buffer.set_caps(src_pad.get_negotiated_caps());
-            return buffer;
+        public Gst.Buffer buffer_gst_from_omx(Omx.BufferHeader omx_buffer) {
+            var gst_buffer = omx_buffer.app_private as Gst.Buffer;
+            if(gst_buffer == null) {
+                gst_buffer = new Gst.Buffer();
+                gst_buffer.data = omx_buffer.buffer;
+                gst_buffer.set_caps(src_pad.get_negotiated_caps());
+                omx_buffer.app_private = gst_buffer;
+                gst_buffer.ref();
+            }
+            gst_buffer.data.length = (int)omx_buffer.length;
+            return gst_buffer;
         }
 
 

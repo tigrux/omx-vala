@@ -54,7 +54,6 @@ struct _GstGOmxMp3DecPrivate {
 	gboolean chained;
 	gboolean done;
 	gboolean output_configured;
-	gboolean input_configured;
 };
 
 
@@ -75,7 +74,7 @@ static gboolean gst_gomx_mp3_dec_sink_pad_event_eos (GstGOmxMp3Dec* self, GstPad
 static gboolean gst_gomx_mp3_dec_sink_pad_event (GstGOmxMp3Dec* self, GstPad* pad, GstEvent* event);
 static gboolean gst_gomx_mp3_dec_sink_pad_activatepush (GstGOmxMp3Dec* self, GstPad* pad, gboolean active);
 static void gst_gomx_mp3_dec_configure_output (GstGOmxMp3Dec* self, GError** error);
-GstBuffer* gst_gomx_mp3_dec_buffer_gst_from_omx (GstGOmxMp3Dec* self, OMX_BUFFERHEADERTYPE* omx_buffer, GError** error);
+GstBuffer* gst_gomx_mp3_dec_buffer_gst_from_omx (GstGOmxMp3Dec* self, OMX_BUFFERHEADERTYPE* omx_buffer);
 static gboolean _gst_gomx_mp3_dec_sink_pad_setcaps (GstPad* pad, GstCaps* caps);
 static gboolean _gst_gomx_mp3_dec_sink_pad_event (GstPad* pad, GstEvent* event);
 static GstFlowReturn _gst_gomx_mp3_dec_sink_pad_chain (GstPad* pad, GstBuffer* buffer);
@@ -193,6 +192,22 @@ static GstStateChangeReturn gst_gomx_mp3_dec_real_change_state (GstElement* base
 		case GST_STATE_CHANGE_PAUSED_TO_READY:
 		{
 			{
+				{
+					GOmxBufferArrayIterator* _buffer_it;
+					_buffer_it = gomx_buffer_array_iterator (gomx_port_get_buffers (self->priv->output_port));
+					while (TRUE) {
+						OMX_BUFFERHEADERTYPE* buffer;
+						if (!gomx_buffer_array_iterator_next (_buffer_it)) {
+							break;
+						}
+						buffer = gomx_buffer_array_iterator_get (_buffer_it);
+						if (GST_IS_BUFFER (buffer->pAppPrivate)) {
+							void* _tmp2_;
+							gst_buffer_unref ((_tmp2_ = buffer->pAppPrivate, GST_IS_BUFFER (_tmp2_) ? ((GstBuffer*) _tmp2_) : NULL));
+						}
+					}
+					_g_object_unref0 (_buffer_it);
+				}
 				gomx_component_set_state_and_wait ((GOmxComponent*) self->priv->component, OMX_StateIdle, &_inner_error_);
 				if (_inner_error_ != NULL) {
 					goto __catch2_g_error;
@@ -220,7 +235,7 @@ static GstStateChangeReturn gst_gomx_mp3_dec_real_change_state (GstElement* base
 		case GST_STATE_CHANGE_READY_TO_NULL:
 		{
 			{
-				GOmxAudioComponent* _tmp2_;
+				GOmxAudioComponent* _tmp3_;
 				gomx_component_set_state_and_wait ((GOmxComponent*) self->priv->component, OMX_StateLoaded, &_inner_error_);
 				if (_inner_error_ != NULL) {
 					goto __catch3_g_error;
@@ -229,7 +244,7 @@ static GstStateChangeReturn gst_gomx_mp3_dec_real_change_state (GstElement* base
 				if (_inner_error_ != NULL) {
 					goto __catch3_g_error;
 				}
-				self->priv->component = (_tmp2_ = NULL, _g_object_unref0 (self->priv->component), _tmp2_);
+				self->priv->component = (_tmp3_ = NULL, _g_object_unref0 (self->priv->component), _tmp3_);
 			}
 			goto __finally3;
 			__catch3_g_error:
@@ -376,10 +391,9 @@ static gboolean gst_gomx_mp3_dec_sink_pad_event_eos (GstGOmxMp3Dec* self, GstPad
 	if (!self->priv->done) {
 		{
 			OMX_BUFFERHEADERTYPE* omx_buffer;
-			g_print ("*** Sending eos to omx\n");
 			omx_buffer = gomx_port_pop_buffer (self->priv->input_port);
 			omx_buffer->nOffset = (guint32) 0;
-			omx_buffer->nFilledLen = (guint32) 0;
+			omx_buffer->nFilledLen = (guint32) 1;
 			gomx_buffer_set_eos (omx_buffer);
 			gomx_port_push_buffer (self->priv->input_port, omx_buffer, &_inner_error_);
 			if (_inner_error_ != NULL) {
@@ -411,7 +425,6 @@ static gboolean gst_gomx_mp3_dec_sink_pad_event_eos (GstGOmxMp3Dec* self, GstPad
 			return FALSE;
 		}
 	} else {
-		g_print ("*** Trying to stop\n");
 		result = gst_pad_push_event (self->priv->src_pad, _gst_event_ref0 (event));
 		_gst_event_unref0 (event);
 		return result;
@@ -431,7 +444,6 @@ static gboolean gst_gomx_mp3_dec_sink_pad_activatepush (GstGOmxMp3Dec* self, Gst
 		_tmp0_ = self->priv->done;
 	}
 	if (_tmp0_) {
-		g_print ("*** Stopping task\n");
 		result = gst_pad_stop_task (self->priv->src_pad);
 		return result;
 	}
@@ -469,14 +481,10 @@ void gst_gomx_mp3_dec_src_pad_task (GstGOmxMp3Dec* self) {
 		omx_buffer = gomx_port_pop_buffer (self->priv->output_port);
 		if (!gomx_port_get_eos (self->priv->output_port)) {
 			GstBuffer* buffer;
-			buffer = gst_gomx_mp3_dec_buffer_gst_from_omx (self, omx_buffer, &_inner_error_);
-			if (_inner_error_ != NULL) {
-				goto __catch6_g_error;
-			}
+			buffer = gst_gomx_mp3_dec_buffer_gst_from_omx (self, omx_buffer);
 			gst_pad_push (self->priv->src_pad, _gst_buffer_ref0 (buffer));
 			_gst_buffer_unref0 (buffer);
 		} else {
-			g_print ("*** Should stop now\n");
 			self->priv->done = TRUE;
 			gst_pad_pause_task (self->priv->src_pad);
 			gst_element_send_event ((GstElement*) self, gst_event_new_eos ());
@@ -527,7 +535,6 @@ static void gst_gomx_mp3_dec_configure_input (GstGOmxMp3Dec* self, GError** erro
 		g_propagate_error (error, _inner_error_);
 		return;
 	}
-	self->priv->input_configured = TRUE;
 }
 
 
@@ -552,17 +559,26 @@ static void gst_gomx_mp3_dec_configure_output (GstGOmxMp3Dec* self, GError** err
 }
 
 
-GstBuffer* gst_gomx_mp3_dec_buffer_gst_from_omx (GstGOmxMp3Dec* self, OMX_BUFFERHEADERTYPE* omx_buffer, GError** error) {
+GstBuffer* gst_gomx_mp3_dec_buffer_gst_from_omx (GstGOmxMp3Dec* self, OMX_BUFFERHEADERTYPE* omx_buffer) {
 	GstBuffer* result;
-	GstBuffer* buffer;
-	GstCaps* _tmp0_;
+	void* _tmp0_;
+	GstBuffer* gst_buffer;
 	g_return_val_if_fail (self != NULL, NULL);
 	g_return_val_if_fail (omx_buffer != NULL, NULL);
-	buffer = gst_buffer_new_and_alloc ((guint) omx_buffer->nFilledLen);
-	memcpy (buffer->data, omx_buffer->pBuffer, (gsize) omx_buffer->nFilledLen);
-	gst_buffer_set_caps (buffer, _tmp0_ = gst_pad_get_negotiated_caps (self->priv->src_pad));
-	_gst_caps_unref0 (_tmp0_);
-	result = buffer;
+	gst_buffer = _gst_buffer_ref0 ((_tmp0_ = omx_buffer->pAppPrivate, GST_IS_BUFFER (_tmp0_) ? ((GstBuffer*) _tmp0_) : NULL));
+	if (gst_buffer == NULL) {
+		GstBuffer* _tmp1_;
+		guint8* _tmp2_;
+		GstCaps* _tmp3_;
+		gst_buffer = (_tmp1_ = gst_buffer_new (), _gst_buffer_unref0 (gst_buffer), _tmp1_);
+		gst_buffer->data = (_tmp2_ = omx_buffer->pBuffer, gst_buffer->size = omx_buffer->nAllocLen, _tmp2_);
+		gst_buffer_set_caps (gst_buffer, _tmp3_ = gst_pad_get_negotiated_caps (self->priv->src_pad));
+		_gst_caps_unref0 (_tmp3_);
+		omx_buffer->pAppPrivate = gst_buffer;
+		gst_buffer_ref (gst_buffer);
+	}
+	gst_buffer->size = (gint) omx_buffer->nFilledLen;
+	result = gst_buffer;
 	return result;
 }
 
