@@ -133,6 +133,7 @@ namespace GOmx {
 		public void setup_tunnel_with_port (GOmx.Port port) throws GOmx.Error;
 		public void use_buffers_of_port (GOmx.Port port) throws GOmx.Error;
 		public uint buffer_size { get; }
+		public GOmx.BufferArray buffers { get; }
 		public GOmx.Component component { get; set; }
 		public Omx.PortDomain domain { get; }
 		public bool enabled { get; }

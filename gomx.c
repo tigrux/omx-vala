@@ -858,6 +858,7 @@ enum  {
 	GOMX_PORT_NAME,
 	GOMX_PORT_COMPONENT,
 	GOMX_PORT_SUPPLIER,
+	GOMX_PORT_BUFFERS,
 	GOMX_PORT_INDEX,
 	GOMX_PORT_IS_INPUT,
 	GOMX_PORT_IS_OUTPUT,
@@ -895,6 +896,7 @@ const char* gomx_port_get_name (GOmxPort* self);
 GOmxComponent* gomx_port_get_component (GOmxPort* self);
 void gomx_port_set_component (GOmxPort* self, GOmxComponent* value);
 GOmxPort* gomx_port_get_supplier (GOmxPort* self);
+GOmxBufferArray* gomx_port_get_buffers (GOmxPort* self);
 void gomx_port_set_index (GOmxPort* self, guint value);
 gboolean gomx_port_get_is_input (GOmxPort* self);
 gboolean gomx_port_get_is_output (GOmxPort* self);
@@ -4194,6 +4196,14 @@ GOmxPort* gomx_port_get_supplier (GOmxPort* self) {
 }
 
 
+GOmxBufferArray* gomx_port_get_buffers (GOmxPort* self) {
+	GOmxBufferArray* result;
+	g_return_val_if_fail (self != NULL, NULL);
+	result = self->priv->_buffers;
+	return result;
+}
+
+
 guint gomx_port_get_index (GOmxPort* self) {
 	guint result;
 	g_return_val_if_fail (self != NULL, 0U);
@@ -4322,6 +4332,7 @@ static void gomx_port_class_init (GOmxPortClass * klass) {
 	g_object_class_install_property (G_OBJECT_CLASS (klass), GOMX_PORT_NAME, g_param_spec_string ("name", "name", "name", NULL, G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK | G_PARAM_STATIC_BLURB | G_PARAM_READABLE | G_PARAM_WRITABLE));
 	g_object_class_install_property (G_OBJECT_CLASS (klass), GOMX_PORT_COMPONENT, g_param_spec_object ("component", "component", "component", GOMX_TYPE_COMPONENT, G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK | G_PARAM_STATIC_BLURB | G_PARAM_READABLE | G_PARAM_WRITABLE));
 	g_object_class_install_property (G_OBJECT_CLASS (klass), GOMX_PORT_SUPPLIER, g_param_spec_object ("supplier", "supplier", "supplier", GOMX_TYPE_PORT, G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK | G_PARAM_STATIC_BLURB | G_PARAM_READABLE));
+	g_object_class_install_property (G_OBJECT_CLASS (klass), GOMX_PORT_BUFFERS, g_param_spec_object ("buffers", "buffers", "buffers", GOMX_TYPE_BUFFER_ARRAY, G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK | G_PARAM_STATIC_BLURB | G_PARAM_READABLE));
 	g_object_class_install_property (G_OBJECT_CLASS (klass), GOMX_PORT_INDEX, g_param_spec_uint ("index", "index", "index", 0, G_MAXUINT, 0U, G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK | G_PARAM_STATIC_BLURB | G_PARAM_READABLE | G_PARAM_WRITABLE));
 	g_object_class_install_property (G_OBJECT_CLASS (klass), GOMX_PORT_IS_INPUT, g_param_spec_boolean ("is-input", "is-input", "is-input", FALSE, G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK | G_PARAM_STATIC_BLURB | G_PARAM_READABLE));
 	g_object_class_install_property (G_OBJECT_CLASS (klass), GOMX_PORT_IS_OUTPUT, g_param_spec_boolean ("is-output", "is-output", "is-output", FALSE, G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK | G_PARAM_STATIC_BLURB | G_PARAM_READABLE));
@@ -4380,6 +4391,9 @@ static void gomx_port_get_property (GObject * object, guint property_id, GValue 
 		break;
 		case GOMX_PORT_SUPPLIER:
 		g_value_set_object (value, gomx_port_get_supplier (self));
+		break;
+		case GOMX_PORT_BUFFERS:
+		g_value_set_object (value, gomx_port_get_buffers (self));
 		break;
 		case GOMX_PORT_INDEX:
 		g_value_set_uint (value, gomx_port_get_index (self));

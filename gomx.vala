@@ -1000,6 +1000,14 @@ namespace GOmx {
             }
         }
 
+
+        public BufferArray buffers {
+            get {
+                return _buffers;
+            }
+        }
+
+
         public uint index {
             get {
                 return definition.port_index;
