@@ -266,16 +266,6 @@ namespace Omx {
 
         [CCode (cname="nInputPortIndex")]
         public uint32 input_port_index;
-
-        public bool eos {
-            get {
-                return (flags & BufferFlag.EOS) != 0;
-            }
-        }
-
-        public void set_eos() {
-            flags |= Omx.BufferFlag.EOS;
-        }
     }
 
     [CCode (cname="OMX_PORT_PARAM_TYPE")]

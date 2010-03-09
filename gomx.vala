@@ -1346,12 +1346,12 @@ namespace GOmx {
 ////////////////////////////////////////////////////////////////////////////////
 
     public bool buffer_is_eos(Omx.BufferHeader buffer) {
-        return buffer.eos;
+        return (buffer.flags & Omx.BufferFlag.EOS) != 0;
     }
 
 
     public void buffer_set_eos(Omx.BufferHeader buffer) {
-        buffer.set_eos();
+        buffer.flags |= Omx.BufferFlag.EOS;
     }
 
 
@@ -1380,7 +1380,7 @@ namespace GOmx {
         buffer.offset = 0;
         buffer.length = (uint32)fs.read(buffer.buffer);
         if(fs.eof())
-            buffer.set_eos();
+            buffer_set_eos(buffer);
     }
 
 

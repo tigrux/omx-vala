@@ -392,9 +392,8 @@ static gboolean gst_gomx_mp3_dec_sink_pad_event_eos (GstGOmxMp3Dec* self, GstPad
 		{
 			OMX_BUFFERHEADERTYPE* omx_buffer;
 			omx_buffer = gomx_port_pop_buffer (self->priv->input_port);
-			omx_buffer->nOffset = (guint32) 0;
 			omx_buffer->nFilledLen = (guint32) 1;
-			gomx_buffer_set_eos (omx_buffer);
+			omx_buffer->nFlags = (guint32) OMX_BUFFERFLAG_EOS;
 			gomx_port_push_buffer (self->priv->input_port, omx_buffer, &_inner_error_);
 			if (_inner_error_ != NULL) {
 				goto __catch5_g_error;
@@ -522,7 +521,7 @@ static void gst_gomx_mp3_dec_configure_input (GstGOmxMp3Dec* self, GError** erro
 	_inner_error_ = NULL;
 	mp3_param = (memset (&_tmp0_, 0, sizeof (OMX_AUDIO_PARAM_MP3TYPE)), _tmp0_);
 	omx_structure_init (&mp3_param);
-	mp3_param.nPortIndex = (guint32) 0;
+	mp3_param.nPortIndex = (guint32) gomx_port_get_index (self->priv->input_port);
 	gomx_try_run (OMX_GetParameter (gomx_component_get_handle ((GOmxComponent*) self->priv->component), (guint) OMX_IndexParamAudioMp3, &mp3_param), &_inner_error_);
 	if (_inner_error_ != NULL) {
 		g_propagate_error (error, _inner_error_);
@@ -547,7 +546,7 @@ static void gst_gomx_mp3_dec_configure_output (GstGOmxMp3Dec* self, GError** err
 	_inner_error_ = NULL;
 	pcm_param = (memset (&_tmp0_, 0, sizeof (OMX_AUDIO_PARAM_PCMMODETYPE)), _tmp0_);
 	omx_structure_init (&pcm_param);
-	pcm_param.nPortIndex = (guint32) 1;
+	pcm_param.nPortIndex = (guint32) gomx_port_get_index (self->priv->output_port);
 	gomx_try_run (OMX_GetParameter (gomx_component_get_handle ((GOmxComponent*) self->priv->component), (guint) OMX_IndexParamAudioPcm, &pcm_param), &_inner_error_);
 	if (_inner_error_ != NULL) {
 		g_propagate_error (error, _inner_error_);

@@ -183,9 +183,8 @@ namespace GstGOmx {
             if(!done)
                 try {
                     var omx_buffer = input_port.pop_buffer();
-                    omx_buffer.offset = 0;
-                    omx_buffer.length = 1; //blame Bellagio for this
-                    GOmx.buffer_set_eos(omx_buffer);
+                    omx_buffer.length = 1; //blame bellagio
+                    omx_buffer.flags = Omx.BufferFlag.EOS;
                     input_port.push_buffer(omx_buffer);
                     return true;
                 }
@@ -236,7 +235,7 @@ namespace GstGOmx {
         void configure_input() throws Error {
             var mp3_param = Omx.Audio.Param.Mp3();
             mp3_param.init();
-            mp3_param.port_index = 0;
+            mp3_param.port_index = input_port.index;
 
             GOmx.try_run(
                 component.handle.get_parameter(
@@ -254,7 +253,7 @@ namespace GstGOmx {
         void configure_output() throws Error {
             var pcm_param = Omx.Audio.Param.PcmMode();
             pcm_param.init();
-            pcm_param.port_index = 1;
+            pcm_param.port_index = output_port.index;
             GOmx.try_run(
                 component.handle.get_parameter(
                     Omx.Index.ParamAudioPcm, pcm_param));

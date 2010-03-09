@@ -4715,31 +4715,17 @@ GType gomx_semaphore_get_type (void) {
 }
 
 
-static gboolean omx_buffer_header_get_eos (OMX_BUFFERHEADERTYPE* self) {
-	gboolean result;
-	g_return_val_if_fail (self != NULL, FALSE);
-	result = (self->nFlags & OMX_BUFFERFLAG_EOS) != 0;
-	return result;
-}
-
-
 gboolean gomx_buffer_is_eos (OMX_BUFFERHEADERTYPE* buffer) {
 	gboolean result;
 	g_return_val_if_fail (buffer != NULL, FALSE);
-	result = omx_buffer_header_get_eos (buffer);
+	result = (buffer->nFlags & OMX_BUFFERFLAG_EOS) != 0;
 	return result;
-}
-
-
-static void omx_buffer_header_set_eos (OMX_BUFFERHEADERTYPE* self) {
-	g_return_if_fail (self != NULL);
-	self->nFlags = self->nFlags | ((guint32) OMX_BUFFERFLAG_EOS);
 }
 
 
 void gomx_buffer_set_eos (OMX_BUFFERHEADERTYPE* buffer) {
 	g_return_if_fail (buffer != NULL);
-	omx_buffer_header_set_eos (buffer);
+	buffer->nFlags = buffer->nFlags | ((guint32) OMX_BUFFERFLAG_EOS);
 }
 
 
@@ -4768,7 +4754,7 @@ void gomx_buffer_read_from_file (OMX_BUFFERHEADERTYPE* buffer, FILE* fs) {
 	buffer->nOffset = (guint32) 0;
 	buffer->nFilledLen = (guint32) fread (buffer->pBuffer, 1, buffer->nAllocLen, fs);
 	if (feof (fs)) {
-		omx_buffer_header_set_eos (buffer);
+		gomx_buffer_set_eos (buffer);
 	}
 }
 
