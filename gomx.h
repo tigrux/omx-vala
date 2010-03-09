@@ -522,7 +522,6 @@ void gomx_port_set_definition (GOmxPort* self, GError** error);
 void gomx_port_allocate_buffers (GOmxPort* self, GError** error);
 void gomx_port_setup_tunnel_with_port (GOmxPort* self, GOmxPort* port, GError** error);
 void gomx_port_use_buffers_of_port (GOmxPort* self, GOmxPort* port, GError** error);
-void gomx_port_use_buffers_of_array (GOmxPort* self, guint8** array, int array_length1, GError** error);
 void gomx_port_enable (GOmxPort* self, GError** error);
 void gomx_port_disable (GOmxPort* self, GError** error);
 void gomx_port_flush (GOmxPort* self, GError** error);

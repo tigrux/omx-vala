@@ -880,7 +880,6 @@ guint gomx_port_get_buffer_size (GOmxPort* self);
 OMX_BUFFERHEADERTYPE* gomx_buffer_array_get (GOmxBufferArray* self, guint index);
 void gomx_port_setup_tunnel_with_port (GOmxPort* self, GOmxPort* port, GError** error);
 void gomx_port_use_buffers_of_port (GOmxPort* self, GOmxPort* port, GError** error);
-void gomx_port_use_buffers_of_array (GOmxPort* self, guint8** array, int array_length1, GError** error);
 void gomx_port_enable (GOmxPort* self, GError** error);
 void gomx_port_flush (GOmxPort* self, GError** error);
 void gomx_port_disable (GOmxPort* self, GError** error);
@@ -3871,49 +3870,6 @@ void gomx_port_use_buffers_of_port (GOmxPort* self, GOmxPort* port, GError** err
 		i++;
 	}
 	self->priv->_supplier = (_tmp1_ = _g_object_ref0 (port), _g_object_unref0 (self->priv->_supplier), _tmp1_);
-}
-
-
-void gomx_port_use_buffers_of_array (GOmxPort* self, guint8** array, int array_length1, GError** error) {
-	GError * _inner_error_;
-	GOmxBufferArray* _tmp0_;
-	guint i;
-	g_return_if_fail (self != NULL);
-	_inner_error_ = NULL;
-	g_return_if_fail (self->priv->_component != NULL);
-	if (array_length1 != gomx_port_get_n_buffers (self)) {
-		_inner_error_ = g_error_new_literal (GOMX_ERROR, GOMX_ERROR_InsufficientResources, "The given array does not have enough items");
-		{
-			if (_inner_error_->domain == GOMX_ERROR) {
-				g_propagate_error (error, _inner_error_);
-				return;
-			} else {
-				g_critical ("file %s: line %d: uncaught error: %s (%s, %d)", __FILE__, __LINE__, _inner_error_->message, g_quark_to_string (_inner_error_->domain), _inner_error_->code);
-				g_clear_error (&_inner_error_);
-				return;
-			}
-		}
-	}
-	self->priv->_buffers = (_tmp0_ = gomx_buffer_array_new (gomx_port_get_n_buffers (self)), _g_object_unref0 (self->priv->_buffers), _tmp0_);
-	i = (guint) 0;
-	while (TRUE) {
-		if (!(i < gomx_port_get_n_buffers (self))) {
-			break;
-		}
-		gomx_try_run (OMX_UseBuffer (gomx_component_get_handle (self->priv->_component), &self->priv->_buffers->array[i], gomx_port_get_index (self), self->priv->_component, gomx_port_get_buffer_size (self), array[i]), &_inner_error_);
-		if (_inner_error_ != NULL) {
-			if (_inner_error_->domain == GOMX_ERROR) {
-				g_propagate_error (error, _inner_error_);
-				return;
-			} else {
-				g_critical ("file %s: line %d: uncaught error: %s (%s, %d)", __FILE__, __LINE__, _inner_error_->message, g_quark_to_string (_inner_error_->domain), _inner_error_->code);
-				g_clear_error (&_inner_error_);
-				return;
-			}
-		}
-		g_async_queue_push (self->priv->_buffers_queue, gomx_buffer_array_get (self->priv->_buffers, i));
-		i++;
-	}
 }
 
 

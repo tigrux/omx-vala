@@ -131,7 +131,6 @@ namespace GOmx {
 		public void set_buffer_done_function (GOmx.Port.BufferDoneFunc buffer_done_func);
 		public void set_definition () throws GOmx.Error;
 		public void setup_tunnel_with_port (GOmx.Port port) throws GOmx.Error;
-		public void use_buffers_of_array (uint8[][] array) throws GOmx.Error;
 		public void use_buffers_of_port (GOmx.Port port) throws GOmx.Error;
 		public uint buffer_size { get; }
 		public GOmx.Component component { get; set; }

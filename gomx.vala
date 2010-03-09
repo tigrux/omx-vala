@@ -1153,26 +1153,6 @@ namespace GOmx {
         }
 
 
-        public void use_buffers_of_array(uint8[][] array)
-        throws Error requires(_component != null) {
-            if(array.length != n_buffers)
-                throw new GOmx.Error.InsufficientResources(
-                    "The given array does not have enough items");
-
-            _buffers = new BufferArray(n_buffers);
-            uint i = 0;
-            while(i < n_buffers) {
-                try_run(
-                    _component.handle.use_buffer(
-                        out _buffers.array[i], index,
-                        _component, buffer_size,
-                        array[i]));
-                _buffers_queue.push(_buffers[i]);
-                i++;
-            }
-        }
-
-
         public void enable()
         throws Error requires(_component != null) {
             definition.enabled = true;
