@@ -183,7 +183,11 @@ namespace GstGOmx {
             if(!done)
                 try {
                     var omx_buffer = input_port.pop_buffer();
-                    omx_buffer.length = 1; //blame bellagio
+#if BELLAGIO
+                    omx_buffer.length = 1;
+#else
+                    omx_buffer.length = 0;
+#endif
                     omx_buffer.flags = Omx.BufferFlag.EOS;
                     input_port.push_buffer(omx_buffer);
                     return true;

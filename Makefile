@@ -20,7 +20,7 @@ libgstgomx.so: gstgomx.o gomx.o
 
 
 gstgomx.c: gstgomx.vala gomx.vapi omx.vapi
-	valac $^ $(VALAFLAGS)
+	valac $^ $(VALAFLAGS) -D BELLAGIO
 	touch $@
 
 
