@@ -49,7 +49,6 @@ namespace GOmx {
 		public string library_name { get; set; }
 		public uint n_ports { get; }
 		public string name { get; set; }
-		public bool no_allocate_buffers { get; set; }
 		public Omx.State pending_state { get; }
 		public GOmx.PortArray ports { get; }
 		public Omx.State previous_state { get; }
@@ -134,6 +133,7 @@ namespace GOmx {
 		public void set_parameter (uint32 param_index, Omx.PortStructure param) throws GOmx.Error;
 		public void setup_tunnel_with_port (GOmx.Port port) throws GOmx.Error;
 		public void use_buffers_of_port (GOmx.Port port) throws GOmx.Error;
+		public void use_null_buffers () throws GOmx.Error;
 		public uint buffer_size { get; }
 		public GOmx.BufferArray buffers { get; }
 		public GOmx.Component component { get; set; }
@@ -146,6 +146,7 @@ namespace GOmx {
 		public uint n_buffers { get; set; }
 		public uint n_min_buffers { get; }
 		public string name { get; set; }
+		public bool no_allocate_buffers { get; set; }
 		public bool populated { get; }
 		public GLib.AsyncQueue<Omx.BufferHeader> queue { get; }
 		public GOmx.Port? supplier { get; }

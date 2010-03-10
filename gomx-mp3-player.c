@@ -236,29 +236,6 @@ void play (const char* filename, GError** error) {
 			return;
 		}
 	}
-	gomx_component_list_buffers_begin_transfer (gomx_engine_get_components (engine), &_inner_error_);
-	if (_inner_error_ != NULL) {
-		if ((_inner_error_->domain == G_FILE_ERROR) || (_inner_error_->domain == GOMX_ERROR)) {
-			g_propagate_error (error, _inner_error_);
-			_fclose0 (fd);
-			_g_free0 (library);
-			_g_object_unref0 (core);
-			_g_object_unref0 (decoder);
-			_g_object_unref0 (sink);
-			_g_object_unref0 (engine);
-			return;
-		} else {
-			_fclose0 (fd);
-			_g_free0 (library);
-			_g_object_unref0 (core);
-			_g_object_unref0 (decoder);
-			_g_object_unref0 (sink);
-			_g_object_unref0 (engine);
-			g_critical ("file %s: line %d: uncaught error: %s (%s, %d)", __FILE__, __LINE__, _inner_error_->message, g_quark_to_string (_inner_error_->domain), _inner_error_->code);
-			g_clear_error (&_inner_error_);
-			return;
-		}
-	}
 	n_buffers_in = 0;
 	n_buffers_out = 0;
 	{

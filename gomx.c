@@ -475,7 +475,6 @@ struct _GOmxComponentPrivate {
 	char* _library_name;
 	char* _component_name;
 	char* _component_role;
-	gboolean _no_allocate_buffers;
 };
 
 struct _GOmxPortArray {
@@ -530,6 +529,7 @@ struct _GOmxPortPrivate {
 	GOmxPort* _supplier;
 	char* _name;
 	GOmxComponent* _component;
+	gboolean _no_allocate_buffers;
 };
 
 struct _GOmxBufferArray {
@@ -756,7 +756,6 @@ enum  {
 	GOMX_COMPONENT_CURRENT_STATE,
 	GOMX_COMPONENT_PENDING_STATE,
 	GOMX_COMPONENT_PREVIOUS_STATE,
-	GOMX_COMPONENT_NO_ALLOCATE_BUFFERS,
 	GOMX_COMPONENT_N_PORTS
 };
 static OMX_ERRORTYPE gomx_component_event_handler (GOmxComponent* self, void* component, OMX_EVENTTYPE event, guint32 data1, guint32 data2, void* event_data);
@@ -785,6 +784,7 @@ GType gomx_port_array_iterator_get_type (void);
 GOmxPortArrayIterator* gomx_port_array_iterator (GOmxPortArray* self);
 gboolean gomx_port_array_iterator_next (GOmxPortArrayIterator* self);
 GOmxPort* gomx_port_array_iterator_get (GOmxPortArrayIterator* self);
+gboolean gomx_port_get_no_allocate_buffers (GOmxPort* self);
 void gomx_port_allocate_buffers (GOmxPort* self, GError** error);
 void gomx_component_allocate_buffers (GOmxComponent* self, GError** error);
 static void gomx_component_real_allocate_buffers (GOmxComponent* self, GError** error);
@@ -820,8 +820,6 @@ void gomx_component_set_component_role (GOmxComponent* self, const char* value);
 OMX_STATETYPE gomx_component_get_current_state (GOmxComponent* self);
 OMX_STATETYPE gomx_component_get_pending_state (GOmxComponent* self);
 OMX_STATETYPE gomx_component_get_previous_state (GOmxComponent* self);
-gboolean gomx_component_get_no_allocate_buffers (GOmxComponent* self);
-void gomx_component_set_no_allocate_buffers (GOmxComponent* self, gboolean value);
 guint gomx_component_get_n_ports (GOmxComponent* self);
 GOmxSemaphore* gomx_semaphore_new (void);
 GOmxSemaphore* gomx_semaphore_construct (GType object_type);
@@ -864,6 +862,7 @@ enum  {
 	GOMX_PORT_POPULATED,
 	GOMX_PORT_DOMAIN,
 	GOMX_PORT_EOS,
+	GOMX_PORT_NO_ALLOCATE_BUFFERS,
 	GOMX_PORT_QUEUE,
 	GOMX_PORT_N_BUFFERS,
 	GOMX_PORT_N_MIN_BUFFERS,
@@ -871,21 +870,22 @@ enum  {
 };
 OMX_PARAM_PORTDEFINITIONTYPE* gomx_port_get_definition (GOmxPort* self, GError** error);
 void gomx_port_set_definition (GOmxPort* self, GError** error);
+GOmxComponent* gomx_port_get_component (GOmxPort* self);
+guint gomx_port_get_index (GOmxPort* self);
+void gomx_port_get_parameter (GOmxPort* self, guint32 param_index, OmxPortStructure* param, GError** error);
+void gomx_port_set_parameter (GOmxPort* self, guint32 param_index, OmxPortStructure* param, GError** error);
 guint gomx_port_get_n_buffers (GOmxPort* self);
 GOmxBufferArray* gomx_buffer_array_new (guint length);
 GOmxBufferArray* gomx_buffer_array_construct (GType object_type, guint length);
-guint gomx_port_get_index (GOmxPort* self);
 guint gomx_port_get_buffer_size (GOmxPort* self);
 OMX_BUFFERHEADERTYPE* gomx_buffer_array_get (GOmxBufferArray* self, guint index);
+void gomx_port_use_buffers_of_port (GOmxPort* self, GOmxPort* port, GError** error);
+void gomx_port_use_null_buffers (GOmxPort* self, GError** error);
 GType gomx_buffer_array_iterator_get_type (void);
 GOmxBufferArrayIterator* gomx_buffer_array_iterator (GOmxBufferArray* self);
 gboolean gomx_buffer_array_iterator_next (GOmxBufferArrayIterator* self);
 OMX_BUFFERHEADERTYPE* gomx_buffer_array_iterator_get (GOmxBufferArrayIterator* self);
-GOmxComponent* gomx_port_get_component (GOmxPort* self);
-void gomx_port_get_parameter (GOmxPort* self, guint32 param_index, OmxPortStructure* param, GError** error);
-void gomx_port_set_parameter (GOmxPort* self, guint32 param_index, OmxPortStructure* param, GError** error);
 void gomx_port_setup_tunnel_with_port (GOmxPort* self, GOmxPort* port, GError** error);
-void gomx_port_use_buffers_of_port (GOmxPort* self, GOmxPort* port, GError** error);
 void gomx_port_enable (GOmxPort* self, GError** error);
 void gomx_port_flush (GOmxPort* self, GError** error);
 void gomx_port_disable (GOmxPort* self, GError** error);
@@ -903,6 +903,7 @@ gboolean gomx_port_get_is_output (GOmxPort* self);
 gboolean gomx_port_get_enabled (GOmxPort* self);
 gboolean gomx_port_get_populated (GOmxPort* self);
 OMX_PORTDOMAINTYPE gomx_port_get_domain (GOmxPort* self);
+void gomx_port_set_no_allocate_buffers (GOmxPort* self, gboolean value);
 void gomx_port_set_n_buffers (GOmxPort* self, guint value);
 guint gomx_port_get_n_min_buffers (GOmxPort* self);
 static GObject * gomx_port_constructor (GType type, guint n_construct_properties, GObjectConstructParam * construct_properties);
@@ -2445,7 +2446,7 @@ static void gomx_component_real_allocate_buffers (GOmxComponent* self, GError** 
 				break;
 			}
 			port = gomx_port_array_iterator_get (_port_it);
-			if (!self->priv->_no_allocate_buffers) {
+			if (!gomx_port_get_no_allocate_buffers (port)) {
 				gomx_port_allocate_buffers (port, &_inner_error_);
 				if (_inner_error_ != NULL) {
 					if (_inner_error_->domain == GOMX_ERROR) {
@@ -2627,12 +2628,12 @@ static void gomx_component_real_set_state (GOmxComponent* self, OMX_STATETYPE st
 	} else {
 		gboolean _tmp1_ = FALSE;
 		if (self->priv->_current_state == OMX_StateIdle) {
-			_tmp1_ = self->priv->_pending_state == OMX_StateLoaded;
+			_tmp1_ = self->priv->_pending_state == OMX_StateExecuting;
 		} else {
 			_tmp1_ = FALSE;
 		}
 		if (_tmp1_) {
-			gomx_component_free_buffers (self, &_inner_error_);
+			gomx_component_buffers_begin_transfer (self, &_inner_error_);
 			if (_inner_error_ != NULL) {
 				if (_inner_error_->domain == GOMX_ERROR) {
 					g_propagate_error (error, _inner_error_);
@@ -2641,6 +2642,26 @@ static void gomx_component_real_set_state (GOmxComponent* self, OMX_STATETYPE st
 					g_critical ("file %s: line %d: uncaught error: %s (%s, %d)", __FILE__, __LINE__, _inner_error_->message, g_quark_to_string (_inner_error_->domain), _inner_error_->code);
 					g_clear_error (&_inner_error_);
 					return;
+				}
+			}
+		} else {
+			gboolean _tmp2_ = FALSE;
+			if (self->priv->_current_state == OMX_StateIdle) {
+				_tmp2_ = self->priv->_pending_state == OMX_StateLoaded;
+			} else {
+				_tmp2_ = FALSE;
+			}
+			if (_tmp2_) {
+				gomx_component_free_buffers (self, &_inner_error_);
+				if (_inner_error_ != NULL) {
+					if (_inner_error_->domain == GOMX_ERROR) {
+						g_propagate_error (error, _inner_error_);
+						return;
+					} else {
+						g_critical ("file %s: line %d: uncaught error: %s (%s, %d)", __FILE__, __LINE__, _inner_error_->message, g_quark_to_string (_inner_error_->domain), _inner_error_->code);
+						g_clear_error (&_inner_error_);
+						return;
+					}
 				}
 			}
 		}
@@ -3031,7 +3052,7 @@ static OMX_ERRORTYPE gomx_component_event_handler (GOmxComponent* self, void* co
 		{
 			OMX_ERRORTYPE _error_;
 			_error_ = (OMX_ERRORTYPE) data1;
-			g_critical ("gomx.vala:823: %s", omx_error_to_string (_error_));
+			g_critical ("gomx.vala:822: %s", omx_error_to_string (_error_));
 			if (self->priv->_event_func_1 != NULL) {
 				self->priv->_event_func_1 (self, (guint) data1, (guint) data2, event_data, self->priv->_event_func_1_target);
 			}
@@ -3284,21 +3305,6 @@ OMX_STATETYPE gomx_component_get_previous_state (GOmxComponent* self) {
 }
 
 
-gboolean gomx_component_get_no_allocate_buffers (GOmxComponent* self) {
-	gboolean result;
-	g_return_val_if_fail (self != NULL, FALSE);
-	result = self->priv->_no_allocate_buffers;
-	return result;
-}
-
-
-void gomx_component_set_no_allocate_buffers (GOmxComponent* self, gboolean value) {
-	g_return_if_fail (self != NULL);
-	self->priv->_no_allocate_buffers = value;
-	g_object_notify ((GObject *) self, "no-allocate-buffers");
-}
-
-
 guint gomx_component_get_n_ports (GOmxComponent* self) {
 	guint result;
 	g_return_val_if_fail (self != NULL, 0U);
@@ -3363,7 +3369,6 @@ static void gomx_component_class_init (GOmxComponentClass * klass) {
 	g_object_class_install_property (G_OBJECT_CLASS (klass), GOMX_COMPONENT_CURRENT_STATE, g_param_spec_int ("current-state", "current-state", "current-state", G_MININT, G_MAXINT, 0, G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK | G_PARAM_STATIC_BLURB | G_PARAM_READABLE));
 	g_object_class_install_property (G_OBJECT_CLASS (klass), GOMX_COMPONENT_PENDING_STATE, g_param_spec_int ("pending-state", "pending-state", "pending-state", G_MININT, G_MAXINT, 0, G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK | G_PARAM_STATIC_BLURB | G_PARAM_READABLE));
 	g_object_class_install_property (G_OBJECT_CLASS (klass), GOMX_COMPONENT_PREVIOUS_STATE, g_param_spec_int ("previous-state", "previous-state", "previous-state", G_MININT, G_MAXINT, 0, G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK | G_PARAM_STATIC_BLURB | G_PARAM_READABLE));
-	g_object_class_install_property (G_OBJECT_CLASS (klass), GOMX_COMPONENT_NO_ALLOCATE_BUFFERS, g_param_spec_boolean ("no-allocate-buffers", "no-allocate-buffers", "no-allocate-buffers", FALSE, G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK | G_PARAM_STATIC_BLURB | G_PARAM_READABLE | G_PARAM_WRITABLE));
 	g_object_class_install_property (G_OBJECT_CLASS (klass), GOMX_COMPONENT_N_PORTS, g_param_spec_uint ("n-ports", "n-ports", "n-ports", 0, G_MAXUINT, 0U, G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK | G_PARAM_STATIC_BLURB | G_PARAM_READABLE));
 }
 
@@ -3477,9 +3482,6 @@ static void gomx_component_get_property (GObject * object, guint property_id, GV
 		case GOMX_COMPONENT_PREVIOUS_STATE:
 		g_value_set_int (value, gomx_component_get_previous_state (self));
 		break;
-		case GOMX_COMPONENT_NO_ALLOCATE_BUFFERS:
-		g_value_set_boolean (value, gomx_component_get_no_allocate_buffers (self));
-		break;
 		case GOMX_COMPONENT_N_PORTS:
 		g_value_set_uint (value, gomx_component_get_n_ports (self));
 		break;
@@ -3511,9 +3513,6 @@ static void gomx_component_set_property (GObject * object, guint property_id, co
 		break;
 		case GOMX_COMPONENT_COMPONENT_ROLE:
 		gomx_component_set_component_role (self, g_value_get_string (value));
-		break;
-		case GOMX_COMPONENT_NO_ALLOCATE_BUFFERS:
-		gomx_component_set_no_allocate_buffers (self, g_value_get_boolean (value));
 		break;
 		default:
 		G_OBJECT_WARN_INVALID_PROPERTY_ID (object, property_id, pspec);
@@ -3798,6 +3797,46 @@ void gomx_port_set_definition (GOmxPort* self, GError** error) {
 }
 
 
+void gomx_port_get_parameter (GOmxPort* self, guint32 param_index, OmxPortStructure* param, GError** error) {
+	GError * _inner_error_;
+	g_return_if_fail (self != NULL);
+	_inner_error_ = NULL;
+	g_return_if_fail (self->priv->_component != NULL);
+	(*param).nPortIndex = (guint32) gomx_port_get_index (self);
+	gomx_try_run (OMX_GetParameter (gomx_component_get_handle (self->priv->_component), (guint) param_index, param), &_inner_error_);
+	if (_inner_error_ != NULL) {
+		if (_inner_error_->domain == GOMX_ERROR) {
+			g_propagate_error (error, _inner_error_);
+			return;
+		} else {
+			g_critical ("file %s: line %d: uncaught error: %s (%s, %d)", __FILE__, __LINE__, _inner_error_->message, g_quark_to_string (_inner_error_->domain), _inner_error_->code);
+			g_clear_error (&_inner_error_);
+			return;
+		}
+	}
+}
+
+
+void gomx_port_set_parameter (GOmxPort* self, guint32 param_index, OmxPortStructure* param, GError** error) {
+	GError * _inner_error_;
+	g_return_if_fail (self != NULL);
+	_inner_error_ = NULL;
+	g_return_if_fail (self->priv->_component != NULL);
+	(*param).nPortIndex = (guint32) gomx_port_get_index (self);
+	gomx_try_run (OMX_GetParameter (gomx_component_get_handle (self->priv->_component), (guint) param_index, param), &_inner_error_);
+	if (_inner_error_ != NULL) {
+		if (_inner_error_->domain == GOMX_ERROR) {
+			g_propagate_error (error, _inner_error_);
+			return;
+		} else {
+			g_critical ("file %s: line %d: uncaught error: %s (%s, %d)", __FILE__, __LINE__, _inner_error_->message, g_quark_to_string (_inner_error_->domain), _inner_error_->code);
+			g_clear_error (&_inner_error_);
+			return;
+		}
+	}
+}
+
+
 void gomx_port_allocate_buffers (GOmxPort* self, GError** error) {
 	GError * _inner_error_;
 	GOmxBufferArray* _tmp0_;
@@ -3814,6 +3853,75 @@ void gomx_port_allocate_buffers (GOmxPort* self, GError** error) {
 			break;
 		}
 		gomx_try_run (OMX_AllocateBuffer (gomx_component_get_handle (self->priv->_component), &self->priv->_buffers->array[i], gomx_port_get_index (self), self, gomx_port_get_buffer_size (self)), &_inner_error_);
+		if (_inner_error_ != NULL) {
+			if (_inner_error_->domain == GOMX_ERROR) {
+				g_propagate_error (error, _inner_error_);
+				return;
+			} else {
+				g_critical ("file %s: line %d: uncaught error: %s (%s, %d)", __FILE__, __LINE__, _inner_error_->message, g_quark_to_string (_inner_error_->domain), _inner_error_->code);
+				g_clear_error (&_inner_error_);
+				return;
+			}
+		}
+		g_async_queue_push (self->priv->_buffers_queue, gomx_buffer_array_get (self->priv->_buffers, i));
+		i++;
+	}
+}
+
+
+void gomx_port_use_buffers_of_port (GOmxPort* self, GOmxPort* port, GError** error) {
+	GError * _inner_error_;
+	GOmxBufferArray* _tmp0_;
+	GAsyncQueue* _tmp1_;
+	guint i;
+	GOmxPort* _tmp2_;
+	g_return_if_fail (self != NULL);
+	g_return_if_fail (port != NULL);
+	_inner_error_ = NULL;
+	g_return_if_fail (self->priv->_component != NULL);
+	self->priv->_buffers = (_tmp0_ = gomx_buffer_array_new (gomx_port_get_n_buffers (self)), _g_object_unref0 (self->priv->_buffers), _tmp0_);
+	self->priv->_buffers_queue = (_tmp1_ = g_async_queue_new (), _g_async_queue_unref0 (self->priv->_buffers_queue), _tmp1_);
+	i = (guint) 0;
+	while (TRUE) {
+		OMX_BUFFERHEADERTYPE* buffer_used;
+		if (!(i < gomx_port_get_n_buffers (self))) {
+			break;
+		}
+		buffer_used = gomx_buffer_array_get (port->priv->_buffers, i);
+		gomx_try_run (OMX_UseBuffer (gomx_component_get_handle (self->priv->_component), &self->priv->_buffers->array[i], gomx_port_get_index (self), self->priv->_component, gomx_port_get_buffer_size (self), buffer_used->pBuffer), &_inner_error_);
+		if (_inner_error_ != NULL) {
+			if (_inner_error_->domain == GOMX_ERROR) {
+				g_propagate_error (error, _inner_error_);
+				return;
+			} else {
+				g_critical ("file %s: line %d: uncaught error: %s (%s, %d)", __FILE__, __LINE__, _inner_error_->message, g_quark_to_string (_inner_error_->domain), _inner_error_->code);
+				g_clear_error (&_inner_error_);
+				return;
+			}
+		}
+		g_async_queue_push (self->priv->_buffers_queue, gomx_buffer_array_get (self->priv->_buffers, i));
+		i++;
+	}
+	self->priv->_supplier = (_tmp2_ = _g_object_ref0 (port), _g_object_unref0 (self->priv->_supplier), _tmp2_);
+}
+
+
+void gomx_port_use_null_buffers (GOmxPort* self, GError** error) {
+	GError * _inner_error_;
+	GOmxBufferArray* _tmp0_;
+	GAsyncQueue* _tmp1_;
+	guint i;
+	g_return_if_fail (self != NULL);
+	_inner_error_ = NULL;
+	g_return_if_fail (self->priv->_component != NULL);
+	self->priv->_buffers = (_tmp0_ = gomx_buffer_array_new (gomx_port_get_n_buffers (self)), _g_object_unref0 (self->priv->_buffers), _tmp0_);
+	self->priv->_buffers_queue = (_tmp1_ = g_async_queue_new (), _g_async_queue_unref0 (self->priv->_buffers_queue), _tmp1_);
+	i = (guint) 0;
+	while (TRUE) {
+		if (!(i < gomx_port_get_n_buffers (self))) {
+			break;
+		}
+		gomx_try_run (OMX_UseBuffer (gomx_component_get_handle (self->priv->_component), &self->priv->_buffers->array[i], gomx_port_get_index (self), self->priv->_component, gomx_port_get_buffer_size (self), NULL), &_inner_error_);
 		if (_inner_error_ != NULL) {
 			if (_inner_error_->domain == GOMX_ERROR) {
 				g_propagate_error (error, _inner_error_);
@@ -3867,46 +3975,6 @@ void gomx_port_free_buffers (GOmxPort* self, GError** error) {
 }
 
 
-void gomx_port_get_parameter (GOmxPort* self, guint32 param_index, OmxPortStructure* param, GError** error) {
-	GError * _inner_error_;
-	g_return_if_fail (self != NULL);
-	_inner_error_ = NULL;
-	g_return_if_fail (self->priv->_component != NULL);
-	(*param).nPortIndex = (guint32) gomx_port_get_index (self);
-	gomx_try_run (OMX_GetParameter (gomx_component_get_handle (self->priv->_component), (guint) param_index, param), &_inner_error_);
-	if (_inner_error_ != NULL) {
-		if (_inner_error_->domain == GOMX_ERROR) {
-			g_propagate_error (error, _inner_error_);
-			return;
-		} else {
-			g_critical ("file %s: line %d: uncaught error: %s (%s, %d)", __FILE__, __LINE__, _inner_error_->message, g_quark_to_string (_inner_error_->domain), _inner_error_->code);
-			g_clear_error (&_inner_error_);
-			return;
-		}
-	}
-}
-
-
-void gomx_port_set_parameter (GOmxPort* self, guint32 param_index, OmxPortStructure* param, GError** error) {
-	GError * _inner_error_;
-	g_return_if_fail (self != NULL);
-	_inner_error_ = NULL;
-	g_return_if_fail (self->priv->_component != NULL);
-	(*param).nPortIndex = (guint32) gomx_port_get_index (self);
-	gomx_try_run (OMX_GetParameter (gomx_component_get_handle (self->priv->_component), (guint) param_index, param), &_inner_error_);
-	if (_inner_error_ != NULL) {
-		if (_inner_error_->domain == GOMX_ERROR) {
-			g_propagate_error (error, _inner_error_);
-			return;
-		} else {
-			g_critical ("file %s: line %d: uncaught error: %s (%s, %d)", __FILE__, __LINE__, _inner_error_->message, g_quark_to_string (_inner_error_->domain), _inner_error_->code);
-			g_clear_error (&_inner_error_);
-			return;
-		}
-	}
-}
-
-
 void gomx_port_setup_tunnel_with_port (GOmxPort* self, GOmxPort* port, GError** error) {
 	GError * _inner_error_;
 	g_return_if_fail (self != NULL);
@@ -3924,41 +3992,6 @@ void gomx_port_setup_tunnel_with_port (GOmxPort* self, GOmxPort* port, GError** 
 			return;
 		}
 	}
-}
-
-
-void gomx_port_use_buffers_of_port (GOmxPort* self, GOmxPort* port, GError** error) {
-	GError * _inner_error_;
-	GOmxBufferArray* _tmp0_;
-	guint i;
-	GOmxPort* _tmp1_;
-	g_return_if_fail (self != NULL);
-	g_return_if_fail (port != NULL);
-	_inner_error_ = NULL;
-	g_return_if_fail (self->priv->_component != NULL);
-	self->priv->_buffers = (_tmp0_ = gomx_buffer_array_new (gomx_port_get_n_buffers (self)), _g_object_unref0 (self->priv->_buffers), _tmp0_);
-	i = (guint) 0;
-	while (TRUE) {
-		OMX_BUFFERHEADERTYPE* buffer_used;
-		if (!(i < gomx_port_get_n_buffers (self))) {
-			break;
-		}
-		buffer_used = gomx_buffer_array_get (port->priv->_buffers, i);
-		gomx_try_run (OMX_UseBuffer (gomx_component_get_handle (self->priv->_component), &self->priv->_buffers->array[i], gomx_port_get_index (self), self->priv->_component, gomx_port_get_buffer_size (self), buffer_used->pBuffer), &_inner_error_);
-		if (_inner_error_ != NULL) {
-			if (_inner_error_->domain == GOMX_ERROR) {
-				g_propagate_error (error, _inner_error_);
-				return;
-			} else {
-				g_critical ("file %s: line %d: uncaught error: %s (%s, %d)", __FILE__, __LINE__, _inner_error_->message, g_quark_to_string (_inner_error_->domain), _inner_error_->code);
-				g_clear_error (&_inner_error_);
-				return;
-			}
-		}
-		g_async_queue_push (self->priv->_buffers_queue, gomx_buffer_array_get (self->priv->_buffers, i));
-		i++;
-	}
-	self->priv->_supplier = (_tmp1_ = _g_object_ref0 (port), _g_object_unref0 (self->priv->_supplier), _tmp1_);
 }
 
 
@@ -4317,6 +4350,21 @@ gboolean gomx_port_get_eos (GOmxPort* self) {
 }
 
 
+gboolean gomx_port_get_no_allocate_buffers (GOmxPort* self) {
+	gboolean result;
+	g_return_val_if_fail (self != NULL, FALSE);
+	result = self->priv->_no_allocate_buffers;
+	return result;
+}
+
+
+void gomx_port_set_no_allocate_buffers (GOmxPort* self, gboolean value) {
+	g_return_if_fail (self != NULL);
+	self->priv->_no_allocate_buffers = value;
+	g_object_notify ((GObject *) self, "no-allocate-buffers");
+}
+
+
 GAsyncQueue* gomx_port_get_queue (GOmxPort* self) {
 	GAsyncQueue* result;
 	g_return_val_if_fail (self != NULL, NULL);
@@ -4365,8 +4413,10 @@ static GObject * gomx_port_constructor (GType type, guint n_construct_properties
 	self = GOMX_PORT (obj);
 	{
 		char* _tmp12_;
+		GAsyncQueue* _tmp13_;
 		self->priv->_name = (_tmp12_ = g_strdup (""), _g_free0 (self->priv->_name), _tmp12_);
 		omx_structure_init (&self->priv->definition);
+		self->priv->_buffers_queue = (_tmp13_ = g_async_queue_new (), _g_async_queue_unref0 (self->priv->_buffers_queue), _tmp13_);
 	}
 	return obj;
 }
@@ -4390,6 +4440,7 @@ static void gomx_port_class_init (GOmxPortClass * klass) {
 	g_object_class_install_property (G_OBJECT_CLASS (klass), GOMX_PORT_POPULATED, g_param_spec_boolean ("populated", "populated", "populated", FALSE, G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK | G_PARAM_STATIC_BLURB | G_PARAM_READABLE));
 	g_object_class_install_property (G_OBJECT_CLASS (klass), GOMX_PORT_DOMAIN, g_param_spec_int ("domain", "domain", "domain", G_MININT, G_MAXINT, 0, G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK | G_PARAM_STATIC_BLURB | G_PARAM_READABLE));
 	g_object_class_install_property (G_OBJECT_CLASS (klass), GOMX_PORT_EOS, g_param_spec_boolean ("eos", "eos", "eos", FALSE, G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK | G_PARAM_STATIC_BLURB | G_PARAM_READABLE));
+	g_object_class_install_property (G_OBJECT_CLASS (klass), GOMX_PORT_NO_ALLOCATE_BUFFERS, g_param_spec_boolean ("no-allocate-buffers", "no-allocate-buffers", "no-allocate-buffers", FALSE, G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK | G_PARAM_STATIC_BLURB | G_PARAM_READABLE | G_PARAM_WRITABLE));
 	g_object_class_install_property (G_OBJECT_CLASS (klass), GOMX_PORT_QUEUE, g_param_spec_pointer ("queue", "queue", "queue", G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK | G_PARAM_STATIC_BLURB | G_PARAM_READABLE));
 	g_object_class_install_property (G_OBJECT_CLASS (klass), GOMX_PORT_N_BUFFERS, g_param_spec_uint ("n-buffers", "n-buffers", "n-buffers", 0, G_MAXUINT, 0U, G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK | G_PARAM_STATIC_BLURB | G_PARAM_READABLE | G_PARAM_WRITABLE));
 	g_object_class_install_property (G_OBJECT_CLASS (klass), GOMX_PORT_N_MIN_BUFFERS, g_param_spec_uint ("n-min-buffers", "n-min-buffers", "n-min-buffers", 0, G_MAXUINT, 0U, G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK | G_PARAM_STATIC_BLURB | G_PARAM_READABLE));
@@ -4466,6 +4517,9 @@ static void gomx_port_get_property (GObject * object, guint property_id, GValue 
 		case GOMX_PORT_EOS:
 		g_value_set_boolean (value, gomx_port_get_eos (self));
 		break;
+		case GOMX_PORT_NO_ALLOCATE_BUFFERS:
+		g_value_set_boolean (value, gomx_port_get_no_allocate_buffers (self));
+		break;
 		case GOMX_PORT_QUEUE:
 		g_value_set_pointer (value, gomx_port_get_queue (self));
 		break;
@@ -4497,6 +4551,9 @@ static void gomx_port_set_property (GObject * object, guint property_id, const G
 		break;
 		case GOMX_PORT_INDEX:
 		gomx_port_set_index (self, g_value_get_uint (value));
+		break;
+		case GOMX_PORT_NO_ALLOCATE_BUFFERS:
+		gomx_port_set_no_allocate_buffers (self, g_value_get_boolean (value));
 		break;
 		case GOMX_PORT_N_BUFFERS:
 		gomx_port_set_n_buffers (self, g_value_get_uint (value));
@@ -4721,10 +4778,10 @@ static GObject * gomx_semaphore_constructor (GType type, guint n_construct_prope
 	obj = parent_class->constructor (type, n_construct_properties, construct_properties);
 	self = GOMX_SEMAPHORE (obj);
 	{
-		GCond* _tmp13_;
-		GMutex* _tmp14_;
-		self->priv->_cond = (_tmp13_ = g_cond_new (), _g_cond_free0 (self->priv->_cond), _tmp13_);
-		self->priv->_mutex = (_tmp14_ = g_mutex_new (), _g_mutex_free0 (self->priv->_mutex), _tmp14_);
+		GCond* _tmp14_;
+		GMutex* _tmp15_;
+		self->priv->_cond = (_tmp14_ = g_cond_new (), _g_cond_free0 (self->priv->_cond), _tmp14_);
+		self->priv->_mutex = (_tmp15_ = g_mutex_new (), _g_mutex_free0 (self->priv->_mutex), _tmp15_);
 		self->priv->counter = 0;
 	}
 	return obj;

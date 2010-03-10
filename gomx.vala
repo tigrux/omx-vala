@@ -530,11 +530,6 @@ namespace GOmx {
         }
 
 
-        public bool no_allocate_buffers {
-            get; set;
-        }
-
-
         public Component(string name, Omx.Index index) {
             Object(
                 component_name: name,
@@ -639,7 +634,7 @@ namespace GOmx {
         protected virtual void allocate_buffers()
         throws Error requires(_ports != null) {
             foreach(var port in _ports) {
-                if(!_no_allocate_buffers)
+                if(!port.no_allocate_buffers)
                     port.allocate_buffers();
             }
         }
@@ -684,6 +679,10 @@ namespace GOmx {
             if(_current_state == Omx.State.Loaded &&
                _pending_state == Omx.State.Idle)
                 allocate_buffers();
+            else
+            if(_current_state == Omx.State.Idle &&
+               _pending_state == Omx.State.Executing)
+                buffers_begin_transfer();
             else
             if(_current_state == Omx.State.Idle &&
                _pending_state == Omx.State.Loaded)
@@ -982,6 +981,7 @@ namespace GOmx {
         construct {
             _name = "";
             definition.init();
+            _buffers_queue = new AsyncQueue<Omx.BufferHeader>();
         }
 
 
@@ -1061,6 +1061,11 @@ namespace GOmx {
         }
 
 
+        public bool no_allocate_buffers {
+            get; set;
+        }
+
+
         public weak AsyncQueue<Omx.BufferHeader> queue {
             get {
                 return _buffers_queue;
@@ -1120,32 +1125,6 @@ namespace GOmx {
         }
 
 
-        public void allocate_buffers()
-        throws Error requires(_buffers == null) {
-            _buffers = new BufferArray(n_buffers);
-            _buffers_queue = new AsyncQueue<Omx.BufferHeader>();
-            uint i = 0;
-            while(i < n_buffers) {
-                try_run(
-                    _component.handle.allocate_buffer(
-                        out _buffers.array[i], index,
-                        this, buffer_size));
-                _buffers_queue.push(_buffers[i]);
-                i++;
-            }
-        }
-
-
-        public void free_buffers()
-        throws Error requires(_buffers != null && _component !=null) {
-            foreach(var buffer in _buffers)
-                try_run(
-                    _component.handle.free_buffer(index, buffer));
-            _buffers = null;
-            _buffers_queue = null;
-        }
-
-
         public void get_parameter(
                 uint32 param_index, Omx.PortStructure param)
         throws Error requires(component !=null) {
@@ -1164,17 +1143,26 @@ namespace GOmx {
         }
 
 
-        public void setup_tunnel_with_port(Port port)
-        throws Error requires(_component != null) {
-            _component.core.setup_tunnel(
-                _component.handle, index,
-                port._component.handle, port.index);
+        public void allocate_buffers()
+        throws Error requires(_buffers == null) {
+            _buffers = new BufferArray(n_buffers);
+            _buffers_queue = new AsyncQueue<Omx.BufferHeader>();
+            uint i = 0;
+            while(i < n_buffers) {
+                try_run(
+                    _component.handle.allocate_buffer(
+                        out _buffers.array[i], index,
+                        this, buffer_size));
+                _buffers_queue.push(_buffers[i]);
+                i++;
+            }
         }
 
 
         public void use_buffers_of_port(Port port)
         throws Error requires(_component != null) {
             _buffers = new BufferArray(n_buffers);
+            _buffers_queue = new AsyncQueue<Omx.BufferHeader>();
             uint i = 0;
             while(i < n_buffers) {
                 var buffer_used = port._buffers[i];
@@ -1187,6 +1175,41 @@ namespace GOmx {
                 i++;
             }
             _supplier = port;
+        }
+
+
+        public void use_null_buffers()
+        throws Error requires(_component != null) {
+            _buffers = new BufferArray(n_buffers);
+            _buffers_queue = new AsyncQueue<Omx.BufferHeader>();
+            uint i = 0;
+            while(i < n_buffers) {
+                try_run(
+                    _component.handle.use_buffer(
+                        out _buffers.array[i], index,
+                        _component, buffer_size,
+                        null));
+                _buffers_queue.push(_buffers[i]);
+                i++;
+            }
+        }
+
+
+        public void free_buffers()
+        throws Error requires(_buffers != null && _component !=null) {
+            foreach(var buffer in _buffers)
+                try_run(
+                    _component.handle.free_buffer(index, buffer));
+            _buffers = null;
+            _buffers_queue = null;
+        }
+
+
+        public void setup_tunnel_with_port(Port port)
+        throws Error requires(_component != null) {
+            _component.core.setup_tunnel(
+                _component.handle, index,
+                port._component.handle, port.index);
         }
 
 

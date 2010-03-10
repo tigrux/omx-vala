@@ -45,7 +45,6 @@ public void play(string filename) throws FileError, GOmx.Error {
     engine.components.init();
     engine.components.set_state_and_wait(Omx.State.Idle);
     engine.components.set_state_and_wait(Omx.State.Executing);
-    engine.components.buffers_begin_transfer();
 
     var n_buffers_in = 0;
     var n_buffers_out = 0;
