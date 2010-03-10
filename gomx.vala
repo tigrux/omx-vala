@@ -579,7 +579,8 @@ namespace GOmx {
         }
 
 
-        protected virtual void allocate_ports() {
+        protected virtual void allocate_ports()
+        throws Error {
             var start_port = ports_param.start_port_number;
             var n_ports = ports_param.ports;
             var last_port = start_port +  n_ports;
@@ -589,6 +590,7 @@ namespace GOmx {
             uint i = start_port;
             while(i < last_port) {
                 var port = new Port(this, i);
+                port.init();
                 port.name = "%s_port%u".printf(name, i);
                 _ports[i] = port;
                 i++;
@@ -637,7 +639,6 @@ namespace GOmx {
         protected virtual void allocate_buffers()
         throws Error requires(_ports != null) {
             foreach(var port in _ports) {
-                port.init();
                 if(!_no_allocate_buffers)
                     port.allocate_buffers();
             }
