@@ -1,5 +1,5 @@
-#ifndef __OMX_UTILS_H__
-#define __OMX_UTILS_H__
+#ifndef __OMX_H__
+#define __OMX_H__
 
 
 #include <OMX_Core.h>
@@ -20,7 +20,6 @@ typedef struct {
     OMX_VERSIONTYPE nVersion;
     OMX_U32 nPortIndex;
 } OmxPortStructure;
-
 
 
 #endif
