@@ -1066,6 +1066,12 @@ namespace GOmx {
         }
 
 
+        public bool buffers_allocated {
+            get {
+                return _buffers != null;
+            }
+        }
+
         public weak AsyncQueue<Omx.BufferHeader> queue {
             get {
                 return _buffers_queue;

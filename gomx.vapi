@@ -136,6 +136,7 @@ namespace GOmx {
 		public void use_null_buffers () throws GOmx.Error;
 		public uint buffer_size { get; }
 		public GOmx.BufferArray buffers { get; }
+		public bool buffers_allocated { get; }
 		public GOmx.Component component { get; set; }
 		public Omx.PortDomain domain { get; }
 		public bool enabled { get; }

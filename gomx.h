@@ -547,6 +547,7 @@ OMX_PORTDOMAINTYPE gomx_port_get_domain (GOmxPort* self);
 gboolean gomx_port_get_eos (GOmxPort* self);
 gboolean gomx_port_get_no_allocate_buffers (GOmxPort* self);
 void gomx_port_set_no_allocate_buffers (GOmxPort* self, gboolean value);
+gboolean gomx_port_get_buffers_allocated (GOmxPort* self);
 GAsyncQueue* gomx_port_get_queue (GOmxPort* self);
 guint gomx_port_get_n_buffers (GOmxPort* self);
 void gomx_port_set_n_buffers (GOmxPort* self, guint value);

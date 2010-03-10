@@ -863,6 +863,7 @@ enum  {
 	GOMX_PORT_DOMAIN,
 	GOMX_PORT_EOS,
 	GOMX_PORT_NO_ALLOCATE_BUFFERS,
+	GOMX_PORT_BUFFERS_ALLOCATED,
 	GOMX_PORT_QUEUE,
 	GOMX_PORT_N_BUFFERS,
 	GOMX_PORT_N_MIN_BUFFERS,
@@ -904,6 +905,7 @@ gboolean gomx_port_get_enabled (GOmxPort* self);
 gboolean gomx_port_get_populated (GOmxPort* self);
 OMX_PORTDOMAINTYPE gomx_port_get_domain (GOmxPort* self);
 void gomx_port_set_no_allocate_buffers (GOmxPort* self, gboolean value);
+gboolean gomx_port_get_buffers_allocated (GOmxPort* self);
 void gomx_port_set_n_buffers (GOmxPort* self, guint value);
 guint gomx_port_get_n_min_buffers (GOmxPort* self);
 static GObject * gomx_port_constructor (GType type, guint n_construct_properties, GObjectConstructParam * construct_properties);
@@ -4365,6 +4367,14 @@ void gomx_port_set_no_allocate_buffers (GOmxPort* self, gboolean value) {
 }
 
 
+gboolean gomx_port_get_buffers_allocated (GOmxPort* self) {
+	gboolean result;
+	g_return_val_if_fail (self != NULL, FALSE);
+	result = self->priv->_buffers != NULL;
+	return result;
+}
+
+
 GAsyncQueue* gomx_port_get_queue (GOmxPort* self) {
 	GAsyncQueue* result;
 	g_return_val_if_fail (self != NULL, NULL);
@@ -4441,6 +4451,7 @@ static void gomx_port_class_init (GOmxPortClass * klass) {
 	g_object_class_install_property (G_OBJECT_CLASS (klass), GOMX_PORT_DOMAIN, g_param_spec_int ("domain", "domain", "domain", G_MININT, G_MAXINT, 0, G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK | G_PARAM_STATIC_BLURB | G_PARAM_READABLE));
 	g_object_class_install_property (G_OBJECT_CLASS (klass), GOMX_PORT_EOS, g_param_spec_boolean ("eos", "eos", "eos", FALSE, G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK | G_PARAM_STATIC_BLURB | G_PARAM_READABLE));
 	g_object_class_install_property (G_OBJECT_CLASS (klass), GOMX_PORT_NO_ALLOCATE_BUFFERS, g_param_spec_boolean ("no-allocate-buffers", "no-allocate-buffers", "no-allocate-buffers", FALSE, G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK | G_PARAM_STATIC_BLURB | G_PARAM_READABLE | G_PARAM_WRITABLE));
+	g_object_class_install_property (G_OBJECT_CLASS (klass), GOMX_PORT_BUFFERS_ALLOCATED, g_param_spec_boolean ("buffers-allocated", "buffers-allocated", "buffers-allocated", FALSE, G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK | G_PARAM_STATIC_BLURB | G_PARAM_READABLE));
 	g_object_class_install_property (G_OBJECT_CLASS (klass), GOMX_PORT_QUEUE, g_param_spec_pointer ("queue", "queue", "queue", G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK | G_PARAM_STATIC_BLURB | G_PARAM_READABLE));
 	g_object_class_install_property (G_OBJECT_CLASS (klass), GOMX_PORT_N_BUFFERS, g_param_spec_uint ("n-buffers", "n-buffers", "n-buffers", 0, G_MAXUINT, 0U, G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK | G_PARAM_STATIC_BLURB | G_PARAM_READABLE | G_PARAM_WRITABLE));
 	g_object_class_install_property (G_OBJECT_CLASS (klass), GOMX_PORT_N_MIN_BUFFERS, g_param_spec_uint ("n-min-buffers", "n-min-buffers", "n-min-buffers", 0, G_MAXUINT, 0U, G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK | G_PARAM_STATIC_BLURB | G_PARAM_READABLE));
@@ -4519,6 +4530,9 @@ static void gomx_port_get_property (GObject * object, guint property_id, GValue 
 		break;
 		case GOMX_PORT_NO_ALLOCATE_BUFFERS:
 		g_value_set_boolean (value, gomx_port_get_no_allocate_buffers (self));
+		break;
+		case GOMX_PORT_BUFFERS_ALLOCATED:
+		g_value_set_boolean (value, gomx_port_get_buffers_allocated (self));
 		break;
 		case GOMX_PORT_QUEUE:
 		g_value_set_pointer (value, gomx_port_get_queue (self));
