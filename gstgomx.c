@@ -513,6 +513,30 @@ void gst_gomx_mp3_dec_src_pad_task (GstGOmxMp3Dec* self) {
 }
 
 
+GstBuffer* gst_gomx_mp3_dec_buffer_gst_from_omx (GstGOmxMp3Dec* self, OMX_BUFFERHEADERTYPE* omx_buffer) {
+	GstBuffer* result;
+	void* _tmp0_;
+	GstBuffer* gst_buffer;
+	g_return_val_if_fail (self != NULL, NULL);
+	g_return_val_if_fail (omx_buffer != NULL, NULL);
+	gst_buffer = _gst_buffer_ref0 ((_tmp0_ = omx_buffer->pAppPrivate, GST_IS_BUFFER (_tmp0_) ? ((GstBuffer*) _tmp0_) : NULL));
+	if (gst_buffer == NULL) {
+		GstBuffer* _tmp1_;
+		guint8* _tmp2_;
+		GstCaps* _tmp3_;
+		gst_buffer = (_tmp1_ = gst_buffer_new (), _gst_buffer_unref0 (gst_buffer), _tmp1_);
+		gst_buffer->data = (_tmp2_ = omx_buffer->pBuffer, gst_buffer->size = omx_buffer->nAllocLen, _tmp2_);
+		gst_buffer_set_caps (gst_buffer, _tmp3_ = gst_pad_get_negotiated_caps (self->priv->src_pad));
+		_gst_caps_unref0 (_tmp3_);
+		omx_buffer->pAppPrivate = gst_buffer;
+		gst_buffer_ref (gst_buffer);
+	}
+	gst_buffer->size = (gint) omx_buffer->nFilledLen;
+	result = gst_buffer;
+	return result;
+}
+
+
 static void gst_gomx_mp3_dec_configure_input (GstGOmxMp3Dec* self, GError** error) {
 	GError * _inner_error_;
 	OMX_AUDIO_PARAM_MP3TYPE _tmp0_ = {0};
@@ -555,30 +579,6 @@ static void gst_gomx_mp3_dec_configure_output (GstGOmxMp3Dec* self, GError** err
 	gst_pad_set_caps (self->priv->src_pad, _tmp1_ = gst_caps_new_simple ("audio/x-raw-int", "endianness", G_TYPE_INT, G_BYTE_ORDER, "width", G_TYPE_INT, 16, "depth", G_TYPE_INT, 16, "rate", G_TYPE_INT, pcm_param.nSamplingRate, "signed", G_TYPE_BOOLEAN, TRUE, "channels", G_TYPE_INT, pcm_param.nChannels, NULL, NULL));
 	_gst_caps_unref0 (_tmp1_);
 	self->priv->output_configured = TRUE;
-}
-
-
-GstBuffer* gst_gomx_mp3_dec_buffer_gst_from_omx (GstGOmxMp3Dec* self, OMX_BUFFERHEADERTYPE* omx_buffer) {
-	GstBuffer* result;
-	void* _tmp0_;
-	GstBuffer* gst_buffer;
-	g_return_val_if_fail (self != NULL, NULL);
-	g_return_val_if_fail (omx_buffer != NULL, NULL);
-	gst_buffer = _gst_buffer_ref0 ((_tmp0_ = omx_buffer->pAppPrivate, GST_IS_BUFFER (_tmp0_) ? ((GstBuffer*) _tmp0_) : NULL));
-	if (gst_buffer == NULL) {
-		GstBuffer* _tmp1_;
-		guint8* _tmp2_;
-		GstCaps* _tmp3_;
-		gst_buffer = (_tmp1_ = gst_buffer_new (), _gst_buffer_unref0 (gst_buffer), _tmp1_);
-		gst_buffer->data = (_tmp2_ = omx_buffer->pBuffer, gst_buffer->size = omx_buffer->nAllocLen, _tmp2_);
-		gst_buffer_set_caps (gst_buffer, _tmp3_ = gst_pad_get_negotiated_caps (self->priv->src_pad));
-		_gst_caps_unref0 (_tmp3_);
-		omx_buffer->pAppPrivate = gst_buffer;
-		gst_buffer_ref (gst_buffer);
-	}
-	gst_buffer->size = (gint) omx_buffer->nFilledLen;
-	result = gst_buffer;
-	return result;
 }
 
 

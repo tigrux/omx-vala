@@ -236,6 +236,20 @@ namespace GstGOmx {
         }
 
 
+        public Gst.Buffer buffer_gst_from_omx(Omx.BufferHeader omx_buffer) {
+            var gst_buffer = omx_buffer.app_private as Gst.Buffer;
+            if(gst_buffer == null) {
+                gst_buffer = new Gst.Buffer();
+                gst_buffer.data = omx_buffer.buffer;
+                gst_buffer.set_caps(src_pad.get_negotiated_caps());
+                omx_buffer.app_private = gst_buffer;
+                gst_buffer.ref();
+            }
+            gst_buffer.data.length = (int)omx_buffer.length;
+            return gst_buffer;
+        }
+
+
         void configure_input() throws Error {
             var mp3_param = Omx.Audio.Param.Mp3();
             mp3_param.init();
@@ -273,20 +287,6 @@ namespace GstGOmx {
                     "channels", typeof(int), pcm_param.channels,
                     null));
             output_configured = true;
-        }
-
-
-        public Gst.Buffer buffer_gst_from_omx(Omx.BufferHeader omx_buffer) {
-            var gst_buffer = omx_buffer.app_private as Gst.Buffer;
-            if(gst_buffer == null) {
-                gst_buffer = new Gst.Buffer();
-                gst_buffer.data = omx_buffer.buffer;
-                gst_buffer.set_caps(src_pad.get_negotiated_caps());
-                omx_buffer.app_private = gst_buffer;
-                gst_buffer.ref();
-            }
-            gst_buffer.data.length = (int)omx_buffer.length;
-            return gst_buffer;
         }
 
 
