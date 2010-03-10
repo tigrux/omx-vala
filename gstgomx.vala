@@ -253,28 +253,17 @@ namespace GstGOmx {
         void configure_input() throws Error {
             var mp3_param = Omx.Audio.Param.Mp3();
             mp3_param.init();
-            mp3_param.port_index = input_port.index;
-
-            GOmx.try_run(
-                component.handle.get_parameter(
-                    Omx.Index.ParamAudioMp3, mp3_param));
-
+            input_port.get_parameter(Omx.Index.ParamAudioMp3, mp3_param);
             mp3_param.channels = channels;
             mp3_param.sample_rate = rate;
-
-            GOmx.try_run(
-                component.handle.set_parameter(
-                    Omx.Index.ParamAudioMp3, mp3_param));
+            input_port.set_parameter(Omx.Index.ParamAudioMp3, mp3_param);
         }
 
 
         void configure_output() throws Error {
             var pcm_param = Omx.Audio.Param.PcmMode();
             pcm_param.init();
-            pcm_param.port_index = output_port.index;
-            GOmx.try_run(
-                component.handle.get_parameter(
-                    Omx.Index.ParamAudioPcm, pcm_param));
+            output_port.get_parameter(Omx.Index.ParamAudioPcm, pcm_param);
 
             src_pad.set_caps(
                 new Gst.Caps.simple(

@@ -125,11 +125,13 @@ namespace GOmx {
 		public void flush () throws GOmx.Error;
 		public void free_buffers () throws GOmx.Error;
 		public Omx.Param.PortDefinition* get_definition () throws GOmx.Error;
+		public void get_parameter (uint32 param_index, Omx.PortStructure param) throws GOmx.Error;
 		public void init () throws GOmx.Error;
 		public Omx.BufferHeader pop_buffer ();
 		public void push_buffer (Omx.BufferHeader buffer) throws GOmx.Error;
 		public void set_buffer_done_function (GOmx.Port.BufferDoneFunc buffer_done_func);
 		public void set_definition () throws GOmx.Error;
+		public void set_parameter (uint32 param_index, Omx.PortStructure param) throws GOmx.Error;
 		public void setup_tunnel_with_port (GOmx.Port port) throws GOmx.Error;
 		public void use_buffers_of_port (GOmx.Port port) throws GOmx.Error;
 		public uint buffer_size { get; }

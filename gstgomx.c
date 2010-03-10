@@ -8,9 +8,7 @@
 #include <gomx.h>
 #include <stdlib.h>
 #include <string.h>
-#include <OMX_Core.h>
-#include <OMX_Component.h>
-#include <omx-utils.h>
+#include <omx.h>
 
 
 #define GST_GOMX_TYPE_MP3_DEC (gst_gomx_mp3_dec_get_type ())
@@ -545,15 +543,14 @@ static void gst_gomx_mp3_dec_configure_input (GstGOmxMp3Dec* self, GError** erro
 	_inner_error_ = NULL;
 	mp3_param = (memset (&_tmp0_, 0, sizeof (OMX_AUDIO_PARAM_MP3TYPE)), _tmp0_);
 	omx_structure_init (&mp3_param);
-	mp3_param.nPortIndex = (guint32) gomx_port_get_index (self->priv->input_port);
-	gomx_try_run (OMX_GetParameter (gomx_component_get_handle ((GOmxComponent*) self->priv->component), (guint) OMX_IndexParamAudioMp3, &mp3_param), &_inner_error_);
+	gomx_port_get_parameter (self->priv->input_port, (guint32) OMX_IndexParamAudioMp3, &mp3_param, &_inner_error_);
 	if (_inner_error_ != NULL) {
 		g_propagate_error (error, _inner_error_);
 		return;
 	}
 	mp3_param.nChannels = (guint32) self->priv->channels;
 	mp3_param.nSampleRate = (guint32) self->priv->rate;
-	gomx_try_run (OMX_SetParameter (gomx_component_get_handle ((GOmxComponent*) self->priv->component), (guint) OMX_IndexParamAudioMp3, &mp3_param), &_inner_error_);
+	gomx_port_set_parameter (self->priv->input_port, (guint32) OMX_IndexParamAudioMp3, &mp3_param, &_inner_error_);
 	if (_inner_error_ != NULL) {
 		g_propagate_error (error, _inner_error_);
 		return;
@@ -570,8 +567,7 @@ static void gst_gomx_mp3_dec_configure_output (GstGOmxMp3Dec* self, GError** err
 	_inner_error_ = NULL;
 	pcm_param = (memset (&_tmp0_, 0, sizeof (OMX_AUDIO_PARAM_PCMMODETYPE)), _tmp0_);
 	omx_structure_init (&pcm_param);
-	pcm_param.nPortIndex = (guint32) gomx_port_get_index (self->priv->output_port);
-	gomx_try_run (OMX_GetParameter (gomx_component_get_handle ((GOmxComponent*) self->priv->component), (guint) OMX_IndexParamAudioPcm, &pcm_param), &_inner_error_);
+	gomx_port_get_parameter (self->priv->output_port, (guint32) OMX_IndexParamAudioPcm, &pcm_param, &_inner_error_);
 	if (_inner_error_ != NULL) {
 		g_propagate_error (error, _inner_error_);
 		return;

@@ -1,4 +1,4 @@
-[CCode (cheader_filename="OMX_Core.h,OMX_Component.h")]
+[CCode (cheader_filename="omx.h")]
 namespace Omx {
     [CCode (cname="OMX_ALL")]
     const uint ALL;
@@ -207,7 +207,6 @@ namespace Omx {
         [CCode (cname="nVersion")]
         public Version version;
 
-        [CCode (cheader_filename="omx-utils.h")]
         public void init();
     }
 

@@ -8,8 +8,7 @@
 #include <string.h>
 #include <gomx.h>
 #include <stdio.h>
-#include <OMX_Core.h>
-#include <OMX_Component.h>
+#include <omx.h>
 
 #define _g_error_free0(var) ((var == NULL) ? NULL : (var = (g_error_free (var), NULL)))
 #define _fclose0(var) ((var == NULL) ? NULL : (var = (fclose (var), NULL)))

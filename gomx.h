@@ -8,8 +8,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <glib-object.h>
-#include <OMX_Core.h>
-#include <OMX_Component.h>
+#include <omx.h>
 #include <gmodule.h>
 #include <stdio.h>
 
@@ -520,12 +519,14 @@ void gomx_port_init (GOmxPort* self, GError** error);
 OMX_PARAM_PORTDEFINITIONTYPE* gomx_port_get_definition (GOmxPort* self, GError** error);
 void gomx_port_set_definition (GOmxPort* self, GError** error);
 void gomx_port_allocate_buffers (GOmxPort* self, GError** error);
+void gomx_port_free_buffers (GOmxPort* self, GError** error);
+void gomx_port_get_parameter (GOmxPort* self, guint32 param_index, OmxPortStructure* param, GError** error);
+void gomx_port_set_parameter (GOmxPort* self, guint32 param_index, OmxPortStructure* param, GError** error);
 void gomx_port_setup_tunnel_with_port (GOmxPort* self, GOmxPort* port, GError** error);
 void gomx_port_use_buffers_of_port (GOmxPort* self, GOmxPort* port, GError** error);
 void gomx_port_enable (GOmxPort* self, GError** error);
 void gomx_port_disable (GOmxPort* self, GError** error);
 void gomx_port_flush (GOmxPort* self, GError** error);
-void gomx_port_free_buffers (GOmxPort* self, GError** error);
 OMX_BUFFERHEADERTYPE* gomx_port_pop_buffer (GOmxPort* self);
 void gomx_port_push_buffer (GOmxPort* self, OMX_BUFFERHEADERTYPE* buffer, GError** error);
 void gomx_port_set_buffer_done_function (GOmxPort* self, GOmxPortBufferDoneFunc buffer_done_func, void* buffer_done_func_target);

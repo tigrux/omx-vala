@@ -1136,6 +1136,34 @@ namespace GOmx {
         }
 
 
+        public void free_buffers()
+        throws Error requires(_buffers != null && _component !=null) {
+            foreach(var buffer in _buffers)
+                try_run(
+                    _component.handle.free_buffer(index, buffer));
+            _buffers = null;
+            _buffers_queue = null;
+        }
+
+
+        public void get_parameter(
+                uint32 param_index, Omx.PortStructure param)
+        throws Error requires(component !=null) {
+            param.port_index = index;
+            GOmx.try_run(
+                _component.handle.get_parameter(param_index, param));
+        }
+
+
+        public void set_parameter(
+                uint32 param_index, Omx.PortStructure param)
+        throws Error requires(component !=null) {
+            param.port_index = index;
+            GOmx.try_run(
+                _component.handle.get_parameter(param_index, param));
+        }
+
+
         public void setup_tunnel_with_port(Port port)
         throws Error requires(_component != null) {
             _component.core.setup_tunnel(
@@ -1194,16 +1222,6 @@ namespace GOmx {
             try_run(
                 _component.handle.send_command(Omx.Command.Flush, index));
             _component.wait_for_flush();
-        }
-
-
-        public void free_buffers()
-        throws Error requires(_buffers != null) {
-            foreach(var buffer in _buffers)
-                try_run(
-                    _component.handle.free_buffer(index, buffer));
-            _buffers = null;
-            _buffers_queue = null;
         }
 
 

@@ -7,9 +7,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <gmodule.h>
-#include <OMX_Core.h>
-#include <OMX_Component.h>
-#include <omx-utils.h>
+#include <omx.h>
 #include <stdio.h>
 
 
@@ -879,21 +877,23 @@ GOmxBufferArray* gomx_buffer_array_construct (GType object_type, guint length);
 guint gomx_port_get_index (GOmxPort* self);
 guint gomx_port_get_buffer_size (GOmxPort* self);
 OMX_BUFFERHEADERTYPE* gomx_buffer_array_get (GOmxBufferArray* self, guint index);
+GType gomx_buffer_array_iterator_get_type (void);
+GOmxBufferArrayIterator* gomx_buffer_array_iterator (GOmxBufferArray* self);
+gboolean gomx_buffer_array_iterator_next (GOmxBufferArrayIterator* self);
+OMX_BUFFERHEADERTYPE* gomx_buffer_array_iterator_get (GOmxBufferArrayIterator* self);
+GOmxComponent* gomx_port_get_component (GOmxPort* self);
+void gomx_port_get_parameter (GOmxPort* self, guint32 param_index, OmxPortStructure* param, GError** error);
+void gomx_port_set_parameter (GOmxPort* self, guint32 param_index, OmxPortStructure* param, GError** error);
 void gomx_port_setup_tunnel_with_port (GOmxPort* self, GOmxPort* port, GError** error);
 void gomx_port_use_buffers_of_port (GOmxPort* self, GOmxPort* port, GError** error);
 void gomx_port_enable (GOmxPort* self, GError** error);
 void gomx_port_flush (GOmxPort* self, GError** error);
 void gomx_port_disable (GOmxPort* self, GError** error);
-GType gomx_buffer_array_iterator_get_type (void);
-GOmxBufferArrayIterator* gomx_buffer_array_iterator (GOmxBufferArray* self);
-gboolean gomx_buffer_array_iterator_next (GOmxBufferArrayIterator* self);
-OMX_BUFFERHEADERTYPE* gomx_buffer_array_iterator_get (GOmxBufferArrayIterator* self);
 gboolean gomx_buffer_is_eos (OMX_BUFFERHEADERTYPE* buffer);
 OMX_BUFFERHEADERTYPE* gomx_port_pop_buffer (GOmxPort* self);
 void gomx_port_push_buffer (GOmxPort* self, OMX_BUFFERHEADERTYPE* buffer, GError** error);
 void gomx_port_set_buffer_done_function (GOmxPort* self, GOmxPortBufferDoneFunc buffer_done_func, void* buffer_done_func_target);
 const char* gomx_port_get_name (GOmxPort* self);
-GOmxComponent* gomx_port_get_component (GOmxPort* self);
 void gomx_port_set_component (GOmxPort* self, GOmxComponent* value);
 GOmxPort* gomx_port_get_supplier (GOmxPort* self);
 GOmxBufferArray* gomx_port_get_buffers (GOmxPort* self);
@@ -3830,6 +3830,83 @@ void gomx_port_allocate_buffers (GOmxPort* self, GError** error) {
 }
 
 
+void gomx_port_free_buffers (GOmxPort* self, GError** error) {
+	GError * _inner_error_;
+	GOmxBufferArray* _tmp0_;
+	GAsyncQueue* _tmp1_;
+	g_return_if_fail (self != NULL);
+	_inner_error_ = NULL;
+	g_return_if_fail ((self->priv->_buffers != NULL) && (self->priv->_component != NULL));
+	{
+		GOmxBufferArrayIterator* _buffer_it;
+		_buffer_it = gomx_buffer_array_iterator (self->priv->_buffers);
+		while (TRUE) {
+			OMX_BUFFERHEADERTYPE* buffer;
+			if (!gomx_buffer_array_iterator_next (_buffer_it)) {
+				break;
+			}
+			buffer = gomx_buffer_array_iterator_get (_buffer_it);
+			gomx_try_run (OMX_FreeBuffer (gomx_component_get_handle (self->priv->_component), gomx_port_get_index (self), buffer), &_inner_error_);
+			if (_inner_error_ != NULL) {
+				if (_inner_error_->domain == GOMX_ERROR) {
+					g_propagate_error (error, _inner_error_);
+					_g_object_unref0 (_buffer_it);
+					return;
+				} else {
+					_g_object_unref0 (_buffer_it);
+					g_critical ("file %s: line %d: uncaught error: %s (%s, %d)", __FILE__, __LINE__, _inner_error_->message, g_quark_to_string (_inner_error_->domain), _inner_error_->code);
+					g_clear_error (&_inner_error_);
+					return;
+				}
+			}
+		}
+		_g_object_unref0 (_buffer_it);
+	}
+	self->priv->_buffers = (_tmp0_ = NULL, _g_object_unref0 (self->priv->_buffers), _tmp0_);
+	self->priv->_buffers_queue = (_tmp1_ = NULL, _g_async_queue_unref0 (self->priv->_buffers_queue), _tmp1_);
+}
+
+
+void gomx_port_get_parameter (GOmxPort* self, guint32 param_index, OmxPortStructure* param, GError** error) {
+	GError * _inner_error_;
+	g_return_if_fail (self != NULL);
+	_inner_error_ = NULL;
+	g_return_if_fail (self->priv->_component != NULL);
+	(*param).nPortIndex = (guint32) gomx_port_get_index (self);
+	gomx_try_run (OMX_GetParameter (gomx_component_get_handle (self->priv->_component), (guint) param_index, param), &_inner_error_);
+	if (_inner_error_ != NULL) {
+		if (_inner_error_->domain == GOMX_ERROR) {
+			g_propagate_error (error, _inner_error_);
+			return;
+		} else {
+			g_critical ("file %s: line %d: uncaught error: %s (%s, %d)", __FILE__, __LINE__, _inner_error_->message, g_quark_to_string (_inner_error_->domain), _inner_error_->code);
+			g_clear_error (&_inner_error_);
+			return;
+		}
+	}
+}
+
+
+void gomx_port_set_parameter (GOmxPort* self, guint32 param_index, OmxPortStructure* param, GError** error) {
+	GError * _inner_error_;
+	g_return_if_fail (self != NULL);
+	_inner_error_ = NULL;
+	g_return_if_fail (self->priv->_component != NULL);
+	(*param).nPortIndex = (guint32) gomx_port_get_index (self);
+	gomx_try_run (OMX_GetParameter (gomx_component_get_handle (self->priv->_component), (guint) param_index, param), &_inner_error_);
+	if (_inner_error_ != NULL) {
+		if (_inner_error_->domain == GOMX_ERROR) {
+			g_propagate_error (error, _inner_error_);
+			return;
+		} else {
+			g_critical ("file %s: line %d: uncaught error: %s (%s, %d)", __FILE__, __LINE__, _inner_error_->message, g_quark_to_string (_inner_error_->domain), _inner_error_->code);
+			g_clear_error (&_inner_error_);
+			return;
+		}
+	}
+}
+
+
 void gomx_port_setup_tunnel_with_port (GOmxPort* self, GOmxPort* port, GError** error) {
 	GError * _inner_error_;
 	g_return_if_fail (self != NULL);
@@ -4034,43 +4111,6 @@ void gomx_port_flush (GOmxPort* self, GError** error) {
 		}
 	}
 	gomx_component_wait_for_flush (self->priv->_component);
-}
-
-
-void gomx_port_free_buffers (GOmxPort* self, GError** error) {
-	GError * _inner_error_;
-	GOmxBufferArray* _tmp0_;
-	GAsyncQueue* _tmp1_;
-	g_return_if_fail (self != NULL);
-	_inner_error_ = NULL;
-	g_return_if_fail (self->priv->_buffers != NULL);
-	{
-		GOmxBufferArrayIterator* _buffer_it;
-		_buffer_it = gomx_buffer_array_iterator (self->priv->_buffers);
-		while (TRUE) {
-			OMX_BUFFERHEADERTYPE* buffer;
-			if (!gomx_buffer_array_iterator_next (_buffer_it)) {
-				break;
-			}
-			buffer = gomx_buffer_array_iterator_get (_buffer_it);
-			gomx_try_run (OMX_FreeBuffer (gomx_component_get_handle (self->priv->_component), gomx_port_get_index (self), buffer), &_inner_error_);
-			if (_inner_error_ != NULL) {
-				if (_inner_error_->domain == GOMX_ERROR) {
-					g_propagate_error (error, _inner_error_);
-					_g_object_unref0 (_buffer_it);
-					return;
-				} else {
-					_g_object_unref0 (_buffer_it);
-					g_critical ("file %s: line %d: uncaught error: %s (%s, %d)", __FILE__, __LINE__, _inner_error_->message, g_quark_to_string (_inner_error_->domain), _inner_error_->code);
-					g_clear_error (&_inner_error_);
-					return;
-				}
-			}
-		}
-		_g_object_unref0 (_buffer_it);
-	}
-	self->priv->_buffers = (_tmp0_ = NULL, _g_object_unref0 (self->priv->_buffers), _tmp0_);
-	self->priv->_buffers_queue = (_tmp1_ = NULL, _g_async_queue_unref0 (self->priv->_buffers_queue), _tmp1_);
 }
 
 
