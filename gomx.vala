@@ -1131,24 +1131,6 @@ namespace GOmx {
         }
 
 
-        public void get_parameter(
-                uint32 param_index, Omx.PortStructure param)
-        throws Error requires(component !=null) {
-            param.port_index = index;
-            GOmx.try_run(
-                _component.handle.get_parameter(param_index, param));
-        }
-
-
-        public void set_parameter(
-                uint32 param_index, Omx.PortStructure param)
-        throws Error requires(component !=null) {
-            param.port_index = index;
-            GOmx.try_run(
-                _component.handle.get_parameter(param_index, param));
-        }
-
-
         public void allocate_buffers()
         throws Error requires(_buffers == null) {
             _buffers = new BufferArray(n_buffers);

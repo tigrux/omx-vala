@@ -15,11 +15,4 @@
 }
 
 
-typedef struct {
-    OMX_U32 nSize;
-    OMX_VERSIONTYPE nVersion;
-    OMX_U32 nPortIndex;
-} OmxPortStructure;
-
-
 #endif
