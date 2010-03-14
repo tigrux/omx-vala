@@ -1100,6 +1100,9 @@ namespace GOmx {
             get {
                 return definition.buffer_size;
             }
+            set {
+                definition.buffer_size = value;
+            }
         }
 
 
