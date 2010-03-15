@@ -651,31 +651,34 @@ namespace GOmx {
 
         protected virtual void free_buffers()
         throws Error requires(_ports != null) {
-            foreach(var p in _ports) {
-                p.get_definition();
-                if(p.populated && p.enabled && p.buffers != null)
-                    p.free_buffers();
-            }
+            foreach(var p in _ports)
+                if(p.buffers != null) {
+                    p.get_definition();
+                    if(p.populated && p.enabled)
+                        p.free_buffers();
+                }
         }
 
 
         public virtual void begin_transfer()
         throws Error requires(_ports != null) {
-            foreach(var p in _ports) {
-                p.get_definition();
-                if(p.populated && p.enabled && p.buffers != null)
-                    p.begin_transfer();
-            }
+            foreach(var p in _ports)
+                if(p.buffers != null) {
+                    p.get_definition();
+                    if(p.populated && p.enabled)
+                        p.begin_transfer();
+                }
         }
 
 
         public virtual void flush()
         throws Error requires(_ports != null) {
-            foreach(var p in _ports) {
-                p.get_definition();
-                if(p.populated && p.enabled && p.buffers != null)
-                    p.flush();
-            }
+            foreach(var p in _ports)
+                if(p.buffers != null) {
+                    p.get_definition();
+                    if(p.populated && p.enabled)
+                        p.flush();
+                }
         }
 
 
@@ -701,6 +704,7 @@ namespace GOmx {
             _pending_state = state;
             try_run(
                 _handle.send_command(Omx.Command.StateSet, state));
+
             if(_current_state == Omx.State.Loaded &&
                _pending_state == Omx.State.Idle)
                 allocate_buffers();
@@ -1002,7 +1006,8 @@ namespace GOmx {
         AsyncQueue<Omx.BufferHeader> _buffers_queue;
         bool _eos;
         BufferDoneFunc _buffer_done_func;
-        Port _supplier;
+        weak Port _supplier;
+        weak Port _peer;
 
         public delegate void BufferDoneFunc(Port port, Omx.BufferHeader buffer);
 
@@ -1030,6 +1035,12 @@ namespace GOmx {
             }
         }
 
+
+        public weak Port? peer {
+            get {
+                return _peer;
+            }
+        }
 
         public BufferArray buffers {
             get {
@@ -1230,8 +1241,9 @@ namespace GOmx {
             _component.core.setup_tunnel(
                 _component.handle, index,
                 port._component.handle, port.index);
-            no_allocate_buffers = true;
-            port.no_allocate_buffers = true;
+            _no_allocate_buffers = true;
+            port._no_allocate_buffers = true;
+            _peer = port;
         }
 
 

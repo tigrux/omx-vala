@@ -24,9 +24,7 @@ gstgomx.c: gstgomx.vala gomx.vapi omx.vapi
 	touch $@
 
 
-gomx.vapi: gomx.c
-
-gomx.c: gomx.vala omx.vapi
+gomx.c gomx.vapi: gomx.vala omx.vapi
 	valac $^ --vapi=gomx.vapi -H gomx.h $(VALAFLAGS)
 	touch $@
 
