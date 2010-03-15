@@ -290,6 +290,13 @@ namespace GOmx {
         }
 
 
+        public void flush()
+        throws Error {
+            foreach(var component in _components_list)
+                component.flush();
+        }
+
+
         public void free_handles()
         throws Error {
             foreach(var component in _components_list)
@@ -646,10 +653,8 @@ namespace GOmx {
         throws Error requires(_ports != null) {
             foreach(var p in _ports) {
                 p.get_definition();
-                if(p.populated && p.enabled && p.buffers != null) {
-                    print("Releasing %s", p.name);
+                if(p.populated && p.enabled && p.buffers != null)
                     p.free_buffers();
-                }
             }
         }
 
@@ -660,6 +665,16 @@ namespace GOmx {
                 p.get_definition();
                 if(p.populated && p.enabled && p.buffers != null)
                     p.begin_transfer();
+            }
+        }
+
+
+        public virtual void flush()
+        throws Error requires(_ports != null) {
+            foreach(var p in _ports) {
+                p.get_definition();
+                if(p.populated && p.enabled && p.buffers != null)
+                    p.flush();
             }
         }
 
@@ -689,6 +704,11 @@ namespace GOmx {
             if(_current_state == Omx.State.Loaded &&
                _pending_state == Omx.State.Idle)
                 allocate_buffers();
+            else
+            if(_current_state == Omx.State.Executing &&
+               _pending_state == Omx.State.Idle)
+                flush();
+            else
             if(_current_state == Omx.State.Idle) {
                 if(_pending_state == Omx.State.Executing)
                     begin_transfer();
