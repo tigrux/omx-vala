@@ -43,6 +43,7 @@ public void play(string filename) throws FileError, GOmx.Error {
 
     core.init();
     engine.components.init();
+    //decoder.ports[1].tunnel(sink.ports[0]);
     engine.components.set_state_and_wait(Omx.State.Idle);
     engine.components.set_state_and_wait(Omx.State.Executing);
 
@@ -76,6 +77,7 @@ public void play(string filename) throws FileError, GOmx.Error {
 
     engine.components.set_state_and_wait(Omx.State.Idle);
     engine.components.set_state_and_wait(Omx.State.Loaded);
+
     engine.components.free_handles();
     core.deinit();
 }

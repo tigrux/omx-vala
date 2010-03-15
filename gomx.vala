@@ -269,20 +269,22 @@ namespace GOmx {
         public void set_state_and_wait(Omx.State state)
         throws Error {
             foreach(var component in _components_list)
-                component.set_state_and_wait(state);
+                component.set_state(state);
+            foreach(var component in _components_list)
+                component.wait_for_state();                
         }
 
 
-        public void wait_for_state_set() {
+        public void wait_for_state() {
             foreach(var component in _components_list)
                 component.wait_for_state();
         }
 
 
-        public void buffers_begin_transfer()
+        public void begin_transfer()
         throws Error {
             foreach(var component in _components_list) {
-                component.buffers_begin_transfer();
+                component.begin_transfer();
                 break;
             }
         }
@@ -633,24 +635,32 @@ namespace GOmx {
 
         protected virtual void allocate_buffers()
         throws Error requires(_ports != null) {
-            foreach(var port in _ports) {
-                if(!port.no_allocate_buffers)
-                    port.allocate_buffers();
+            foreach(var p in _ports) {
+                if(!p.no_allocate_buffers)
+                    p.allocate_buffers();
             }
         }
 
 
         protected virtual void free_buffers()
         throws Error requires(_ports != null) {
-            foreach(var port in _ports)
-                port.free_buffers();
+            foreach(var p in _ports) {
+                p.get_definition();
+                if(p.populated && p.enabled && p.buffers != null) {
+                    print("Releasing %s", p.name);
+                    p.free_buffers();
+                }
+            }
         }
 
 
-        public virtual void buffers_begin_transfer()
+        public virtual void begin_transfer()
         throws Error requires(_ports != null) {
-            foreach(var port in _ports)
-                port.buffers_begin_transfer();
+            foreach(var p in _ports) {
+                p.get_definition();
+                if(p.populated && p.enabled && p.buffers != null)
+                    p.begin_transfer();
+            }
         }
 
 
@@ -679,14 +689,13 @@ namespace GOmx {
             if(_current_state == Omx.State.Loaded &&
                _pending_state == Omx.State.Idle)
                 allocate_buffers();
-            else
-            if(_current_state == Omx.State.Idle &&
-               _pending_state == Omx.State.Executing)
-                buffers_begin_transfer();
-            else
-            if(_current_state == Omx.State.Idle &&
-               _pending_state == Omx.State.Loaded)
-                free_buffers();
+            if(_current_state == Omx.State.Idle) {
+                if(_pending_state == Omx.State.Executing)
+                    begin_transfer();
+                else
+                if(_pending_state == Omx.State.Loaded)
+                    free_buffers();
+            }
         }
 
 
@@ -1196,11 +1205,13 @@ namespace GOmx {
         }
 
 
-        public void setup_tunnel_with_port(Port port)
+        public void tunnel(Port port)
         throws Error requires(_component != null) {
             _component.core.setup_tunnel(
                 _component.handle, index,
                 port._component.handle, port.index);
+            no_allocate_buffers = true;
+            port.no_allocate_buffers = true;
         }
 
 
@@ -1212,7 +1223,7 @@ namespace GOmx {
                 _component.handle.send_command(Omx.Command.PortEnable, index));
             allocate_buffers();
             if(_component.current_state != Omx.State.Loaded)
-                buffers_begin_transfer();
+                begin_transfer();
             _component.wait_for_port();
             get_definition();
         }
@@ -1278,7 +1289,7 @@ namespace GOmx {
         }
 
 
-        public void buffers_begin_transfer()
+        public void begin_transfer()
         throws Error {
             switch(definition.dir) {
                 case Omx.Dir.Output:
