@@ -1008,6 +1008,7 @@ namespace GOmx {
         BufferDoneFunc _buffer_done_func;
         weak Port _supplier;
         weak Port _peer;
+        bool _tunneled;
 
         public delegate void BufferDoneFunc(Port port, Omx.BufferHeader buffer);
 
@@ -1041,6 +1042,14 @@ namespace GOmx {
                 return _peer;
             }
         }
+
+
+        public bool tunneled {
+            get {
+                return _tunneled;
+            }
+        }
+
 
         public BufferArray buffers {
             get {
@@ -1236,14 +1245,14 @@ namespace GOmx {
         }
 
 
-        public void tunnel(Port port)
+        public void tunnel(Port input_port)
         throws Error requires(_component != null) {
             _component.core.setup_tunnel(
                 _component.handle, index,
-                port._component.handle, port.index);
-            _no_allocate_buffers = true;
-            port._no_allocate_buffers = true;
-            _peer = port;
+                input_port._component.handle, input_port.index);
+            _peer = input_port;
+            input_port._no_allocate_buffers = _no_allocate_buffers = true;
+            input_port._tunneled = _tunneled = true;
         }
 
 
