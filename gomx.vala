@@ -200,7 +200,7 @@ namespace GOmx {
 
 
         public virtual void add_component(Component component) {
-            component.queue = _port_queue.queue;
+            component.queue = _port_queue;
             if(component.name == "" || component.name == null)
                 component.name =
                     "%s%u".printf(component.component_name, component.id);
@@ -333,6 +333,7 @@ namespace GOmx {
 
     public class PortDoneQueue: Object {
         AsyncQueue<Port> _queue;
+        bool _eos;
 
 
         construct {
@@ -347,27 +348,41 @@ namespace GOmx {
         }
 
 
+        internal void set_eos(bool eos) {
+            _eos = eos;
+        }
+
+
+        public void push(Port port) {
+            _queue.push(port);
+        }
+
+
+        public Port pop() {
+            return _queue.pop();
+        }
+
+
         public Iterator iterator() {
             return new Iterator(this);
         }
 
 
         public class Iterator: Object {
-            AsyncQueue<Port> _ports_queue;
-            bool _eos_found;
+            PortDoneQueue _ports_queue;
 
             public Iterator(PortDoneQueue queue) {
-                _ports_queue = queue._queue;
+                _ports_queue = queue;
             }
 
             public bool next() {
-                return !_eos_found;
+                return !_ports_queue._eos;
             }
 
             public new Port get() {
                 var port = _ports_queue.pop();
                 if(port.eos) {
-                    _eos_found = true;
+                    _ports_queue._eos = true;
                 }
                 return port;
             }
@@ -431,7 +446,7 @@ namespace GOmx {
         Semaphore _wait_for_port_sem;
         Semaphore _wait_for_flush_sem;
 
-        weak AsyncQueue<Port> _ports_queue;
+        PortDoneQueue _ports_queue;
         PortArray _ports;
 
 
@@ -482,7 +497,7 @@ namespace GOmx {
         }
 
 
-        public weak AsyncQueue<Port>? queue {
+        public weak PortDoneQueue? queue {
             get {
                 return _ports_queue;
             }
@@ -662,6 +677,8 @@ namespace GOmx {
 
         public virtual void begin_transfer()
         throws Error requires(_ports != null) {
+            if(_ports_queue != null);
+                _ports_queue.set_eos(false);
             foreach(var p in _ports)
                 if(p.buffers != null) {
                     p.get_definition();
@@ -868,8 +885,11 @@ namespace GOmx {
                     break;
 
                 case Omx.Event.BufferFlag:
-                    if((data2 & Omx.BufferFlag.EOS) != 0)
-                        ports[data1].set_eos();
+                    if((data2 & Omx.BufferFlag.EOS) != 0) {
+                        ports[data1].set_eos(true);
+                        if(_ports_queue != null)
+                            _ports_queue.set_eos(true);
+                    }
                     if(_event_func_4 != null)
                         _event_func_4(this, data1, data2, event_data);
                     break;
@@ -1291,15 +1311,15 @@ namespace GOmx {
         }
 
 
-        internal void set_eos() {
-            _eos = true;
+        internal void set_eos(bool eos) {
+            _eos = eos;
         }
 
 
         public Omx.BufferHeader pop_buffer() {
             var buffer = _buffers_queue.pop();
             if(buffer_is_eos(buffer))
-                set_eos();
+                set_eos(true);
             return buffer;
         }
 
@@ -1332,6 +1352,7 @@ namespace GOmx {
 
         public void begin_transfer()
         throws Error {
+            set_eos(false);
             switch(definition.dir) {
                 case Omx.Dir.Output:
                     push_buffer(pop_buffer());
