@@ -677,7 +677,7 @@ namespace GOmx {
 
         public virtual void begin_transfer()
         throws Error requires(_ports != null) {
-            if(_ports_queue != null);
+            if(_ports_queue != null)
                 _ports_queue.set_eos(false);
             foreach(var p in _ports)
                 if(p.buffers != null) {
