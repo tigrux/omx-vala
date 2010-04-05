@@ -39,7 +39,7 @@ namespace GOmx {
         }
 
 
-        new weak Core? get(string library_name) {
+        new unowned Core? get(string library_name) {
             return _core_table.lookup(library_name);
         }
 
@@ -212,7 +212,7 @@ namespace GOmx {
         }
 
 
-        public new weak Component get(string name) {
+        public new unowned Component get(string name) {
             return _components_table.lookup(name);
         }
 
@@ -304,7 +304,7 @@ namespace GOmx {
         }
 
 
-        public new weak Component get(uint index)
+        public new unowned Component get(uint index)
         requires(index < _length) {
             return _components_list.nth_data(index);
         }
@@ -1492,22 +1492,22 @@ namespace GOmx {
 
 ////////////////////////////////////////////////////////////////////////////////
 
-    public weak string command_to_string(Omx.Command command) {
+    public unowned string command_to_string(Omx.Command command) {
         return command.to_string();
     }
 
 
-    public weak string state_to_string(Omx.State state) {
+    public unowned string state_to_string(Omx.State state) {
         return state.to_string();
     }
 
 
-    public weak string event_to_string(Omx.Event event) {
+    public unowned string event_to_string(Omx.Event event) {
         return event.to_string();
     }
 
 
-    public weak string error_to_string(Omx.Error error) {
+    public unowned string error_to_string(Omx.Error error) {
         return error.to_string();
     }
 

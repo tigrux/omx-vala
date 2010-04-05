@@ -14,7 +14,7 @@ namespace Omx {
         PortEnable,
         MarkBuffer;
 
-        public weak string to_string() {
+        public unowned string to_string() {
             switch(this) {
                 case StateSet:
                     return "Change the component state";
@@ -41,7 +41,7 @@ namespace Omx {
         Pause,
         WaitForResources;
 
-        public weak string to_string() {
+        public unowned string to_string() {
             switch(this) {
                 case Invalid:
                     return "Component is corrupt or has encountered an error from which it cannot recover";
@@ -103,7 +103,7 @@ namespace Omx {
         SeparateTablesUsed,
         TunnelingUnsupported;
 
-        public weak string to_string() {
+        public unowned string to_string() {
             switch(this) {
                 case None:
                     return "The function returned successfully";
@@ -288,7 +288,7 @@ namespace Omx {
         DynamicResourcesAvailable,
         PortFormatDetected;
 
-        public weak string to_string() {
+        public unowned string to_string() {
             switch(this) {
                 case CmdComplete:
                     return "Component has completed the execution of a command";
@@ -434,7 +434,7 @@ namespace Omx {
         Input,
         Output;
 
-        public weak string to_string() {
+        public unowned string to_string() {
             switch(this) {
                 case Input:
                     return "Input";
@@ -1208,7 +1208,7 @@ namespace Omx {
             Dual,
             Mono;
 
-            public weak string to_string() {
+            public unowned string to_string() {
                 switch(this) {
                     case Stereo:
                         return "Stereo";
@@ -1399,7 +1399,7 @@ namespace Omx {
             AVC,
             MJPEG;
             
-            public weak string to_string() {
+            public unowned string to_string() {
                 switch(this) {
                     case Unused:
                         return "Unused";
@@ -1756,7 +1756,7 @@ namespace Omx {
             LZW,
             BMP;
 
-            public weak string to_string() {
+            public unowned string to_string() {
                 switch(this) {
                     case Unused:
                         return "Unused";
