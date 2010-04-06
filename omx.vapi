@@ -224,7 +224,7 @@ namespace Omx {
         [CCode (cname="nVersion")]
         public Version version;
 
-        [CCode (cname="pBuffer",array_length_cname = "nAllocLen")]
+        [CCode (cname="pBuffer", array_length_cname = "nAllocLen")]
         public uint8[] buffer;
 
         [CCode (cname="nFilledLen")]
