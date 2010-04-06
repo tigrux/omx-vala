@@ -71,27 +71,8 @@ namespace GstGOmx {
         Gst.StateChangeReturn change_state(Gst.StateChange transition) {
             switch (transition) {
                 case Gst.StateChange.NULL_TO_READY:
-                    try {
-                        var core = GOmx.load_library(component.library_name);
-                        core.init();
-                        component.init();
-                        input_port = component.ports[0];
-                        output_port = component.ports[1];
-                        configure_input();
-                    }
-                    catch(Error e) {
-                        print("%s\n", e.message);
-                        return Gst.StateChangeReturn.FAILURE;
-                    }
                     break;
                 case Gst.StateChange.READY_TO_PAUSED:
-                    try {
-                        component.set_state_and_wait(Omx.State.Idle);
-                    }
-                    catch(Error e) {
-                        print("%s\n", e.message);
-                        return Gst.StateChangeReturn.FAILURE;
-                    }
                     break;
                 default:
                     break;
@@ -147,6 +128,13 @@ namespace GstGOmx {
         Gst.FlowReturn sink_pad_chain(Gst.Pad pad, owned Gst.Buffer buffer) {
             try {
                 if(!chained) {
+                    var core = GOmx.load_library(component.library_name);
+                    core.init();
+                    component.init();
+                    input_port = component.ports[0];
+                    output_port = component.ports[1];
+                    configure_input();
+                    component.set_state_and_wait(Omx.State.Idle);
                     component.set_state_and_wait(Omx.State.Executing);
                     src_pad.start_task(src_pad_task);
                     chained = true;
