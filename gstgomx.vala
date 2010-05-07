@@ -239,7 +239,7 @@ namespace GstGOmx {
             gst_buffer.duration =
                 (Gst.ClockTime)Gst.util_uint64_scale(
                     Gst.SECOND, omx_buffer.length,
-                        channels*rate*BITS_PER_SAMPLE/2);
+                        channels*rate*BITS_PER_SAMPLE/8);
             gst_buffer.timestamp = last_ts;
             last_ts += gst_buffer.duration;
             return gst_buffer;
