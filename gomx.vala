@@ -726,13 +726,13 @@ namespace GOmx {
             try_run(
                 _handle.send_command(Omx.Command.StateSet, state));
 
-            if(safe_current_state == Omx.State.Loaded &&
-               safe_pending_state == Omx.State.Idle)
-                allocate_buffers();
-            else
-            if(safe_current_state == Omx.State.Executing &&
-               safe_pending_state == Omx.State.Idle)
-                flush();
+            if(safe_pending_state == Omx.State.Idle) {
+                if(safe_current_state == Omx.State.Loaded)
+                    allocate_buffers();
+                else
+                if(safe_current_state == Omx.State.Executing)
+                    flush();
+            }
             else
             if(safe_current_state == Omx.State.Idle) {
                 if(safe_pending_state == Omx.State.Executing)
