@@ -719,22 +719,26 @@ namespace GOmx {
         throws Error requires(_handle != null) {
             try_run(can_set_state(state));
             _pending_state = state;
+            
+            var safe_current_state = _current_state;
+            var safe_pending_state = _pending_state;
+            
             try_run(
                 _handle.send_command(Omx.Command.StateSet, state));
 
-            if(_current_state == Omx.State.Loaded &&
-               _pending_state == Omx.State.Idle)
+            if(safe_current_state == Omx.State.Loaded &&
+               safe_pending_state == Omx.State.Idle)
                 allocate_buffers();
             else
-            if(_current_state == Omx.State.Executing &&
-               _pending_state == Omx.State.Idle)
+            if(safe_current_state == Omx.State.Executing &&
+               safe_pending_state == Omx.State.Idle)
                 flush();
             else
-            if(_current_state == Omx.State.Idle) {
-                if(_pending_state == Omx.State.Executing)
+            if(safe_current_state == Omx.State.Idle) {
+                if(safe_pending_state == Omx.State.Executing)
                     begin_transfer();
                 else
-                if(_pending_state == Omx.State.Loaded)
+                if(safe_pending_state == Omx.State.Loaded)
                     free_buffers();
             }
         }
