@@ -78,7 +78,6 @@ namespace GstGOmx {
                     break;
             }
 
-
             if(base.change_state(transition) == Gst.StateChangeReturn.FAILURE)
                 return Gst.StateChangeReturn.FAILURE;
 
