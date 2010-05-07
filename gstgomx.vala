@@ -8,6 +8,7 @@ namespace GstGOmx {
         GOmx.Port input_port;
         GOmx.Port output_port;
         
+        const int BITS_PER_SAMPLE = 16;
 
         class construct {
             set_details_simple(
@@ -23,8 +24,8 @@ namespace GstGOmx {
                     new Gst.Caps.simple(
                         "audio/x-raw-int",
                         "endianness", typeof(int), ByteOrder.HOST,
-                        "width", typeof(int), 16,
-                        "depth", typeof(int), 16,
+                        "width", typeof(int), BITS_PER_SAMPLE,
+                        "depth", typeof(int), BITS_PER_SAMPLE,
                         "rate", typeof(Gst.IntRange), 8000, 96000,
                         "signed", typeof(bool), true,
                         "channels", typeof(Gst.IntRange), 1, 2,
@@ -123,6 +124,7 @@ namespace GstGOmx {
 
 
         bool chained;
+        Gst.ClockTime last_ts;
 
         Gst.FlowReturn sink_pad_chain(Gst.Pad pad, owned Gst.Buffer buffer) {
             try {
@@ -140,6 +142,7 @@ namespace GstGOmx {
                 }
 
                 var omx_buffer = input_port.pop_buffer();
+                last_ts = buffer.timestamp;
                 omx_buffer.offset = 0;
                 omx_buffer.length = buffer.data.length;
                 Memory.copy(omx_buffer.buffer, buffer.data, buffer.data.length);
@@ -233,6 +236,12 @@ namespace GstGOmx {
                 gst_buffer.ref();
             }
             gst_buffer.data.length = (int)omx_buffer.length;
+            gst_buffer.duration =
+                (Gst.ClockTime)Gst.util_uint64_scale(
+                    Gst.SECOND, omx_buffer.length,
+                        channels*rate*BITS_PER_SAMPLE/2);
+            gst_buffer.timestamp = last_ts;
+            last_ts += gst_buffer.duration;
             return gst_buffer;
         }
 
@@ -257,8 +266,8 @@ namespace GstGOmx {
                 new Gst.Caps.simple(
                     "audio/x-raw-int",
                     "endianness", typeof(int), ByteOrder.HOST,
-                    "width", typeof(int), 16,
-                    "depth", typeof(int), 16,
+                    "width", typeof(int), BITS_PER_SAMPLE,
+                    "depth", typeof(int), BITS_PER_SAMPLE,
                     "rate", typeof(int), pcm_param.sampling_rate,
                     "signed", typeof(bool), true,
                     "channels", typeof(int), pcm_param.channels,
