@@ -158,7 +158,7 @@ namespace GstGOmx {
 
 
         bool sink_pad_event(Gst.Pad pad, owned Gst.Event event) {
-            switch(event.type()) {
+            switch(event.type) {
                 case Gst.EventType.EOS:
                     return sink_pad_event_eos(pad, event);
                 default:
